@@ -20,9 +20,11 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         hideSystemUi()
+
         val assetLoader = WebViewAssetLoader.Builder()
             .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(this))
             .build()
+
         webView = WebView(this).apply {
             setBackgroundColor(android.graphics.Color.rgb(7, 19, 29))
             settings.javaScriptEnabled = true
@@ -32,8 +34,12 @@ class MainActivity : Activity() {
             webViewClient = object : WebViewClient() {
                 override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?) =
                     request?.let { assetLoader.shouldInterceptRequest(it.url) }
-                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean =
-                    request?.url?.host != "appassets.androidplatform.net"
+                override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
+                    val host = request?.url?.host ?: return true
+                    return host != "appassets.androidplatform.net" &&
+                        host != "www.aljazeera.net" && host != "aljazeera.net" &&
+                        host != "pixabay.com" && host != "www.pixabay.com"
+                }
             }
             webChromeClient = WebChromeClient()
         }
@@ -42,13 +48,18 @@ class MainActivity : Activity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        if (event.action == KeyEvent.ACTION_DOWN) when (event.keyCode) {
-            KeyEvent.KEYCODE_DPAD_LEFT -> { sendKey("ArrowLeft"); return true }
-            KeyEvent.KEYCODE_DPAD_RIGHT -> { sendKey("ArrowRight"); return true }
-            KeyEvent.KEYCODE_DPAD_UP -> { sendKey("ArrowUp"); return true }
-            KeyEvent.KEYCODE_DPAD_DOWN -> { sendKey("ArrowDown"); return true }
-            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> { sendKey("Enter"); return true }
-            KeyEvent.KEYCODE_BACK -> { sendKey("Escape"); return true }
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            when (event.keyCode) {
+                KeyEvent.KEYCODE_DPAD_LEFT -> { sendKey("ArrowLeft"); return true }
+                KeyEvent.KEYCODE_DPAD_RIGHT -> { sendKey("ArrowRight"); return true }
+                KeyEvent.KEYCODE_DPAD_UP -> { sendKey("ArrowUp"); return true }
+                KeyEvent.KEYCODE_DPAD_DOWN -> { sendKey("ArrowDown"); return true }
+                KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> { sendKey("Enter"); return true }
+                KeyEvent.KEYCODE_BACK -> {
+                    if (::webView.isInitialized && webView.canGoBack()) webView.goBack() else sendKey("Escape")
+                    return true
+                }
+            }
         }
         return super.dispatchKeyEvent(event)
     }
