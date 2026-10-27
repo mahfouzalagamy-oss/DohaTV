@@ -1,0 +1,32 @@
+import org.gradle.api.tasks.Copy
+
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace = "qa.dohatv.app"
+    compileSdk = 35
+
+    defaultConfig {
+        applicationId = "qa.dohatv.app"
+        minSdk = 23
+        targetSdk = 28
+        versionCode = 1
+        versionName = "1.0.0"
+    }
+}
+
+dependencies {
+    implementation("androidx.webkit:webkit:1.12.1")
+}
+
+val syncWebAssets by tasks.registering(Copy::class) {
+    from(rootProject.projectDir) {
+        include("index.html", "styles.css", "app.js", "manifest.webmanifest", "favicon.svg", "sw.js")
+    }
+    into(layout.projectDirectory.dir("src/main/assets"))
+}
+
+tasks.named("preBuild").configure { dependsOn(syncWebAssets) }
