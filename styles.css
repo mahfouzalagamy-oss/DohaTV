@@ -8,8 +8,9 @@
     --accent-red: #ff3b30;
     --accent-cyan: #00e5ff;
     --accent-green: #2ecc71;
+    --focus-border: #00e5ff;
+    --focus-shadow: rgba(0, 229, 255, 0.5);
     --ticker-bg: #0d121d;
-    --header-bg: #111723;
 }
 
 /* Theme 1: Default Modern Dark */
@@ -22,6 +23,8 @@ body.theme-dark {
     --accent-gold: #ffc107;
     --accent-red: #ff3b30;
     --accent-cyan: #00e5ff;
+    --focus-border: #00e5ff;
+    --focus-shadow: rgba(0, 229, 255, 0.5);
     --ticker-bg: #0d121d;
 }
 
@@ -35,6 +38,8 @@ body.theme-islamic {
     --accent-gold: #e5b842;
     --accent-red: #d94336;
     --accent-cyan: #4ce0b8;
+    --focus-border: #e5b842;
+    --focus-shadow: rgba(229, 184, 66, 0.5);
     --ticker-bg: #081d18;
 }
 
@@ -48,6 +53,8 @@ body.theme-emerald {
     --accent-gold: #ffd166;
     --accent-red: #ef476f;
     --accent-cyan: #06d6a0;
+    --focus-border: #06d6a0;
+    --focus-shadow: rgba(6, 214, 160, 0.5);
     --ticker-bg: #111d2e;
 }
 
@@ -73,6 +80,16 @@ html, body {
     height: 100vh;
     padding: 12px 16px;
     gap: 10px;
+}
+
+/* TV Remote Focus Styling */
+.tv-nav:focus, .tv-nav-card:focus, .tv-nav-select:focus, button:focus, select:focus {
+    outline: none !important;
+    border-color: var(--focus-border) !important;
+    box-shadow: 0 0 16px var(--focus-shadow) !important;
+    transform: scale(1.02);
+    z-index: 10;
+    transition: all 0.2s ease-in-out;
 }
 
 /* Header */
@@ -108,6 +125,33 @@ html, body {
     gap: 12px;
 }
 
+.control-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+.muazzin-selector {
+    display: flex;
+    align-items: center;
+}
+
+.tv-nav-select {
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+}
+
+.tv-nav-select option {
+    background-color: var(--card-bg);
+    color: var(--text-main);
+}
+
 .theme-selector {
     display: flex;
     gap: 6px;
@@ -122,10 +166,6 @@ html, body {
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s ease;
-}
-
-.theme-btn:hover, .azan-btn:hover {
-    background-color: rgba(255, 255, 255, 0.15);
 }
 
 .theme-btn.active {
@@ -201,9 +241,7 @@ html, body {
     overflow-y: auto;
 }
 
-/* Card Specific Layouts */
-
-/* 1. Large Clock Card (Top Left) */
+/* 1. Large Clock Card */
 .card-clock {
     grid-column: span 1;
     grid-row: span 1;
@@ -236,7 +274,7 @@ html, body {
     color: var(--accent-gold);
 }
 
-/* 2. Prayer Card (Top Spans 2 cols) */
+/* 2. Prayer Card */
 .card-prayer {
     grid-column: span 2;
     grid-row: span 1;
@@ -335,7 +373,6 @@ blockquote {
 .card-dhikr {
     grid-column: span 1;
     grid-row: span 1;
-    position: relative;
 }
 
 .dhikr-timer-badge {
@@ -361,7 +398,7 @@ blockquote {
     margin-top: 6px;
 }
 
-/* 6. Matches Card (Middle Right spans 2 rows) */
+/* 6. Matches Card */
 .card-matches {
     grid-column: span 1;
     grid-row: span 2;
@@ -445,40 +482,34 @@ blockquote {
     font-weight: bold;
 }
 
-/* 8. Ramadan Card */
-.card-ramadan {
+/* 8. Compact Ramadan Card (Days Only) */
+.card-ramadan-compact {
     grid-column: span 1;
     grid-row: span 1;
+    text-align: center;
 }
 
-.ramadan-timer {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    flex: 1;
-}
-
-.timer-box {
+.ramadan-days-only {
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--card-border);
-    border-radius: 6px;
-    padding: 4px 8px;
-    min-width: 45px;
+    justify-content: center;
+    flex: 1;
+    gap: 2px;
 }
 
-.timer-box span {
-    font-size: 18px;
+.days-count {
+    font-size: 34px;
     font-weight: 800;
     color: var(--accent-cyan);
     font-family: monospace, sans-serif;
+    line-height: 1;
 }
 
-.timer-box label {
-    font-size: 10px;
-    color: var(--text-muted);
+.days-label {
+    font-size: 12px;
+    color: var(--accent-gold);
+    font-weight: bold;
 }
 
 /* Ticker Footer */
@@ -511,7 +542,7 @@ blockquote {
 #aljazeera-news-text {
     display: inline-block;
     padding-left: 100%;
-    animation: ticker 40s linear infinite;
+    animation: ticker 45s linear infinite;
     font-size: 14px;
     color: var(--accent-gold);
 }
@@ -521,7 +552,51 @@ blockquote {
     100% { transform: translate3d(-100%, 0, 0); }
 }
 
-/* Responsive Scaling for TV and displays */
+/* 15-Minute Screensaver Mode */
+.screensaver-mode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #04060a;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--text-main);
+    text-align: center;
+}
+
+.screensaver-content {
+    animation: pulseGlow 4s infinite alternate;
+}
+
+.screensaver-clock {
+    font-size: 80px;
+    font-weight: 800;
+    color: var(--accent-gold);
+    font-family: monospace, sans-serif;
+}
+
+.screensaver-date {
+    font-size: 22px;
+    color: var(--accent-cyan);
+    margin-top: 10px;
+}
+
+.screensaver-msg {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-top: 25px;
+}
+
+@keyframes pulseGlow {
+    from { opacity: 0.7; transform: scale(0.98); }
+    to { opacity: 1; transform: scale(1.02); }
+}
+
+/* Responsive Scaling */
 @media (max-width: 1024px) {
     .tv-grid {
         grid-template-columns: repeat(2, 1fr);

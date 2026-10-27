@@ -3,7 +3,9 @@ let azanEnabled = true;
 let dhikrSecondsLeft = 60;
 let dhikrIndex = 0;
 let prayerTimings = null;
-let currentHijriDateStr = "";
+let selectedMuazzinUrl = "";
+let idleTimer = null;
+const IDLE_LIMIT = 15 * 60 * 1000; // 15 Minutes Idle
 
 // List of Authentic Rotating Dhikr
 const rotatingDhikrList = [
@@ -22,18 +24,20 @@ const rotatingDhikrList = [
 // Initialize Dashboard
 function initDashboard() {
     setupThemeAndAudioControls();
+    setupRemoteNavigation();
+    setupIdleScreensaver();
     startClockAndTimers();
     updateDailyContent();
     fetchPrayerTimes();
     fetchWeatherForecast();
     fetchTodayMatches();
-    fetchAlJazeeraTextNews();
+    fetchArabicWorldNews();
 
     // Dhikr Rotation Timer (Every Second)
     setInterval(updateDhikrRotation, 1000);
 }
 
-// 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown
+// 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown (Days Only)
 function startClockAndTimers() {
     function updateClock() {
         const now = new Date();
@@ -43,12 +47,20 @@ function startClockAndTimers() {
 
         document.getElementById('large-clock').innerText = `${hrs}:${mins}:${secs}`;
 
+        // Screensaver Clock
+        const screensaverClock = document.getElementById('screensaver-clock');
+        if (screensaverClock) screensaverClock.innerText = `${hrs}:${mins}`;
+
         // Gregorian Date
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        document.getElementById('gregorian-date').innerText = now.toLocaleDateString('ar-QA', options);
+        const gregDateStr = now.toLocaleDateString('ar-QA', options);
+        document.getElementById('gregorian-date').innerText = gregDateStr;
 
-        // Update Ramadan Countdown
-        updateRamadanCountdown(now);
+        const screensaverDate = document.getElementById('screensaver-date');
+        if (screensaverDate) screensaverDate.innerText = gregDateStr;
+
+        // Update Ramadan Countdown (Days Only)
+        updateRamadanCountdownDays(now);
 
         // Check Prayer Times every second
         if (prayerTimings) {
@@ -60,10 +72,8 @@ function startClockAndTimers() {
     setInterval(updateClock, 1000);
 }
 
-function updateRamadanCountdown(now) {
-    // Ramadan Target (Approximate or Next Ramadan date)
+function updateRamadanCountdownDays(now) {
     let ramadanYear = now.getFullYear();
-    // Assuming next Ramadan start estimated date
     let ramadanTarget = new Date(`${ramadanYear}-02-28T00:00:00`);
     if (now > ramadanTarget) {
         ramadanTarget = new Date(`${ramadanYear + 1}-02-18T00:00:00`);
@@ -71,17 +81,10 @@ function updateRamadanCountdown(now) {
 
     const diff = ramadanTarget - now;
     if (diff > 0) {
-        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((diff / 1000 / 60) % 60);
-        const seconds = Math.floor((diff / 1000) % 60);
-
-        document.getElementById('ramadan-days').innerText = String(days).padStart(2, '0');
-        document.getElementById('ramadan-hours').innerText = String(hours).padStart(2, '0');
-        document.getElementById('ramadan-minutes').innerText = String(minutes).padStart(2, '0');
-        document.getElementById('ramadan-seconds').innerText = String(seconds).padStart(2, '0');
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        document.getElementById('ramadan-days-value').innerText = String(days);
     } else {
-        document.getElementById('ramadan-countdown').innerHTML = "<div style='color: var(--accent-gold); font-weight: bold;'>رمضان مبارك! تقبل الله منا ومنكم 🌙</div>";
+        document.getElementById('ramadan-countdown-days').innerHTML = "<span class='days-label' style='color: var(--accent-gold);'>رمضان مبارك! 🌙</span>";
     }
 }
 
@@ -113,7 +116,6 @@ function updateDailyContent() {
     ];
     document.getElementById('daily-hadith').innerText = ahadith[dayIndex % ahadith.length];
 
-    // Sub Adhkar based on time of day
     const hours = new Date().getHours();
     if (hours >= 5 && hours <= 11) {
         document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
@@ -145,10 +147,9 @@ async function fetchPrayerTimes() {
             prayerTimings = data.data.timings;
             const hijri = data.data.date.hijri;
 
-            // Set Hijri Date Display
             const hijriMonthAr = hijri.month.ar;
-            currentHijriDateStr = `${hijri.day} ${hijriMonthAr} ${hijri.year} هـ`;
-            document.getElementById('hijri-date').innerText = currentHijriDateStr;
+            const hijriStr = `${hijri.day} ${hijriMonthAr} ${hijri.year} هـ`;
+            document.getElementById('hijri-date').innerText = hijriStr;
 
             renderPrayerTimes();
         }
@@ -193,7 +194,6 @@ function checkCurrentAndNextPrayer(now) {
         { name: 'العشاء', time: prayerTimings.Isha, key: 'Isha' }
     ];
 
-    // Reset box classes
     prayers.forEach(p => {
         const box = document.getElementById(`prayer-box-${p.key}`);
         if (box) box.className = "prayer-box";
@@ -213,17 +213,15 @@ function checkCurrentAndNextPrayer(now) {
     }
 
     if (!nextPrayer) {
-        nextPrayer = prayers[0]; // Next day's Fajr
+        nextPrayer = prayers[0];
     }
 
-    // Highlight next prayer
     if (nextPrayer) {
         const nextBox = document.getElementById(`prayer-box-${nextPrayer.key}`);
         if (nextBox) nextBox.classList.add('next');
         document.getElementById('next-prayer-timer').innerText = `الصلاة القادمة: ${nextPrayer.name} (${nextPrayer.time})`;
     }
 
-    // Trigger Azan Alert
     if (currentPrayerActive && lastTriggeredPrayer !== currentPrayerActive.key) {
         lastTriggeredPrayer = currentPrayerActive.key;
         const currentBox = document.getElementById(`prayer-box-${currentPrayerActive.key}`);
@@ -241,6 +239,10 @@ function triggerPrayerAlert(prayerName) {
     if (azanEnabled) {
         const audio = document.getElementById('azan-audio');
         if (audio) {
+            const muazzinSelect = document.getElementById('muazzin-select');
+            if (muazzinSelect && muazzinSelect.value) {
+                audio.src = muazzinSelect.value;
+            }
             audio.play().catch(() => {
                 console.log("Autoplay audio blocked or not supported");
             });
@@ -249,14 +251,13 @@ function triggerPrayerAlert(prayerName) {
 
     setTimeout(() => {
         banner.style.display = 'none';
-    }, 15000); // 15 seconds banner display
+    }, 20000);
 }
 
 // 5. Today's Matches
 async function fetchTodayMatches() {
     const matchesContainer = document.getElementById('matches-container');
 
-    // Static fallback list with popular teams and competitions if live API is unavailable
     const fallbackMatches = [
         { league: "دوري أبطال أوروبا", home: "ريال مدريد", away: "مانشستر سيتي", time: "23:00", status: "اليوم" },
         { league: "الدوري الإنجليزي الممتاز", home: "ليفربول", away: "أرسنال", time: "19:30", status: "اليوم" },
@@ -266,13 +267,12 @@ async function fetchTodayMatches() {
     ];
 
     try {
-        // Fetching from free TheSportsDB event schedule for popular events
         const response = await fetch('https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=' + new Date().toISOString().split('T')[0]);
         const data = await response.json();
 
         if (data && data.events && data.events.length > 0) {
             let html = "";
-            const events = data.events.slice(0, 5); // Show top 5
+            const events = data.events.slice(0, 5);
             events.forEach(match => {
                 html += `
                     <div class="match-item">
@@ -344,23 +344,38 @@ async function fetchWeatherForecast() {
     }
 }
 
-// 7. AlJazeera Breaking Text News Ticker
-async function fetchAlJazeeraTextNews() {
-    try {
-        const response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.net/rss');
-        const data = await response.json();
-        if (data && data.items && data.items.length > 0) {
-            let newsTitles = data.items.map(item => item.title).join("   ✦   ");
-            document.getElementById('aljazeera-news-text').innerText = newsTitles;
+// 7. Multi-Source Arabic World News Fetching with Fallbacks
+async function fetchArabicWorldNews() {
+    const newsSources = [
+        'https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.net/rss',
+        'https://api.rss2json.com/v1/api.json?rss_url=https://www.bbc.com/arabic/index.xml',
+        'https://api.rss2json.com/v1/api.json?rss_url=https://arabic.rt.com/rss/'
+    ];
+
+    let combinedNews = [];
+
+    for (let url of newsSources) {
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+            if (data && data.items && data.items.length > 0) {
+                const titles = data.items.slice(0, 5).map(item => item.title);
+                combinedNews.push(...titles);
+            }
+        } catch (e) {
+            console.log("News source fetch failed: " + url);
         }
-    } catch (e) {
-        document.getElementById('aljazeera-news-text').innerText = "عاجل: شبكة الجزيرة الإخبارية - تغطية إخبارية مستمرة ومباشرة للأحداث العالمية والإقليمية.";
+    }
+
+    if (combinedNews.length > 0) {
+        document.getElementById('aljazeera-news-text').innerText = combinedNews.join("   ✦   ");
+    } else {
+        document.getElementById('aljazeera-news-text').innerText = "عاجل: تغطية إخبارية عربية وعالمية مستمرة - آخر المستجدات والتطورات السياسية والاقتصادية على مدار الساعة.";
     }
 }
 
-// 8. Controls & Themes Setup
+// 8. Controls, Themes, and TV Remote D-Pad Navigation Setup
 function setupThemeAndAudioControls() {
-    // Theme Switcher Buttons
     const themeBtns = document.querySelectorAll('.theme-btn');
     const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-dark';
 
@@ -381,16 +396,15 @@ function setupThemeAndAudioControls() {
         });
     });
 
-    // Azan Audio Toggle
     const azanBtn = document.getElementById('azan-toggle-btn');
     azanBtn.addEventListener('click', () => {
         azanEnabled = !azanEnabled;
         if (azanEnabled) {
-            azanBtn.innerText = "🔊 صوت الأذان: مفعل";
+            azanBtn.innerText = "🔊 الأذان: مفعل";
             azanBtn.style.borderColor = "var(--accent-cyan)";
             azanBtn.style.color = "var(--accent-cyan)";
         } else {
-            azanBtn.innerText = "🔇 صوت الأذان: مكتوم";
+            azanBtn.innerText = "🔇 الأذان: مكتوم";
             azanBtn.style.borderColor = "var(--accent-red)";
             azanBtn.style.color = "var(--accent-red)";
             const audio = document.getElementById('azan-audio');
@@ -400,6 +414,89 @@ function setupThemeAndAudioControls() {
             }
         }
     });
+
+    const muazzinSelect = document.getElementById('muazzin-select');
+    const savedMuazzin = localStorage.getItem('dohatv_muazzin');
+    if (savedMuazzin && muazzinSelect) {
+        muazzinSelect.value = savedMuazzin;
+    }
+    if (muazzinSelect) {
+        muazzinSelect.addEventListener('change', (e) => {
+            localStorage.setItem('dohatv_muazzin', e.target.value);
+        });
+    }
+}
+
+// TV Remote Control D-Pad Navigation
+function setupRemoteNavigation() {
+    const navItems = Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card'));
+    let currentFocusIndex = 0;
+
+    if (navItems.length > 0) {
+        navItems[0].focus();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        resetIdleTimer();
+
+        // Dismiss screensaver on any key press
+        const screensaver = document.getElementById('screensaver-overlay');
+        if (screensaver && screensaver.style.display !== 'none') {
+            screensaver.style.display = 'none';
+            return;
+        }
+
+        const activeElement = document.activeElement;
+        currentFocusIndex = navItems.indexOf(activeElement);
+        if (currentFocusIndex === -1) currentFocusIndex = 0;
+
+        switch (e.key) {
+            case 'ArrowRight':
+                currentFocusIndex = Math.max(0, currentFocusIndex - 1);
+                navItems[currentFocusIndex].focus();
+                e.preventDefault();
+                break;
+            case 'ArrowLeft':
+                currentFocusIndex = Math.min(navItems.length - 1, currentFocusIndex + 1);
+                navItems[currentFocusIndex].focus();
+                e.preventDefault();
+                break;
+            case 'ArrowDown':
+                currentFocusIndex = Math.min(navItems.length - 1, currentFocusIndex + 2);
+                navItems[currentFocusIndex].focus();
+                e.preventDefault();
+                break;
+            case 'ArrowUp':
+                currentFocusIndex = Math.max(0, currentFocusIndex - 2);
+                navItems[currentFocusIndex].focus();
+                e.preventDefault();
+                break;
+            case 'Enter':
+                if (activeElement) {
+                    activeElement.click();
+                }
+                break;
+        }
+    });
+}
+
+// 9. 15-Minute Idle Screensaver Mode
+function setupIdleScreensaver() {
+    function showScreensaver() {
+        const screensaver = document.getElementById('screensaver-overlay');
+        if (screensaver) screensaver.style.display = 'flex';
+    }
+
+    window.resetIdleTimer = function() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showScreensaver, IDLE_LIMIT);
+    };
+
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
 }
 
 // Initialize on DOM load

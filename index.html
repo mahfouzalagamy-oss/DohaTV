@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DohaTV - لوحة الشاشة الذكية</title>
+    <title>DohaTV - الشاشة الذكية</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-dark">
 
     <div class="tv-container">
-        <!-- شريط العنوان والتحكم بالثيم والصوت -->
+        <!-- شريط العنوان والتحكم بالثيم والصوت واختيار المؤذن بالريموت -->
         <header class="tv-header">
             <div class="header-title-group">
                 <span class="app-logo">📺</span>
@@ -17,14 +17,26 @@
             </div>
 
             <div class="header-controls">
-                <div class="theme-selector">
-                    <button class="theme-btn active" data-theme="theme-dark" title="ثيم داكن حديث">🌙 داكن</button>
-                    <button class="theme-btn" data-theme="theme-islamic" title="ثيم إسلامي كلاسيكي">🕌 إسلامي</button>
-                    <button class="theme-btn" data-theme="theme-emerald" title="ثيم زمردي">🟢 زمردي</button>
+                <div class="theme-selector" role="group" aria-label="اختيار الثيم">
+                    <button class="theme-btn active tv-nav" tabindex="0" data-theme="theme-dark" title="ثيم داكن حديث">🌙 داكن</button>
+                    <button class="theme-btn tv-nav" tabindex="0" data-theme="theme-islamic" title="ثيم إسلامي كلاسيكي">🕌 إسلامي</button>
+                    <button class="theme-btn tv-nav" tabindex="0" data-theme="theme-emerald" title="ثيم زمردي">🟢 زمردي</button>
                 </div>
+
+                <div class="muazzin-selector">
+                    <label for="muazzin-select" class="control-label">المؤذن:</label>
+                    <select id="muazzin-select" class="tv-nav-select tv-nav" tabindex="0" title="اختر صوت المؤذن">
+                        <option value="https://cdn.pixabay.com/download/audio/2022/03/15/audio_11e03f0b24.mp3?filename=azan-108842.mp3">أذان مكة المكرمة</option>
+                        <option value="https://www.islamcan.com/audio/adhan/makkah.mp3">أذان المسجد الحرام</option>
+                        <option value="https://www.islamcan.com/audio/adhan/madina.mp3">أذان المسجد النبوي</option>
+                        <option value="https://www.islamcan.com/audio/adhan/egypt.mp3">الأذان المصري القديم</option>
+                        <option value="https://www.islamcan.com/audio/adhan/al-afasy.mp3">أذان الشيخ مشاري العفاسي</option>
+                    </select>
+                </div>
+
                 <div class="audio-control">
-                    <button id="azan-toggle-btn" class="azan-btn" title="تفعيل/إيقاف صوت الأذان عند وقت الصلاة">🔊 صوت الأذان: مفعل</button>
-                    <audio id="azan-audio" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_11e03f0b24.mp3?filename=azan-108842.mp3" preload="none"></audio>
+                    <button id="azan-toggle-btn" class="azan-btn tv-nav" tabindex="0" title="تفعيل/إيقاف صوت الأذان عند وقت الصلاة">🔊 الأذان: مفعل</button>
+                    <audio id="azan-audio" preload="none"></audio>
                 </div>
             </div>
         </header>
@@ -32,7 +44,7 @@
         <!-- شبكة الشاشات الموحدة في صفحة واحدة -->
         <main class="tv-grid">
             <!-- 1. شاشة الساعة الرقمية والتاريخ الكبير -->
-            <section class="tv-card card-clock">
+            <section class="tv-card card-clock tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">⏰</span>
                     <h3>الوقت والتاريخ</h3>
@@ -45,7 +57,7 @@
             </section>
 
             <!-- 2. شاشة مواقيت الصلاة والصلوات القادمة -->
-            <section class="tv-card card-prayer">
+            <section class="tv-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
                     <h3>مواقيت الصلاة (الدوحة)</h3>
@@ -58,7 +70,7 @@
             </section>
 
             <!-- 3. شاشة آية اليوم -->
-            <section class="tv-card card-ayah">
+            <section class="tv-card card-ayah tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📖</span>
                     <h3>آية اليوم</h3>
@@ -69,7 +81,7 @@
             </section>
 
             <!-- 4. شاشة حديث اليوم الصحيح -->
-            <section class="tv-card card-hadith">
+            <section class="tv-card card-hadith tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📜</span>
                     <h3>حديث اليوم (صحيح)</h3>
@@ -80,7 +92,7 @@
             </section>
 
             <!-- 5. شاشة الذكر المتغير كل دقيقة -->
-            <section class="tv-card card-dhikr">
+            <section class="tv-card card-dhikr tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🤲</span>
                     <h3>ذكر دائم (يتغير كل دقيقة)</h3>
@@ -93,7 +105,7 @@
             </section>
 
             <!-- 6. شاشة مباريات اليوم المهمة عالمياً وإقليمياً -->
-            <section class="tv-card card-matches">
+            <section class="tv-card card-matches tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">⚽</span>
                     <h3>مباريات اليوم المهمة</h3>
@@ -104,7 +116,7 @@
             </section>
 
             <!-- 7. شاشة حالة الطقس والتوقعات -->
-            <section class="tv-card card-weather">
+            <section class="tv-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌤️</span>
                     <h3>الطقس بالدوحة</h3>
@@ -115,28 +127,35 @@
                 </div>
             </section>
 
-            <!-- 8. شاشة العداد التنازلي لرمضان -->
-            <section class="tv-card card-ramadan">
+            <!-- 8. شاشة صغيرة للعداد التنازلي لرمضان (بالأيام فقط) -->
+            <section class="tv-card card-ramadan-compact tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
-                    <h3>العداد التنازلي لرمضان المبارك</h3>
+                    <h3>رمضان المبارك</h3>
                 </div>
-                <div id="ramadan-countdown" class="ramadan-timer">
-                    <div class="timer-box"><span id="ramadan-days">00</span><label>يوم</label></div>
-                    <div class="timer-box"><span id="ramadan-hours">00</span><label>ساعة</label></div>
-                    <div class="timer-box"><span id="ramadan-minutes">00</span><label>دقيقة</label></div>
-                    <div class="timer-box"><span id="ramadan-seconds">00</span><label>ثانية</label></div>
+                <div class="ramadan-days-only" id="ramadan-countdown-days">
+                    <span class="days-count" id="ramadan-days-value">--</span>
+                    <span class="days-label">يوماً متبقياً</span>
                 </div>
             </section>
         </main>
 
-        <!-- شريط الأخبار العاجلة المكتوبة المتحرك -->
-        <footer class="news-ticker">
-            <span class="ticker-label">🔴 عاجل الجزيرة:</span>
+        <!-- شريط الأخبار العربية العالمية العاجلة -->
+        <footer class="news-ticker tv-nav-card" tabindex="0">
+            <span class="ticker-label">🔴 أخبار عاجلة:</span>
             <div class="ticker-wrapper">
-                <span id="aljazeera-news-text">جاري جلب آخر الأخبار المكتوبة من شبكة الجزيرة الإخبارية...</span>
+                <span id="aljazeera-news-text">جاري جلب آخر الأخبار العربية والعالمية العاجلة...</span>
             </div>
         </footer>
+    </div>
+
+    <!-- مؤشر الخمول لشاشة التوقف بعد 15 دقيقة -->
+    <div id="screensaver-overlay" class="screensaver-mode" style="display: none;">
+        <div class="screensaver-content">
+            <div class="screensaver-clock" id="screensaver-clock">00:00</div>
+            <div class="screensaver-date" id="screensaver-date">--</div>
+            <div class="screensaver-msg">اضغط أي زر في ريموت التلفزيون للعودة إلى اللوحة</div>
+        </div>
     </div>
 
     <script src="app.js"></script>
