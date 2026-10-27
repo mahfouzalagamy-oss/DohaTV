@@ -11,6 +11,7 @@ on:
       - 'manifest.webmanifest'
       - 'favicon.svg'
       - 'sw.js'
+      - 'doha-skyline.svg'
       - '.github/workflows/pages.yml'
 
 permissions:
@@ -36,7 +37,7 @@ jobs:
       - name: Prepare web app
         run: |
           mkdir -p web-dist
-          cp index.html styles.css app.js manifest.webmanifest favicon.svg sw.js web-dist/
+          cp index.html styles.css app.js manifest.webmanifest favicon.svg sw.js doha-skyline.svg web-dist/
       - name: Package web app
         uses: actions/upload-pages-artifact@v3
         with:
