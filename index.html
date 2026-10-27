@@ -1,31 +1,103 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07131d">
-<meta name="description" content="لوحة تلفزيون عربية للدوحة: الصلاة والطقس والتاريخ والمباريات والأخبار.">
-<title>دوحة TV</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07131d">
+  <meta name="description" content="لوحة تلفزيون عربية للدوحة: الصلاة والطقس والتاريخ والمباريات والأخبار.">
+  <title>دوحة TV</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body data-theme="midnight">
-<div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-<div class="app-shell">
-<header class="topbar"><div class="brand"><div class="brand-mark">د</div><div><strong>دوحة <span>TV</span></strong><small>لوحتك اليومية على الشاشة الكبيرة</small></div></div><div class="header-center"><span class="live-dot"></span><span id="viewLabel">لوحة اليوم</span><span class="divider">/</span><span>الدوحة، قطر</span></div><div class="header-actions"><button class="icon-button" id="themeButton" aria-label="تغيير الثيم" title="تغيير الثيم">◐</button><button class="icon-button" id="settingsButton" aria-label="الإعدادات" title="الإعدادات">⚙</button></div></header>
-<main id="stage" class="stage">
-<section class="hero-grid scene" data-scene="home" aria-label="لوحة اليوم"><div class="hero-copy"><div class="eyebrow"><span class="eyebrow-line"></span> الدوحة · قطر</div><div class="clock" id="clock">--:--</div><div class="date-line"><span id="gregorianDate">جارٍ تحميل التاريخ</span><span class="date-separator">•</span><span id="hijriDate">التقويم الهجري</span></div><div class="hero-message"><span class="message-icon">✦</span><span id="dailyMessage">أهلًا بك في دوحة TV</span></div><div class="hero-actions"><button class="primary-button" id="nextPrayerButton">مواقيت الصلاة <span>←</span></button><button class="secondary-button" id="rotateButton">تدوير الشاشات <span class="rotate-icon">⟳</span></button></div></div><div class="hero-visual"><div class="moon-orbit"><div class="moon"></div><span class="star star-a">✦</span><span class="star star-b">✧</span><span class="star star-c">✦</span></div><div class="skyline skyline-back"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="skyline skyline-front"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="landmark-caption"><span class="caption-mark">✧</span><span><b>الدوحة</b><small>قطر · توقيت محلي</small></span></div></div></section>
-<section class="dashboard-row scene" data-scene="home"><article class="panel prayer-panel" id="prayerPanel"><div class="panel-heading"><div><span class="section-kicker">عبادة وطمأنينة</span><h2>مواقيت الصلاة</h2></div><span class="mosque-tag">مسجد ال سعد <i>✦</i></span></div><div class="prayer-next"><span class="next-label">الصلاة القادمة</span><strong id="nextPrayerName">--</strong><span id="prayerCountdown">جارٍ حساب الوقت</span></div><div class="prayer-list" id="prayerList" aria-live="polite"><div class="loading-line">جارٍ تحميل المواقيت…</div></div><div class="prayer-footer"><span id="prayerSource">حساب قطر · الدوحة</span><button class="text-button" id="adhanButton"><span>◖</span> تفعيل تنبيه الصلاة</button></div></article><article class="panel weather-panel" id="weatherPanel"><div class="panel-heading"><div><span class="section-kicker">حالة السماء الآن</span><h2>طقس الدوحة</h2></div><span class="weather-location">● قطر</span></div><div class="weather-main"><div><div class="temperature" id="temperature">--<sup>°</sup></div><div class="weather-description" id="weatherDescription">جارٍ تحميل الطقس…</div></div><div class="weather-symbol" id="weatherSymbol">☀</div></div><div class="weather-details"><div><span class="detail-icon">↗</span><span>الرياح</span><b id="wind">--</b></div><div><span class="detail-icon">◌</span><span>الرطوبة</span><b id="humidity">--</b></div><div><span class="detail-icon">☼</span><span>العظمى / الصغرى</span><b id="highLow">--</b></div></div><div class="forecast" id="forecast"></div></article></section>
-<section class="bottom-row scene" data-scene="home"><article class="panel matches-panel"><div class="panel-heading"><div><span class="section-kicker">مباريات اليوم فقط</span><h2>على الملعب <span class="tiny-live">● مباشر</span></h2></div><button class="text-button" id="refreshMatches">تحديث ↻</button></div><div class="match-list" id="matchList"><div class="loading-line">جارٍ البحث عن مباريات اليوم…</div></div><div class="team-chips"><span>متابعة الفرق</span><b>الأهلي</b><b>الزمالك</b><b>ريال مدريد</b><b>برشلونة</b><b>مانشستر سيتي</b><b>ليفربول</b></div></article><article class="panel news-panel"><div class="panel-heading"><div><span class="section-kicker">آخر العناوين</span><h2>أخبار عاجلة</h2></div><span class="news-pulse"><i></i> تحديث تلقائي</span></div><div class="news-list" id="newsList"><div class="loading-line">جارٍ تحميل الأخبار…</div></div><div class="news-footer">أخبار من مصادر عامة · تُحدّث تلقائيًا</div></article></section>
-<section class="full-scene scene" data-scene="prayer" hidden><div class="scene-title"><span class="section-kicker">عبادة وطمأنينة</span><h1>مواقيت الصلاة في الدوحة</h1><p>مسجد ال سعد · حساب قطر</p></div><article class="panel prayer-panel prayer-large"><div class="prayer-next"><span class="next-label">الصلاة القادمة</span><strong id="nextPrayerNameLarge">--</strong><span id="prayerCountdownLarge">جارٍ حساب الوقت</span></div><div class="prayer-list" id="prayerListLarge"></div><div class="prayer-footer"><span>الدوحة، قطر</span><button class="text-button" id="adhanButtonLarge">◖ تفعيل تنبيه الصلاة</button></div></article><div class="scene-note">توقيت الأذان تقديري وفق طريقة الحساب القطرية. راجع مسجدك المحلي عند الحاجة.</div></section>
-<section class="full-scene scene" data-scene="weather" hidden><div class="scene-title"><span class="section-kicker">حالة السماء الآن</span><h1>طقس الدوحة</h1><p>درجات الحرارة · الرياح · توقعات الأيام القادمة</p></div><article class="panel weather-large"><div class="weather-main"><div><div class="temperature" id="temperatureLarge">--<sup>°</sup></div><div class="weather-description" id="weatherDescriptionLarge">جارٍ تحميل الطقس…</div></div><div class="weather-symbol">☀</div></div><div class="weather-details" id="weatherDetailsLarge"></div><div class="forecast forecast-large" id="forecastLarge"></div></article></section>
-<section class="full-scene scene" data-scene="matches" hidden><div class="scene-title"><span class="section-kicker">مباريات اليوم فقط</span><h1>موعد الكرة</h1><p>الأهلي · الزمالك · ريال مدريد · برشلونة · مانشستر سيتي · ليفربول</p></div><article class="panel matches-large"><div class="match-list" id="matchListLarge"></div></article></section>
-<section class="full-scene scene" data-scene="news" hidden><div class="scene-title"><span class="section-kicker">آخر العناوين</span><h1>أخبار اليوم</h1><p>تحديث تلقائي من مصادر الأخبار العامة</p></div><article class="panel news-large"><div class="news-list" id="newsListLarge"></div></article></section>
-</main>
-<footer class="bottom-bar"><nav class="scene-nav" aria-label="التنقل بين الشاشات"><button class="nav-item is-active" data-target="home"><span>⌂</span> الرئيسية</button><button class="nav-item" data-target="prayer"><span>◉</span> الصلاة</button><button class="nav-item" data-target="weather"><span>☼</span> الطقس</button><button class="nav-item" data-target="matches"><span>⚽</span> المباريات</button><button class="nav-item" data-target="news"><span>▤</span> الأخبار</button></nav><div class="bottom-hint"><span class="keycap">OK</span> اختيار <span class="hint-divider">·</span><span class="keycap">← →</span> تنقّل <span class="hint-divider">·</span><span id="screenCount">1 / 5</span></div></footer>
-</div>
-<dialog id="settingsDialog" class="settings-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="section-kicker">تحكم بالشاشة</span><h2>إعدادات دوحة TV</h2></div><button class="close-button" aria-label="إغلاق">×</button></div><label class="setting-row"><span><b>تدوير الشاشات تلقائيًا</b><small>انتقل بين الصلاة والطقس والمباريات والأخبار</small></span><input id="autoRotate" type="checkbox" checked></label><label class="setting-row"><span><b>مدة كل شاشة</b><small>بالثواني</small></span><select id="rotateSeconds"><option value="20">20 ثانية</option><option value="30" selected>30 ثانية</option><option value="45">45 ثانية</option><option value="60">60 ثانية</option></select></label><label class="setting-row"><span><b>حجم الخط</b><small>اختر ما يظهر أوضح من مكان جلوسك</small></span><select id="fontSize"><option value="normal">عادي</option><option value="large" selected>كبير</option><option value="xlarge">كبير جدًا</option></select></label><div class="setting-row theme-setting"><span><b>الثيم</b><small>اختر ألوان الشاشة</small></span><div class="theme-options"><button type="button" data-theme-pick="midnight" aria-label="ليل الدوحة" class="theme-swatch swatch-midnight selected"></button><button type="button" data-theme-pick="desert" aria-label="رمال الصحراء" class="theme-swatch swatch-desert"></button><button type="button" data-theme-pick="emerald" aria-label="أخضر زمردي" class="theme-swatch swatch-emerald"></button></div></div><label class="setting-row"><span><b>تنبيه الأذان عند دخول الوقت</b><small>يحتاج رابط ملف الأذان في الإعداد التالي</small></span><input id="autoAdhanAlert" type="checkbox"></label><label class="setting-row"><span><b>رابط ملف الأذان</b><small>اختياري · رابط ملف صوتي تملكه أو تثق بمصدره</small></span><input id="adhanUrl" type="url" placeholder="https://…/adhan.mp3"></label><p class="privacy-note">الإعدادات محفوظة على هذا الجهاز. الموقع لا يحتاج إلى حساب.</p><div class="dialog-actions"><button class="primary-button" id="saveSettings" value="save">حفظ الإعدادات <span>←</span></button></div></form></dialog>
-<div class="toast" id="toast" role="status"></div><audio id="adhanAudio" preload="none"></audio><script src="app.js"></script>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand"><div class="brand-mark">د</div><div><strong>دوحة <span>TV</span></strong><small>لوحتك اليومية على الشاشة الكبيرة</small></div></div>
+      <div class="header-center"><span class="live-dot"></span><span id="viewLabel">لوحة اليوم</span><span class="divider">/</span><span>الدوحة، قطر</span></div>
+      <div class="header-actions">
+        <button class="icon-button" id="themeButton" aria-label="تغيير الثيم" title="تغيير الثيم">◐</button>
+        <button class="icon-button" id="settingsButton" aria-label="الإعدادات" title="الإعدادات">⚙</button>
+      </div>
+    </header>
+
+    <main id="stage" class="stage">
+      <section class="hero-grid scene" data-scene="home" aria-label="لوحة اليوم">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-line"></span> الثلاثاء · الدوحة</div>
+          <div class="clock" id="clock">--:--</div>
+          <div class="date-line"><span id="gregorianDate">جارٍ تحميل التاريخ</span><span class="date-separator">•</span><span id="hijriDate">التقويم الهجري</span></div>
+          <div class="hero-message"><span class="message-icon">✦</span><span id="dailyMessage">أهلًا بك في دوحة TV</span></div>
+          <div class="hero-actions"><button class="primary-button" id="nextPrayerButton">مواقيت الصلاة <span>←</span></button><button class="secondary-button" id="rotateButton">تدوير الشاشات <span class="rotate-icon">⟳</span></button></div>
+        </div>
+        <div class="hero-visual">
+          <div class="moon-orbit"><div class="moon"></div><span class="star star-a">✦</span><span class="star star-b">✧</span><span class="star star-c">✦</span></div>
+          <div class="skyline skyline-back"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="skyline skyline-front"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="landmark-caption"><span class="caption-mark">✧</span><span><b>الدوحة</b><small>قطر · توقيت محلي</small></span></div>
+        </div>
+      </section>
+
+      <section class="dashboard-row scene" data-scene="home">
+        <article class="panel prayer-panel" id="prayerPanel">
+          <div class="panel-heading"><div><span class="section-kicker">عبادة وطمأنينة</span><h2>مواقيت الصلاة</h2></div><span class="mosque-tag">مسجد ال سعد <i>✦</i></span></div>
+          <div class="prayer-next"><span class="next-label">الصلاة القادمة</span><strong id="nextPrayerName">--</strong><span id="prayerCountdown">جارٍ حساب الوقت</span></div>
+          <div class="prayer-list" id="prayerList" aria-live="polite"><div class="loading-line">جارٍ تحميل المواقيت…</div></div>
+          <div class="prayer-footer"><span id="prayerSource">حساب قطر · الدوحة</span><button class="text-button" id="adhanButton"><span>◖</span> تفعيل تنبيه الصلاة</button></div>
+        </article>
+        <article class="panel weather-panel" id="weatherPanel">
+          <div class="panel-heading"><div><span class="section-kicker">حالة السماء الآن</span><h2>طقس الدوحة</h2></div><span class="weather-location">● قطر</span></div>
+          <div class="weather-main"><div><div class="temperature" id="temperature">--<sup>°</sup></div><div class="weather-description" id="weatherDescription">جارٍ تحميل الطقس…</div></div><div class="weather-symbol" id="weatherSymbol">☀</div></div>
+          <div class="weather-details"><div><span class="detail-icon">↗</span><span>الرياح</span><b id="wind">--</b></div><div><span class="detail-icon">◌</span><span>الرطوبة</span><b id="humidity">--</b></div><div><span class="detail-icon">☼</span><span>العظمى / الصغرى</span><b id="highLow">--</b></div></div>
+          <div class="forecast" id="forecast"></div>
+        </article>
+      </section>
+
+      <section class="bottom-row scene" data-scene="home">
+        <article class="panel matches-panel">
+          <div class="panel-heading"><div><span class="section-kicker">مباريات اليوم فقط</span><h2>على الملعب <span class="tiny-live">● مباشر</span></h2></div><button class="text-button" id="refreshMatches">تحديث ↻</button></div>
+          <div class="match-list" id="matchList"><div class="loading-line">جارٍ البحث عن مباريات اليوم…</div></div>
+          <div class="team-filter-wrap"><span>اختر الفرق التي تتابعها</span><div class="team-filters" aria-label="اختيار فرق المباريات"></div></div>
+        </article>
+        <article class="panel news-panel">
+          <div class="panel-heading"><div><span class="section-kicker">آخر العناوين</span><h2>أخبار الجزيرة</h2></div><span class="news-pulse"><i></i> تحديث تلقائي</span></div>
+          <a class="live-feed-link" href="https://www.aljazeera.net/video/live/%D8%A7%D9%84%D8%AC%D8%B2%D9%8A%D8%B1%D8%A9-%D9%85%D8%A8%D8%A7%D8%B4%D8%B1">◉ شاهد البث الحي — الجزيرة مباشر <span>↗</span></a>
+          <div class="news-list" id="newsList"><div class="loading-line">جارٍ تحميل الأخبار…</div></div>
+          <div class="news-footer">العناوين من الجزيرة · اضغط لمشاهدة البث الرسمي</div>
+        </article>
+      </section>
+
+      <section class="full-scene scene" data-scene="prayer" hidden>
+        <div class="scene-title"><span class="section-kicker">عبادة وطمأنينة</span><h1>مواقيت الصلاة في الدوحة</h1><p>مسجد ال سعد · حساب قطر</p></div>
+        <article class="panel prayer-panel prayer-large"><div class="prayer-next"><span class="next-label">الصلاة القادمة</span><strong id="nextPrayerNameLarge">--</strong><span id="prayerCountdownLarge">جارٍ حساب الوقت</span></div><div class="prayer-list" id="prayerListLarge"></div><div class="prayer-footer"><span>الدوحة، قطر</span><button class="text-button" id="adhanButtonLarge">◖ تفعيل تنبيه الصلاة</button></div></article>
+        <div class="scene-note">توقيت الأذان تقديري وفق طريقة الحساب القطرية. راجع مسجدك المحلي عند الحاجة.</div>
+      </section>
+
+      <section class="full-scene scene" data-scene="weather" hidden>
+        <div class="scene-title"><span class="section-kicker">حالة السماء الآن</span><h1>طقس الدوحة</h1><p>درجات الحرارة · الرياح · توقعات الأيام القادمة</p></div>
+        <article class="panel weather-large"><div class="weather-main"><div><div class="temperature" id="temperatureLarge">--<sup>°</sup></div><div class="weather-description" id="weatherDescriptionLarge">جارٍ تحميل الطقس…</div></div><div class="weather-symbol">☀</div></div><div class="weather-details" id="weatherDetailsLarge"></div><div class="forecast forecast-large" id="forecastLarge"></div></article>
+      </section>
+
+      <section class="full-scene scene" data-scene="matches" hidden>
+        <div class="scene-title"><span class="section-kicker">مباريات اليوم فقط</span><h1>موعد الكرة</h1><p>اختر فرقك المفضلة لعرض مواعيد مبارياتها.</p></div>
+        <div class="team-filter-wrap team-filter-wrap-large"><span>الفرق التي تتابعها</span><div class="team-filters" aria-label="اختيار فرق المباريات"></div></div>
+        <article class="panel matches-large"><div class="match-list" id="matchListLarge"></div></article>
+      </section>
+
+      <section class="full-scene scene" data-scene="news" hidden>
+        <div class="scene-title"><span class="section-kicker">تغطية مباشرة وعناوين اليوم</span><h1>الجزيرة مباشر</h1><p>البث المباشر والمستجدات من المصدر الرسمي.</p></div>
+        <a class="live-feed-link live-feed-link-large" href="https://www.aljazeera.net/video/live/%D8%A7%D9%84%D8%AC%D8%B2%D9%8A%D8%B1%D8%A9-%D9%85%D8%A8%D8%A7%D8%B4%D8%B1">◉ افتح البث الحي الرسمي للجزيرة مباشر <span>↗</span></a>
+        <article class="panel news-large"><div class="news-list" id="newsListLarge"></div></article>
+      </section>
+    </main>
+
+    <footer class="bottom-bar"><nav class="scene-nav" aria-label="التنقل بين الشاشات"><button class="nav-item is-active" data-target="home"><span>⌂</span> الرئيسية</button><button class="nav-item" data-target="prayer"><span>◉</span> الصلاة</button><button class="nav-item" data-target="weather"><span>☼</span> الطقس</button><button class="nav-item" data-target="matches"><span>⚽</span> المباريات</button><button class="nav-item" data-target="news"><span>▤</span> الأخبار</button></nav><div class="bottom-hint"><span class="keycap">OK</span> اختيار <span class="hint-divider">·</span><span class="keycap">← →</span> تنقّل <span class="hint-divider">·</span><span id="screenCount">١ / ٥</span></div></footer>
+  </div>
+
+  <dialog id="settingsDialog" class="settings-dialog"><form method="dialog"><div class="dialog-heading"><div><span class="section-kicker">تحكم بالشاشة</span><h2>إعدادات دوحة TV</h2></div><button class="close-button" aria-label="إغلاق">×</button></div><label class="setting-row"><span><b>تدوير الشاشات تلقائيًا</b><small>انتقل بين الصلاة والطقس والمباريات والأخبار</small></span><input id="autoRotate" type="checkbox" checked></label><label class="setting-row"><span><b>مدة كل شاشة</b><small>بالثواني</small></span><select id="rotateSeconds"><option value="20">20 ثانية</option><option value="30" selected>30 ثانية</option><option value="45">45 ثانية</option><option value="60">60 ثانية</option></select></label><label class="setting-row"><span><b>حجم الخط</b><small>اختر ما يظهر أوضح من مكان جلوسك</small></span><select id="fontSize"><option value="normal">عادي</option><option value="large" selected>كبير</option><option value="xlarge">كبير جدًا</option></select></label><div class="setting-row theme-setting"><span><b>الثيم</b><small>اختر ألوان الشاشة</small></span><div class="theme-options"><button type="button" data-theme-pick="midnight" aria-label="ليل الدوحة" class="theme-swatch swatch-midnight selected"></button><button type="button" data-theme-pick="desert" aria-label="رمال الصحراء" class="theme-swatch swatch-desert"></button><button type="button" data-theme-pick="emerald" aria-label="أخضر زمردي" class="theme-swatch swatch-emerald"></button></div></div><label class="setting-row"><span><b>تنبيه الأذان عند دخول الوقت</b><small>يحتاج رابط ملف الأذان في الإعداد التالي</small></span><input id="autoAdhanAlert" type="checkbox"></label><label class="setting-row"><span><b>رابط تسجيل الأذان</b><small>أضف رابطًا مباشرًا لتسجيل تملك حق استخدامه. يمكنك اختيار أذان الشيخ عبدالباسط.</small></span><input id="adhanUrl" type="url" placeholder="رابط ملف MP3 مباشر"></label><p class="privacy-note">حفظ الرابط على هذا الجهاز فقط. صفحة Pixabay للبحث وليست رابط ملف صوتي مباشر.</p><a class="pixabay-link" href="https://pixabay.com/sound-effects/search/azan/" target="_blank" rel="noopener">ابحث عن تسجيل أذان في Pixabay ↗</a><div class="dialog-actions"><button class="primary-button" id="saveSettings" value="save">حفظ الإعدادات <span>←</span></button></div></form></dialog>
+  <div class="toast" id="toast" role="status"></div>
+  <audio id="adhanAudio" preload="none"></audio>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -8,11 +8,12 @@
   const SCENES = ['home', 'prayer', 'weather', 'matches', 'news'];
   const SCENE_NAMES = { home: 'لوحة اليوم', prayer: 'مواقيت الصلاة', weather: 'طقس الدوحة', matches: 'مباريات اليوم', news: 'أخبار اليوم' };
   const PRAYERS = [['Fajr', 'الفجر'], ['Dhuhr', 'الظهر'], ['Asr', 'العصر'], ['Maghrib', 'المغرب'], ['Isha', 'العشاء']];
-  const state = { scene: 'home', prayers: null, weather: null, matches: [], news: [], rotateTimer: null, dataTimers: [], lastAlarmKey: '', toastTimer: null };
+  const state = { scene: 'home', prayers: null, weather: null, matches: [], allEvents: [], news: [], rotateTimer: null, dataTimers: [], lastAlarmKey: '', toastTimer: null };
   const storage = {
     get(key, fallback) { try { const value = localStorage.getItem(`dohatv.${key}`); return value === null ? fallback : JSON.parse(value); } catch { return fallback; } },
     set(key, value) { try { localStorage.setItem(`dohatv.${key}`, JSON.stringify(value)); } catch { /* Private TV browser storage can be disabled. */ } }
   };
+  const selectedTeams = new Set(storage.get('selectedTeams', TEAMS));
   const latin = (value) => String(value ?? '').replace(/[٠-٩۰-۹]/g, (n) => '01234567890123456789'['٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹'.indexOf(n)] ?? n);
   const safeTime = (value) => latin(String(value || '--:--').split(' ')[0]);
   const dateParts = () => {
@@ -118,16 +119,25 @@
     if (t.includes('liverpool') || t.includes('ليفربول')) return 'ليفربول';
     return '';
   };
-  function renderMatches(events) {
-    const filtered = events.filter((e) => canonicalTeam(e.strHomeTeam) || canonicalTeam(e.strAwayTeam));
+  function renderTeamFilters() {
+    const html = TEAMS.map((team) => `<button class="team-filter ${selectedTeams.has(team) ? 'is-selected' : ''}" type="button" data-team="${escapeHTML(team)}" aria-pressed="${selectedTeams.has(team)}">${escapeHTML(team)}</button>`).join('');
+    $$('.team-filters').forEach((el) => { el.innerHTML = html; });
+  }
+  function renderMatches(events = state.allEvents) {
+    state.allEvents = events;
+    const filtered = events.filter((e) => {
+      const home = canonicalTeam(e.strHomeTeam); const away = canonicalTeam(e.strAwayTeam);
+      return selectedTeams.size > 0 && ((home && selectedTeams.has(home)) || (away && selectedTeams.has(away)));
+    });
     state.matches = filtered;
     const html = filtered.length ? filtered.map((e) => {
       const home = canonicalTeam(e.strHomeTeam) || e.strHomeTeam || '—'; const away = canonicalTeam(e.strAwayTeam) || e.strAwayTeam || '—';
       const score = e.intHomeScore != null && e.intAwayScore != null ? `${e.intHomeScore} - ${e.intAwayScore}` : (e.strTime ? safeTime(e.strTime) : 'لم تبدأ');
       const league = e.strLeague || e.strSeason || 'كرة القدم';
       return `<div class="match-row"><span class="match-league">${escapeHTML(league)}</span><div class="match-teams"><span>${escapeHTML(home)}</span><b class="match-vs">${escapeHTML(score.includes(' - ') ? score : 'VS')}</b><span>${escapeHTML(away)}</span></div><span class="match-score">${escapeHTML(score.includes(' - ') ? (e.strStatus || 'النتيجة') : score)}</span></div>`;
-    }).join('') : '<div class="match-empty">لا توجد مباراة لهذه الفرق اليوم.<br>ستظهر هنا مباريات اليوم عند توفرها.</div>';
+    }).join('') : `<div class="match-empty">${selectedTeams.size ? 'لا توجد مباراة للفرق المختارة اليوم.' : 'اختر فريقًا أو أكثر لعرض مبارياتهم اليوم.'}<br>ستظهر مباريات اليوم فقط عند توفرها.</div>`;
     $('#matchList').innerHTML = html; $('#matchListLarge').innerHTML = html;
+    renderTeamFilters();
   }
   async function loadMatches() {
     try {
@@ -149,7 +159,7 @@
   }
   async function loadNews() {
     try {
-      const query = encodeURIComponent('(Qatar OR Doha OR الدوحة OR قطر)');
+      const query = encodeURIComponent('domain:aljazeera.net');
       const url = `https://api.gdeltproject.org/api/v2/doc/doc?query=${query}&mode=ArtList&format=json&maxrecords=7&sort=DateDesc&timespan=24h`;
       const data = await getJson(url, 18000); renderNews(Array.isArray(data.articles) ? data.articles : []);
     } catch { $('#newsList').innerHTML = '<div class="match-empty">تعذر الاتصال بمصدر الأخبار · ستتم إعادة المحاولة</div>'; $('#newsListLarge').innerHTML = '<div class="match-empty">تعذر الاتصال بمصدر الأخبار · ستتم إعادة المحاولة</div>'; }
@@ -221,6 +231,14 @@
     $('#nextPrayerButton').addEventListener('click', () => setScene('prayer'));
     $('#rotateButton').addEventListener('click', () => { const i = SCENES.indexOf(state.scene); setScene(SCENES[(i + 1) % SCENES.length]); });
     $('#refreshMatches').addEventListener('click', () => { toast('جارٍ تحديث مباريات اليوم'); loadMatches(); });
+    $$('.team-filters').forEach((container) => container.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-team]');
+      if (!button) return;
+      const team = button.dataset.team;
+      if (selectedTeams.has(team)) selectedTeams.delete(team); else selectedTeams.add(team);
+      storage.set('selectedTeams', [...selectedTeams]);
+      renderMatches();
+    }));
     $('#saveSettings').addEventListener('click', saveSettings);
     $('#settingsDialog').addEventListener('close', resetRotationTimer);
     $('#autoRotate').addEventListener('change', resetRotationTimer);
@@ -263,6 +281,7 @@
   }
   async function init() {
     setInitialSettings(); bindEvents(); paintDateTime(); setScene('home');
+    renderMatches();
     resetRotationTimer();
     loadPrayers(); loadWeather(); loadMatches(); loadNews();
     renderPrayers();
