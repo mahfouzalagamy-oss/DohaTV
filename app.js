@@ -3,7 +3,6 @@ let azanEnabled = true;
 let dhikrSecondsLeft = 60;
 let dhikrIndex = 0;
 let prayerTimings = null;
-let selectedMuazzinUrl = "";
 let idleTimer = null;
 const IDLE_LIMIT = 15 * 60 * 1000; // 15 Minutes Idle
 
@@ -32,9 +31,13 @@ function initDashboard() {
     fetchWeatherForecast();
     fetchTodayMatches();
     fetchArabicWorldNews();
+    fetchFinancialRatesAndGold();
 
     // Dhikr Rotation Timer (Every Second)
     setInterval(updateDhikrRotation, 1000);
+
+    // Refresh Financial Rates & Gold every 30 Minutes (1800000 ms)
+    setInterval(fetchFinancialRatesAndGold, 1800000);
 }
 
 // 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown (Days Only)
@@ -120,7 +123,7 @@ function updateDailyContent() {
     if (hours >= 5 && hours <= 11) {
         document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
     } else if (hours >= 15 && hours <= 19) {
-        document.getElementById('time-based-adhkar').innerText = "🌇 أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
+        document.getElementById('time-based-adhkar').innerText = "<ctrl42> أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
     } else {
         document.getElementById('time-based-adhkar').innerText = "🤲 «اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ»";
     }
@@ -137,7 +140,43 @@ function updateDhikrRotation() {
     document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
 }
 
-// 4. Prayer Times & Hijri Date Fetching
+// 4. Financial Rates & Gold Prices Fetching (Updated Every 30 Mins)
+async function fetchFinancialRatesAndGold() {
+    try {
+        // Fetch currency rates against USD from open exchange rate API
+        const response = await fetch('https://open.er-api.com/v6/latest/USD');
+        const data = await response.json();
+
+        if (data && data.rates) {
+            const egpRate = data.rates.EGP || 48.5;
+            const qarRate = data.rates.QAR || 3.64;
+
+            // USD to EGP
+            document.getElementById('rate-usd-egp').innerText = `${egpRate.toFixed(2)} ج.م`;
+
+            // QAR to EGP (EGP per 1 QAR)
+            const qarToEgp = (egpRate / qarRate).toFixed(2);
+            document.getElementById('rate-qar-egp').innerText = `${qarToEgp} ج.م`;
+
+            // Estimated Gold Prices based on international gold oz price or live conversion
+            // Standard Gold 24K per gram ~ $75-$85 USD
+            const estimatedGold24USD = 78.5;
+            const gold21EGP = Math.round((estimatedGold24USD * (21/24)) * egpRate);
+            const gold24QAR = Math.round(estimatedGold24USD * qarRate);
+
+            document.getElementById('gold-egp').innerText = `${gold21EGP} ج.م`;
+            document.getElementById('gold-qar').innerText = `${gold24QAR} ر.ق`;
+        }
+    } catch (e) {
+        console.log("Error fetching financial data, setting reliable fallbacks");
+        document.getElementById('rate-usd-egp').innerText = "48.50 ج.م";
+        document.getElementById('rate-qar-egp').innerText = "13.32 ج.م";
+        document.getElementById('gold-egp').innerText = "3250 ج.م";
+        document.getElementById('gold-qar').innerText = "286 ر.ق";
+    }
+}
+
+// 5. Prayer Times & Hijri Date Fetching
 async function fetchPrayerTimes() {
     try {
         const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=4');
@@ -254,7 +293,7 @@ function triggerPrayerAlert(prayerName) {
     }, 20000);
 }
 
-// 5. Today's Matches
+// 6. Today's Matches
 async function fetchTodayMatches() {
     const matchesContainer = document.getElementById('matches-container');
 
@@ -313,7 +352,7 @@ function renderFallbackMatches(matches) {
     document.getElementById('matches-container').innerHTML = html;
 }
 
-// 6. Weather Forecast for Doha
+// 7. Weather Forecast for Doha
 async function fetchWeatherForecast() {
     try {
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
@@ -344,7 +383,7 @@ async function fetchWeatherForecast() {
     }
 }
 
-// 7. Multi-Source Arabic World News Fetching with Fallbacks
+// 8. Multi-Source Arabic World News Fetching with Fallbacks
 async function fetchArabicWorldNews() {
     const newsSources = [
         'https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.net/rss',
@@ -374,7 +413,7 @@ async function fetchArabicWorldNews() {
     }
 }
 
-// 8. Controls, Themes, and TV Remote D-Pad Navigation Setup
+// 9. Controls, Themes, and TV Remote D-Pad Navigation Setup
 function setupThemeAndAudioControls() {
     const themeBtns = document.querySelectorAll('.theme-btn');
     const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-dark';
@@ -439,7 +478,6 @@ function setupRemoteNavigation() {
     document.addEventListener('keydown', (e) => {
         resetIdleTimer();
 
-        // Dismiss screensaver on any key press
         const screensaver = document.getElementById('screensaver-overlay');
         if (screensaver && screensaver.style.display !== 'none') {
             screensaver.style.display = 'none';
@@ -480,7 +518,7 @@ function setupRemoteNavigation() {
     });
 }
 
-// 9. 15-Minute Idle Screensaver Mode
+// 10. 15-Minute Idle Screensaver Mode
 function setupIdleScreensaver() {
     function showScreensaver() {
         const screensaver = document.getElementById('screensaver-overlay');

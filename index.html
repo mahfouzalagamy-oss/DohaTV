@@ -76,7 +76,7 @@
                     <h3>آية اليوم</h3>
                 </div>
                 <div class="card-body">
-                    <blockquote id="daily-ayah">جاري التحميل...</blockquote>
+                    <blockquote id="daily-ayah" class="digital-font-text">جاري التحميل...</blockquote>
                 </div>
             </section>
 
@@ -87,11 +87,38 @@
                     <h3>حديث اليوم (صحيح)</h3>
                 </div>
                 <div class="card-body">
-                    <blockquote id="daily-hadith">جاري التحميل...</blockquote>
+                    <blockquote id="daily-hadith" class="digital-font-text">جاري التحميل...</blockquote>
                 </div>
             </section>
 
-            <!-- 5. شاشة الذكر المتغير كل دقيقة -->
+            <!-- 5. شاشة أسعار العملات والذهب (أسفل الآية) -->
+            <section class="tv-card card-finance tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">💵</span>
+                    <h3>العملات والذهب</h3>
+                    <span class="badge-accent">محدث كل 30 دقيقة</span>
+                </div>
+                <div class="finance-grid" id="finance-rates-container">
+                    <div class="finance-box">
+                        <div class="finance-label">USD / EGP</div>
+                        <div class="finance-value" id="rate-usd-egp">--.- ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">QAR / EGP</div>
+                        <div class="finance-value" id="rate-qar-egp">--.- ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب 21 مصر</div>
+                        <div class="finance-value" id="gold-egp">---- ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب 24 قطر</div>
+                        <div class="finance-value" id="gold-qar">--- ر.ق</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. شاشة الذكر المتغير كل دقيقة -->
             <section class="tv-card card-dhikr tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🤲</span>
@@ -99,12 +126,12 @@
                     <span id="dhikr-timer" class="dhikr-timer-badge">60 ثانية</span>
                 </div>
                 <div class="card-body">
-                    <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
-                    <p id="time-based-adhkar" class="sub-adhkar"></p>
+                    <p id="rotating-dhikr" class="dhikr-text digital-font-text">جاري التحميل...</p>
+                    <p id="time-based-adhkar" class="sub-adhkar digital-font-text"></p>
                 </div>
             </section>
 
-            <!-- 6. شاشة مباريات اليوم المهمة عالمياً وإقليمياً -->
+            <!-- 7. شاشة مباريات اليوم المهمة عالمياً وإقليمياً -->
             <section class="tv-card card-matches tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">⚽</span>
@@ -115,7 +142,7 @@
                 </div>
             </section>
 
-            <!-- 7. شاشة حالة الطقس والتوقعات -->
+            <!-- 8. شاشة حالة الطقس والتوقعات -->
             <section class="tv-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌤️</span>
@@ -127,7 +154,7 @@
                 </div>
             </section>
 
-            <!-- 8. شاشة صغيرة للعداد التنازلي لرمضان (بالأيام فقط) -->
+            <!-- 9. شاشة صغيرة للعداد التنازلي لرمضان (بالأيام فقط) -->
             <section class="tv-card card-ramadan-compact tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
