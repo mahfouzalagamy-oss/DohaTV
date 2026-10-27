@@ -3,22 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DohaTV</title>
+    <title>DohaTV - الشاشة الذكية الإسلامية</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-    <div class="container">
-        <div class="header">DohaTV - شاشة البث الذكية</div>
-        
-        <!-- الشاشة الموحدة التي تتغير محتوياتها -->
-        <div class="slides-container" id="tv-view">
-            جاري تحميل القنوات والأقسام...
+    <div class="tv-container">
+        <!-- شريط العنوان -->
+        <div class="tv-header">
+            <h1>DohaTV - لوحة المعلومات الذكية</h1>
+            <div class="live-badge" id="current-date-header">جاري تحميل التاريخ...</div>
         </div>
 
-        <!-- شريط الأخبار المكتوبة حصرياً من الجزيرة -->
+        <!-- شبكة الشاشات والأقسام -->
+        <div class="tv-grid">
+            <!-- 1. شاشة مواقيت الصلاة والتنبيه -->
+            <div class="tv-card prayer-card">
+                <h3>🕌 مواقيت الصلاة (الدوحة)</h3>
+                <div id="prayer-times-container" style="display: flex; justify-content: space-around; margin-top: 8px; font-size: 15px;">
+                    <span>جاري حساب الأوقات...</span>
+                </div>
+                <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
+            </div>
+
+            <!-- 2. آية اليوم -->
+            <div class="tv-card">
+                <h3>📖 آية اليوم</h3>
+                <p id="daily-ayah">جاري التحميل...</p>
+            </div>
+            
+            <!-- 3. حديث اليوم -->
+            <div class="tv-card">
+                <h3>📜 حديث اليوم (صحيح البخاري ومسلم)</h3>
+                <p id="daily-hadith">جاري التحميل...</p>
+            </div>
+            
+            <!-- 4. الأذكار والأذكار الزمنية -->
+            <div class="tv-card">
+                <h3>🤲 الأذكار والذكر اليومي</h3>
+                <p id="daily-adhkar">جاري التحميل...</p>
+                <p id="time-based-adhkar" style="color: #ffcc00; margin-top: 5px; font-weight: bold;"></p>
+            </div>
+            
+            <!-- 5. العد التنازلي لرمضان -->
+            <div class="tv-card">
+                <h3>🌙 العداد التنازلي لرمضان</h3>
+                <p id="ramadan-countdown" style="font-size: 22px; color: #00ffcc; font-weight: bold;">جاري الحساب...</p>
+            </div>
+
+            <!-- 6. حالة الطقس ودرجات الحرارة للأسبوع -->
+            <div class="tv-card">
+                <h3>🌤️ حالة الطقس (خلال الأسبوع)</h3>
+                <div id="weather-forecast" style="display: flex; justify-content: space-around; margin-top: 5px; text-align: center; font-size: 14px;">
+                    <span>جاري جلب الطقس...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط أخبار الجزيرة المكتوبة المتحرك في الأسفل -->
         <div class="news-ticker">
-            <span id="aljazeera-news-text">جاري جلب آخر الأخبار المكتوبة من قناة الجزيرة...</span>
+            <span id="aljazeera-news-text">جاري جلب آخر الأخبار المكتوبة من شبكة الجزيرة الإخبارية...</span>
         </div>
     </div>
 
