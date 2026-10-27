@@ -1,0 +1,14 @@
+{
+  "name": "دوحة TV | DohaTV",
+  "short_name": "دوحة TV",
+  "description": "لوحة عربية للتلفزيون في الدوحة",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#07131d",
+  "theme_color": "#07131d",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
