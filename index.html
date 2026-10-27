@@ -3,67 +3,140 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DohaTV - الشاشة الذكية الإسلامية</title>
+    <title>DohaTV - لوحة الشاشة الذكية</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="theme-dark">
 
     <div class="tv-container">
-        <!-- شريط العنوان -->
-        <div class="tv-header">
-            <h1>DohaTV - لوحة المعلومات الذكية</h1>
-            <div class="live-badge" id="current-date-header">جاري تحميل التاريخ...</div>
-        </div>
+        <!-- شريط العنوان والتحكم بالثيم والصوت -->
+        <header class="tv-header">
+            <div class="header-title-group">
+                <span class="app-logo">📺</span>
+                <h1>DohaTV - الشاشة الذكية</h1>
+            </div>
 
-        <!-- شبكة الشاشات والأقسام -->
-        <div class="tv-grid">
-            <!-- 1. شاشة مواقيت الصلاة والتنبيه -->
-            <div class="tv-card prayer-card">
-                <h3>🕌 مواقيت الصلاة (الدوحة)</h3>
-                <div id="prayer-times-container" style="display: flex; justify-content: space-around; margin-top: 8px; font-size: 15px;">
+            <div class="header-controls">
+                <div class="theme-selector">
+                    <button class="theme-btn active" data-theme="theme-dark" title="ثيم داكن حديث">🌙 داكن</button>
+                    <button class="theme-btn" data-theme="theme-islamic" title="ثيم إسلامي كلاسيكي">🕌 إسلامي</button>
+                    <button class="theme-btn" data-theme="theme-emerald" title="ثيم زمردي">🟢 زمردي</button>
+                </div>
+                <div class="audio-control">
+                    <button id="azan-toggle-btn" class="azan-btn" title="تفعيل/إيقاف صوت الأذان عند وقت الصلاة">🔊 صوت الأذان: مفعل</button>
+                    <audio id="azan-audio" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_11e03f0b24.mp3?filename=azan-108842.mp3" preload="none"></audio>
+                </div>
+            </div>
+        </header>
+
+        <!-- شبكة الشاشات الموحدة في صفحة واحدة -->
+        <main class="tv-grid">
+            <!-- 1. شاشة الساعة الرقمية والتاريخ الكبير -->
+            <section class="tv-card card-clock">
+                <div class="card-header">
+                    <span class="card-icon">⏰</span>
+                    <h3>الوقت والتاريخ</h3>
+                </div>
+                <div class="clock-display" id="large-clock">00:00:00</div>
+                <div class="date-details">
+                    <div id="gregorian-date" class="date-text">جاري تحميل التاريخ الميلادي...</div>
+                    <div id="hijri-date" class="date-text hijri">جاري تحميل التاريخ الهجري...</div>
+                </div>
+            </section>
+
+            <!-- 2. شاشة مواقيت الصلاة والصلوات القادمة -->
+            <section class="tv-card card-prayer">
+                <div class="card-header">
+                    <span class="card-icon">🕌</span>
+                    <h3>مواقيت الصلاة (الدوحة)</h3>
+                    <span id="next-prayer-timer" class="badge-accent">الصلاة القادمة: ...</span>
+                </div>
+                <div id="prayer-times-container" class="prayer-grid">
                     <span>جاري حساب الأوقات...</span>
                 </div>
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
-            </div>
+            </section>
 
-            <!-- 2. آية اليوم -->
-            <div class="tv-card">
-                <h3>📖 آية اليوم</h3>
-                <p id="daily-ayah">جاري التحميل...</p>
-            </div>
-            
-            <!-- 3. حديث اليوم -->
-            <div class="tv-card">
-                <h3>📜 حديث اليوم (صحيح البخاري ومسلم)</h3>
-                <p id="daily-hadith">جاري التحميل...</p>
-            </div>
-            
-            <!-- 4. الأذكار والأذكار الزمنية -->
-            <div class="tv-card">
-                <h3>🤲 الأذكار والذكر اليومي</h3>
-                <p id="daily-adhkar">جاري التحميل...</p>
-                <p id="time-based-adhkar" style="color: #ffcc00; margin-top: 5px; font-weight: bold;"></p>
-            </div>
-            
-            <!-- 5. العد التنازلي لرمضان -->
-            <div class="tv-card">
-                <h3>🌙 العداد التنازلي لرمضان</h3>
-                <p id="ramadan-countdown" style="font-size: 22px; color: #00ffcc; font-weight: bold;">جاري الحساب...</p>
-            </div>
+            <!-- 3. شاشة آية اليوم -->
+            <section class="tv-card card-ayah">
+                <div class="card-header">
+                    <span class="card-icon">📖</span>
+                    <h3>آية اليوم</h3>
+                </div>
+                <div class="card-body">
+                    <blockquote id="daily-ayah">جاري التحميل...</blockquote>
+                </div>
+            </section>
 
-            <!-- 6. حالة الطقس ودرجات الحرارة للأسبوع -->
-            <div class="tv-card">
-                <h3>🌤️ حالة الطقس (خلال الأسبوع)</h3>
-                <div id="weather-forecast" style="display: flex; justify-content: space-around; margin-top: 5px; text-align: center; font-size: 14px;">
+            <!-- 4. شاشة حديث اليوم الصحيح -->
+            <section class="tv-card card-hadith">
+                <div class="card-header">
+                    <span class="card-icon">📜</span>
+                    <h3>حديث اليوم (صحيح)</h3>
+                </div>
+                <div class="card-body">
+                    <blockquote id="daily-hadith">جاري التحميل...</blockquote>
+                </div>
+            </section>
+
+            <!-- 5. شاشة الذكر المتغير كل دقيقة -->
+            <section class="tv-card card-dhikr">
+                <div class="card-header">
+                    <span class="card-icon">🤲</span>
+                    <h3>ذكر دائم (يتغير كل دقيقة)</h3>
+                    <span id="dhikr-timer" class="dhikr-timer-badge">60 ثانية</span>
+                </div>
+                <div class="card-body">
+                    <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
+                    <p id="time-based-adhkar" class="sub-adhkar"></p>
+                </div>
+            </section>
+
+            <!-- 6. شاشة مباريات اليوم المهمة عالمياً وإقليمياً -->
+            <section class="tv-card card-matches">
+                <div class="card-header">
+                    <span class="card-icon">⚽</span>
+                    <h3>مباريات اليوم المهمة</h3>
+                </div>
+                <div id="matches-container" class="matches-list">
+                    <div class="loading-text">جاري جلب جدول المباريات...</div>
+                </div>
+            </section>
+
+            <!-- 7. شاشة حالة الطقس والتوقعات -->
+            <section class="tv-card card-weather">
+                <div class="card-header">
+                    <span class="card-icon">🌤️</span>
+                    <h3>الطقس بالدوحة</h3>
+                    <span id="current-weather-temp" class="badge-accent">--°C</span>
+                </div>
+                <div id="weather-forecast" class="weather-grid">
                     <span>جاري جلب الطقس...</span>
                 </div>
-            </div>
-        </div>
+            </section>
 
-        <!-- شريط أخبار الجزيرة المكتوبة المتحرك في الأسفل -->
-        <div class="news-ticker">
-            <span id="aljazeera-news-text">جاري جلب آخر الأخبار المكتوبة من شبكة الجزيرة الإخبارية...</span>
-        </div>
+            <!-- 8. شاشة العداد التنازلي لرمضان -->
+            <section class="tv-card card-ramadan">
+                <div class="card-header">
+                    <span class="card-icon">🌙</span>
+                    <h3>العداد التنازلي لرمضان المبارك</h3>
+                </div>
+                <div id="ramadan-countdown" class="ramadan-timer">
+                    <div class="timer-box"><span id="ramadan-days">00</span><label>يوم</label></div>
+                    <div class="timer-box"><span id="ramadan-hours">00</span><label>ساعة</label></div>
+                    <div class="timer-box"><span id="ramadan-minutes">00</span><label>دقيقة</label></div>
+                    <div class="timer-box"><span id="ramadan-seconds">00</span><label>ثانية</label></div>
+                </div>
+            </section>
+        </main>
+
+        <!-- شريط الأخبار العاجلة المكتوبة المتحرك -->
+        <footer class="news-ticker">
+            <span class="ticker-label">🔴 عاجل الجزيرة:</span>
+            <div class="ticker-wrapper">
+                <span id="aljazeera-news-text">جاري جلب آخر الأخبار المكتوبة من شبكة الجزيرة الإخبارية...</span>
+            </div>
+        </footer>
     </div>
 
     <script src="app.js"></script>
