@@ -1,5 +1,5 @@
-const CACHE = 'dohatv-static-v4';
-const SHELL = ['./', './index.html', './styles.css', './app.js?v=3', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg'];
+const CACHE = 'dohatv-static-v5';
+const SHELL = ['./', './index.html', './styles.css', './app.js?v=4', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg'];
 self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (event) => {

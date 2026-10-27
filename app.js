@@ -8,7 +8,7 @@
   const SCENES = ['home', 'prayer', 'weather', 'matches', 'news'];
   const SCENE_NAMES = { home: 'لوحة اليوم', prayer: 'مواقيت الصلاة', weather: 'طقس الدوحة', matches: 'مباريات اليوم', news: 'أخبار اليوم' };
   const PRAYERS = [['Fajr', 'الفجر'], ['Dhuhr', 'الظهر'], ['Asr', 'العصر'], ['Maghrib', 'المغرب'], ['Isha', 'العشاء']];
-  const state = { scene: 'home', prayers: null, weather: null, matches: [], allEvents: [], news: [], rotateTimer: null, dataTimers: [], lastAlarmKey: '', toastTimer: null };
+  const state = { scene: 'home', prayers: null, weather: null, matches: [], allEvents: [], news: [], rotateTimer: null, idleTimer: null, screensaverActive: false, dataTimers: [], lastAlarmKey: '', toastTimer: null };
   const storage = {
     get(key, fallback) { try { const value = localStorage.getItem(`dohatv.${key}`); return value === null ? fallback : JSON.parse(value); } catch { return fallback; } },
     set(key, value) { try { localStorage.setItem(`dohatv.${key}`, JSON.stringify(value)); } catch { /* Private TV browser storage can be disabled. */ } }
@@ -48,6 +48,48 @@
     $('#hijriDate').textContent = hijri || 'التقويم الهجري';
     const weekday = new Intl.DateTimeFormat('ar-QA', { timeZone: TZ, weekday: 'long' }).format(new Date());
     $('.eyebrow').innerHTML = `<span class="eyebrow-line"></span> ${escapeHTML(weekday)} · الدوحة`;
+    renderScreensaver();
+  }
+  function renderScreensaver() {
+    const clock = $('#screensaverClock');
+    if (!clock) return;
+    clock.textContent = timeText();
+    $('#screensaverDate').textContent = prettyDate();
+    $('#screensaverHijri').textContent = $('#hijriDate').textContent || '';
+    const next = findNextPrayer();
+    $('#screensaverPrayer').textContent = next?.name || '--';
+    $('#screensaverCountdown').textContent = next ? countdownTo(next.time, next.tomorrow) : 'جارٍ تحميل المواقيت';
+    const feature = $('#screensaverFeature');
+    const data = {
+      home: `<small>مسجد ال سعد · الدوحة</small><strong>موعد الصلاة التالية</strong>`,
+      prayer: `<small>مسجد ال سعد</small><strong>${escapeHTML(next?.name || 'مواقيت الصلاة')} · ${escapeHTML(next ? safeTime(state.prayers?.[next.key]) : '--:--')}</strong>`,
+      weather: `<small>طقس الدوحة الآن</small><strong>${escapeHTML(state.weather ? `${fmtNumber(state.weather.current?.temperature_2m)}° · ${(weatherCodes[state.weather.current?.weather_code] || ['حالة الطقس'])[0]}` : 'جارٍ تحميل الطقس')}</strong>`,
+      matches: `<small>مباريات اليوم للفرق المختارة</small><strong>${state.matches.length ? escapeHTML(state.matches.slice(0, 2).map((e) => `${canonicalTeam(e.strHomeTeam) || e.strHomeTeam} - ${canonicalTeam(e.strAwayTeam) || e.strAwayTeam}`).join(' · ')) : 'لا توجد مباراة اليوم'}</strong>`,
+      news: `<small>آخر عناوين الجزيرة</small><strong>${escapeHTML(state.news[0]?.title || 'تابع الجزيرة مباشر')}</strong>`
+    };
+    feature.innerHTML = data[state.scene] || data.home;
+    $('#screensaver').dataset.scene = state.scene;
+  }
+  function resetIdleTimer() {
+    clearTimeout(state.idleTimer);
+    state.idleTimer = null;
+    if (!$('#screensaverEnabled')?.checked || $('#settingsDialog')?.open || document.hidden || state.screensaverActive) return;
+    const seconds = Number($('#screensaverDelay')?.value || 180);
+    state.idleTimer = setTimeout(() => {
+      renderScreensaver();
+      state.screensaverActive = true;
+      document.body.classList.add('screensaver-active');
+      $('#screensaver').hidden = false;
+    }, seconds * 1000);
+  }
+  function handleActivity(event) {
+    if (state.screensaverActive) {
+      if (event.type === 'keydown') { event.preventDefault(); event.stopImmediatePropagation(); }
+      state.screensaverActive = false;
+      document.body.classList.remove('screensaver-active');
+      $('#screensaver').hidden = true;
+    }
+    resetIdleTimer();
   }
   function findNextPrayer() {
     if (!state.prayers) return null;
@@ -77,6 +119,7 @@
     for (const id of ['nextPrayerName', 'nextPrayerNameLarge']) { const el = $(`#${id}`); if (el) el.textContent = next?.name || '--'; }
     for (const id of ['prayerCountdown', 'prayerCountdownLarge']) { const el = $(`#${id}`); if (el) el.textContent = next ? countdownTo(next.time, next.tomorrow) : '--:--'; }
     if (next) $('#dailyMessage').textContent = `باقٍ على صلاة ${next.name} ${countdownTo(next.time, next.tomorrow)}`;
+    renderScreensaver();
   }
   async function loadPrayers() {
     try {
@@ -101,6 +144,7 @@
     $('#highLow').textContent = `${fmtNumber(data.daily.temperature_2m_max[0])}° / ${fmtNumber(data.daily.temperature_2m_min[0])}°`;
     const forecast = data.daily.time.slice(1, 6).map((day, i) => { const code = data.daily.weather_code[i + 1]; const wx = weatherCodes[code] || ['طقس', '☁']; return `<div class="forecast-day"><span>${escapeHTML(fmtDay(day))}</span><i>${wx[1]}</i><b>${fmtNumber(data.daily.temperature_2m_max[i + 1])}°</b></div>`; }).join('');
     $('#forecast').innerHTML = forecast; $('#forecastLarge').innerHTML = forecast;
+    renderScreensaver();
   }
   async function loadWeather() {
     try {
@@ -139,6 +183,7 @@
     }).join('') : `<div class="match-empty">${selectedTeams.size ? 'لا توجد مباراة للفرق المختارة اليوم.' : 'اختر فريقًا أو أكثر لعرض مبارياتهم اليوم.'}<br>ستظهر مباريات اليوم فقط عند توفرها.</div>`;
     $('#matchList').innerHTML = html; $('#matchListLarge').innerHTML = html;
     renderTeamFilters();
+    renderScreensaver();
   }
   async function loadMatches() {
     try {
@@ -157,6 +202,7 @@
     const items = articles.slice(0, 7);
     const html = items.length ? items.map((n) => `<div class="news-row"><span class="news-time">${escapeHTML(timeAgo(n.seendate))}</span><a class="news-title" href="${escapeHTML(n.url)}" target="_blank" rel="noopener noreferrer" title="${escapeHTML(n.title)}">${escapeHTML(n.title || n.domain || 'خبر جديد')}</a></div>`).join('') : '<div class="match-empty">لا توجد عناوين متاحة الآن.</div>';
     $('#newsList').innerHTML = html; $('#newsListLarge').innerHTML = html;
+    renderScreensaver();
   }
   async function loadNews() {
     try {
@@ -172,6 +218,7 @@
     $$('.nav-item').forEach((el) => el.classList.toggle('is-active', el.dataset.target === name));
     $('#viewLabel').textContent = SCENE_NAMES[name];
     $('#screenCount').textContent = `${SCENES.indexOf(name) + 1} / ${SCENES.length}`;
+    renderScreensaver();
     if (!rotate) resetRotationTimer();
   }
   function resetRotationTimer() {
@@ -195,7 +242,9 @@
     $('#fontSize').value = storage.get('fontSize', 'large');
     $('#autoAdhanAlert').checked = storage.get('autoAdhanAlert', false);
     $('#adhanUrl').value = storage.get('adhanUrl', '');
-    $('#settingsDialog').showModal(); clearTimeout(state.rotateTimer);
+    $('#screensaverEnabled').checked = storage.get('screensaverEnabled', true);
+    $('#screensaverDelay').value = String(storage.get('screensaverDelay', 180));
+    $('#settingsDialog').showModal(); clearTimeout(state.rotateTimer); clearTimeout(state.idleTimer);
   }
   function saveSettings(event) {
     if (event) event.preventDefault();
@@ -204,9 +253,11 @@
     storage.set('fontSize', $('#fontSize').value);
     storage.set('autoAdhanAlert', $('#autoAdhanAlert').checked);
     storage.set('adhanUrl', $('#adhanUrl').value.trim());
+    storage.set('screensaverEnabled', $('#screensaverEnabled').checked);
+    storage.set('screensaverDelay', Number($('#screensaverDelay').value));
     document.body.dataset.font = $('#fontSize').value;
     toast('تم حفظ الإعدادات');
-    $('#settingsDialog').close(); resetRotationTimer();
+    $('#settingsDialog').close(); resetRotationTimer(); resetIdleTimer();
   }
   async function toggleAdhan() {
     const url = storage.get('adhanUrl', '');
@@ -224,6 +275,8 @@
     $('#autoRotate').checked = storage.get('autoRotate', true);
     $('#rotateSeconds').value = String(storage.get('rotateSeconds', 30));
     $('#autoAdhanAlert').checked = storage.get('autoAdhanAlert', false);
+    $('#screensaverEnabled').checked = storage.get('screensaverEnabled', true);
+    $('#screensaverDelay').value = String(storage.get('screensaverDelay', 180));
   }
   function bindEvents() {
     $$('.nav-item').forEach((button) => button.addEventListener('click', () => setScene(button.dataset.target)));
@@ -241,13 +294,16 @@
       renderMatches();
     }));
     $('#saveSettings').addEventListener('click', saveSettings);
-    $('#settingsDialog').addEventListener('close', resetRotationTimer);
+    $('#settingsDialog').addEventListener('close', () => { resetRotationTimer(); resetIdleTimer(); });
     $('#autoRotate').addEventListener('change', resetRotationTimer);
     $('#rotateSeconds').addEventListener('change', resetRotationTimer);
     $$('.theme-swatch').forEach((button) => button.addEventListener('click', () => setTheme(button.dataset.themePick)));
     $('#adhanButton').addEventListener('click', toggleAdhan);
     $('#adhanButtonLarge').addEventListener('click', toggleAdhan);
     $('#adhanAudio').addEventListener('ended', () => { $('#adhanButton').textContent = '◖ تفعيل تنبيه الصلاة'; $('#adhanButtonLarge').textContent = '◖ تفعيل تنبيه الصلاة'; });
+    document.addEventListener('keydown', handleActivity, { capture: true });
+    document.addEventListener('pointerdown', handleActivity, { capture: true });
+    document.addEventListener('touchstart', handleActivity, { capture: true });
     document.addEventListener('keydown', (event) => {
       const dialog = $('#settingsDialog');
       if (dialog.open) {
@@ -278,12 +334,15 @@
         event.preventDefault(); document.activeElement.click(); resetRotationTimer();
       } else if (event.key === ' ' || event.key === 'Enter') resetRotationTimer();
     });
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) { paintDateTime(); loadPrayers(); loadWeather(); loadMatches(); loadNews(); resetRotationTimer(); } else clearTimeout(state.rotateTimer); });
+    $('#screensaverEnabled').addEventListener('change', resetIdleTimer);
+    $('#screensaverDelay').addEventListener('change', resetIdleTimer);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) { handleActivity(new Event('visibilitychange')); paintDateTime(); loadPrayers(); loadWeather(); loadMatches(); loadNews(); resetRotationTimer(); } else { clearTimeout(state.rotateTimer); clearTimeout(state.idleTimer); } });
   }
   async function init() {
     setInitialSettings(); bindEvents(); paintDateTime(); setScene('home');
     renderMatches();
     resetRotationTimer();
+    resetIdleTimer();
     loadPrayers(); loadWeather(); loadMatches(); loadNews();
     renderPrayers();
     setInterval(() => { paintDateTime(); renderPrayers(); checkAdhanTime(); }, 15000);
