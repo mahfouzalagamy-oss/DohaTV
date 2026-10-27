@@ -132,7 +132,8 @@
     state.matches = filtered;
     const html = filtered.length ? filtered.map((e) => {
       const home = canonicalTeam(e.strHomeTeam) || e.strHomeTeam || '—'; const away = canonicalTeam(e.strAwayTeam) || e.strAwayTeam || '—';
-      const score = e.intHomeScore != null && e.intAwayScore != null ? `${e.intHomeScore} - ${e.intAwayScore}` : (e.strTime ? safeTime(e.strTime) : 'لم تبدأ');
+      const kickoff = e.strTimestamp ? timeText(new Date(e.strTimestamp)) : safeTime(e.strTimeLocal || e.strTime);
+      const score = e.intHomeScore != null && e.intAwayScore != null ? `${e.intHomeScore} - ${e.intAwayScore}` : (kickoff || 'لم تبدأ');
       const league = e.strLeague || e.strSeason || 'كرة القدم';
       return `<div class="match-row"><span class="match-league">${escapeHTML(league)}</span><div class="match-teams"><span>${escapeHTML(home)}</span><b class="match-vs">${escapeHTML(score.includes(' - ') ? score : 'VS')}</b><span>${escapeHTML(away)}</span></div><span class="match-score">${escapeHTML(score.includes(' - ') ? (e.strStatus || 'النتيجة') : score)}</span></div>`;
     }).join('') : `<div class="match-empty">${selectedTeams.size ? 'لا توجد مباراة للفرق المختارة اليوم.' : 'اختر فريقًا أو أكثر لعرض مبارياتهم اليوم.'}<br>ستظهر مباريات اليوم فقط عند توفرها.</div>`;
@@ -141,7 +142,7 @@
   }
   async function loadMatches() {
     try {
-      const url = `https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${encodeURIComponent(todayKey())}&s=Soccer`;
+      const url = `https://www.thesportsdb.com/api/v1/json/123/eventsday.php?d=${encodeURIComponent(todayKey())}&s=Soccer`;
       const data = await getJson(url); renderMatches(Array.isArray(data.events) ? data.events : []);
     } catch { $('#matchList').innerHTML = '<div class="match-empty">تعذر تحميل مباريات اليوم · ستتم إعادة المحاولة</div>'; $('#matchListLarge').innerHTML = '<div class="match-empty">تعذر تحميل مباريات اليوم · ستتم إعادة المحاولة</div>'; }
   }
