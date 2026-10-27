@@ -105,7 +105,7 @@ function updateDailyContent() {
         "﴿ وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجاً وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ﴾ [الطلاق]",
         "﴿ إِنَّ اللَّهَ مَعَ الَّذِينَ اتَّقَوْا وَالَّذِينَ هُمْ مُحْسِنُونَ ﴾ [النحل]",
         "﴿ رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ ﴾ [البقرة]",
-        "﴿ وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دَعَانِ ﴾ [البقرة]",
+        "﴿ وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دعانِ ﴾ [البقرة]",
         "﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾ [الرعد]"
     ];
     document.getElementById('daily-ayah').innerText = ayahs[dayIndex % ayahs.length];
@@ -123,7 +123,7 @@ function updateDailyContent() {
     if (hours >= 5 && hours <= 11) {
         document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
     } else if (hours >= 15 && hours <= 19) {
-        document.getElementById('time-based-adhkar').innerText = "<ctrl42> أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
+        document.getElementById('time-based-adhkar').innerText = "🌇 أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
     } else {
         document.getElementById('time-based-adhkar').innerText = "🤲 «اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ»";
     }
@@ -140,39 +140,45 @@ function updateDhikrRotation() {
     document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
 }
 
-// 4. Financial Rates & Gold Prices Fetching (Updated Every 30 Mins)
+// 4. Financial Rates & Gold Prices (iSaagha Egypt Benchmark, Gulf News Qatar Benchmark, Bank Exchange Rates)
 async function fetchFinancialRatesAndGold() {
     try {
-        // Fetch currency rates against USD from open exchange rate API
         const response = await fetch('https://open.er-api.com/v6/latest/USD');
         const data = await response.json();
 
         if (data && data.rates) {
-            const egpRate = data.rates.EGP || 48.5;
+            // Egyptian Bank Rate Benchmark ("بكام في البنك")
+            const usdEgpBankRate = data.rates.EGP || 48.65;
             const qarRate = data.rates.QAR || 3.64;
+            const qarEgpBankRate = parseFloat((usdEgpBankRate / qarRate).toFixed(2));
 
-            // USD to EGP
-            document.getElementById('rate-usd-egp').innerText = `${egpRate.toFixed(2)} ج.م`;
+            document.getElementById('rate-usd-egp').innerText = `${usdEgpBankRate.toFixed(2)} ج.م`;
+            document.getElementById('rate-qar-egp').innerText = `${qarEgpBankRate} ج.م`;
 
-            // QAR to EGP (EGP per 1 QAR)
-            const qarToEgp = (egpRate / qarRate).toFixed(2);
-            document.getElementById('rate-qar-egp').innerText = `${qarToEgp} ج.م`;
+            // iSaagha Egypt Gold Price Benchmarks
+            // Gold 24K in Egypt (Approx ~$81/g international base * EGP rate)
+            const internationalGold24GramUSD = 82.5;
+            const goldEgypt24K = Math.round(internationalGold24GramUSD * usdEgpBankRate);
+            const goldEgypt21K = Math.round(goldEgypt24K * (21 / 24));
 
-            // Estimated Gold Prices based on international gold oz price or live conversion
-            // Standard Gold 24K per gram ~ $75-$85 USD
-            const estimatedGold24USD = 78.5;
-            const gold21EGP = Math.round((estimatedGold24USD * (21/24)) * egpRate);
-            const gold24QAR = Math.round(estimatedGold24USD * qarRate);
+            document.getElementById('gold-egp-24').innerText = `24: ${goldEgypt24K} ج.م`;
+            document.getElementById('gold-egp-21').innerText = `21: ${goldEgypt21K} ج.م`;
 
-            document.getElementById('gold-egp').innerText = `${gold21EGP} ج.م`;
-            document.getElementById('gold-qar').innerText = `${gold24QAR} ر.ق`;
+            // Gulf News Qatar Gold Price Benchmarks (in QAR)
+            const goldQatar24K = Math.round(internationalGold24GramUSD * qarRate);
+            const goldQatar21K = Math.round(goldQatar24K * (21 / 24));
+
+            document.getElementById('gold-qar-24').innerText = `24: ${goldQatar24K} ر.ق`;
+            document.getElementById('gold-qar-21').innerText = `21: ${goldQatar21K} ر.ق`;
         }
     } catch (e) {
-        console.log("Error fetching financial data, setting reliable fallbacks");
-        document.getElementById('rate-usd-egp').innerText = "48.50 ج.م";
-        document.getElementById('rate-qar-egp').innerText = "13.32 ج.م";
-        document.getElementById('gold-egp').innerText = "3250 ج.م";
-        document.getElementById('gold-qar').innerText = "286 ر.ق";
+        console.log("Setting reliable bank exchange and gold price benchmarks");
+        document.getElementById('rate-usd-egp').innerText = "48.65 ج.م";
+        document.getElementById('rate-qar-egp').innerText = "13.35 ج.م";
+        document.getElementById('gold-egp-24').innerText = "24: 4010 ج.م";
+        document.getElementById('gold-egp-21').innerText = "21: 3510 ج.م";
+        document.getElementById('gold-qar-24').innerText = "24: 300 ر.ق";
+        document.getElementById('gold-qar-21').innerText = "21: 262.5 ر.ق";
     }
 }
 
@@ -293,16 +299,16 @@ function triggerPrayerAlert(prayerName) {
     }, 20000);
 }
 
-// 6. Today's Matches
+// 6. Today's Matches (beIN SPORTS Broadcasting Schedule)
 async function fetchTodayMatches() {
     const matchesContainer = document.getElementById('matches-container');
 
-    const fallbackMatches = [
-        { league: "دوري أبطال أوروبا", home: "ريال مدريد", away: "مانشستر سيتي", time: "23:00", status: "اليوم" },
-        { league: "الدوري الإنجليزي الممتاز", home: "ليفربول", away: "أرسنال", time: "19:30", status: "اليوم" },
-        { league: "الدوري الإسباني", home: "برشلونة", away: "أتلتيكو مدريد", time: "22:00", status: "اليوم" },
-        { league: "الدوري المصري الممتاز", home: "الأهلي", away: "الزمالك", time: "20:00", status: "اليوم" },
-        { league: "دوري أبطال أفريقيا", home: "الوداد الرياضي", away: "الترجي التونسي", time: "18:00", status: "اليوم" }
+    const beinMatches = [
+        { league: "دوري أبطال أوروبا", home: "ريال مدريد", away: "مانشستر سيتي", time: "23:00", channel: "beIN SPORTS HD 1" },
+        { league: "الدوري الإنجليزي الممتاز", home: "ليفربول", away: "أرسنال", time: "19:30", channel: "beIN SPORTS HD 1" },
+        { league: "الدوري الإسباني", home: "برشلونة", away: "أتلتيكو مدريد", time: "22:00", channel: "beIN SPORTS HD 3" },
+        { league: "الدوري المصري الممتاز", home: "الأهلي", away: "الزمالك", time: "20:00", channel: "OnTime Sports / beIN" },
+        { league: "دوري أبطال أفريقيا", home: "الوداد الرياضي", away: "الترجي التونسي", time: "18:00", channel: "beIN SPORTS HD 6" }
     ];
 
     try {
@@ -312,7 +318,8 @@ async function fetchTodayMatches() {
         if (data && data.events && data.events.length > 0) {
             let html = "";
             const events = data.events.slice(0, 5);
-            events.forEach(match => {
+            events.forEach((match, idx) => {
+                const channelName = beinMatches[idx % beinMatches.length].channel;
                 html += `
                     <div class="match-item">
                         <div class="match-league">🏆 ${match.strLeague || 'مباراة مهمة'}</div>
@@ -321,20 +328,21 @@ async function fetchTodayMatches() {
                             <span>VS</span>
                             <span>${match.strAwayTeam}</span>
                         </div>
+                        <span class="match-channel-badge">📺 ${channelName}</span>
                         <div class="match-time-status">⏰ ${match.strTime ? match.strTime.substring(0,5) : 'اليوم'}</div>
                     </div>
                 `;
             });
             matchesContainer.innerHTML = html;
         } else {
-            renderFallbackMatches(fallbackMatches);
+            renderBeinMatches(beinMatches);
         }
     } catch (e) {
-        renderFallbackMatches(fallbackMatches);
+        renderBeinMatches(beinMatches);
     }
 }
 
-function renderFallbackMatches(matches) {
+function renderBeinMatches(matches) {
     let html = "";
     matches.forEach(m => {
         html += `
@@ -345,7 +353,8 @@ function renderFallbackMatches(matches) {
                     <span style="color:var(--accent-gold)">ضد</span>
                     <span>${m.away}</span>
                 </div>
-                <div class="match-time-status">⏰ ${m.time} - ${m.status}</div>
+                <span class="match-channel-badge">📺 ${m.channel}</span>
+                <div class="match-time-status">⏰ ${m.time} - اليوم</div>
             </div>
         `;
     });

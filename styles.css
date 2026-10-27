@@ -383,7 +383,7 @@ blockquote {
 .finance-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
+    gap: 4px;
     flex: 1;
     align-items: center;
 }
@@ -392,20 +392,27 @@ blockquote {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--card-border);
     border-radius: 6px;
-    padding: 4px;
+    padding: 3px;
     text-align: center;
 }
 
 .finance-label {
     font-size: 10px;
     color: var(--text-muted);
-    margin-bottom: 2px;
+    margin-bottom: 1px;
 }
 
 .finance-value {
     font-size: 13px;
     font-weight: bold;
     color: var(--accent-green);
+    font-family: monospace, sans-serif;
+}
+
+.finance-subvalue {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--accent-gold);
     font-family: monospace, sans-serif;
 }
 
@@ -474,6 +481,16 @@ blockquote {
     align-items: center;
     font-size: 12px;
     font-weight: 600;
+}
+
+.match-channel-badge {
+    font-size: 9px;
+    background: rgba(155, 44, 243, 0.2);
+    color: #d175ff;
+    border: 1px solid rgba(155, 44, 243, 0.4);
+    padding: 1px 4px;
+    border-radius: 3px;
+    align-self: flex-start;
 }
 
 .match-time-status {
