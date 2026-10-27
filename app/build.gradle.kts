@@ -30,7 +30,7 @@ dependencies {
 
 val syncWebAssets by tasks.registering(Copy::class) {
     from(rootProject.projectDir) {
-        include("index.html", "styles.css", "app.js", "manifest.webmanifest", "favicon.svg", "sw.js")
+        include("index.html", "styles.css", "app.js", "manifest.webmanifest", "favicon.svg", "sw.js", "doha-skyline.svg")
     }
     into(layout.projectDirectory.dir("src/main/assets"))
 }
