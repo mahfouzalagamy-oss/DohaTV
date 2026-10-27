@@ -43,20 +43,18 @@
 
         <!-- شبكة الشاشات الموحدة في صفحة واحدة -->
         <main class="tv-grid">
-            <!-- 1. شاشة الساعة الرقمية والتاريخ الكبير -->
-            <section class="tv-card card-clock tv-nav-card" tabindex="0">
+            <!-- 1. شاشة آية اليوم (الصف الأول - يسار) -->
+            <section class="tv-card card-ayah tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">⏰</span>
-                    <h3>الوقت والتاريخ</h3>
+                    <span class="card-icon">📖</span>
+                    <h3>آية اليوم</h3>
                 </div>
-                <div class="clock-display" id="large-clock">00:00:00</div>
-                <div class="date-details">
-                    <div id="gregorian-date" class="date-text">جاري تحميل التاريخ الميلادي...</div>
-                    <div id="hijri-date" class="date-text hijri">جاري تحميل التاريخ الهجري...</div>
+                <div class="card-body">
+                    <blockquote id="daily-ayah" class="digital-font-text">جاري التحميل...</blockquote>
                 </div>
             </section>
 
-            <!-- 2. شاشة مواقيت الصلاة والصلوات القادمة -->
+            <!-- 2. شاشة مواقيت الصلاة (الصف الأول - الوسط) -->
             <section class="tv-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
@@ -69,58 +67,31 @@
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
             </section>
 
-            <!-- 3. شاشة آية اليوم -->
-            <section class="tv-card card-ayah tv-nav-card" tabindex="0">
+            <!-- 3. شاشة الساعة الرقمية والتاريخ (الصف الأول - يمين) -->
+            <section class="tv-card card-clock tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">📖</span>
-                    <h3>آية اليوم</h3>
+                    <span class="card-icon">⏰</span>
+                    <h3>الوقت والتاريخ</h3>
                 </div>
-                <div class="card-body">
-                    <blockquote id="daily-ayah" class="digital-font-text">جاري التحميل...</blockquote>
+                <div class="clock-display" id="large-clock">00:00:00</div>
+                <div class="date-details">
+                    <div id="gregorian-date" class="date-text">جاري تحميل التاريخ الميلادي...</div>
+                    <div id="hijri-date" class="date-text hijri">جاري تحميل التاريخ الهجري...</div>
                 </div>
             </section>
 
-            <!-- 4. شاشة حديث اليوم الصحيح -->
-            <section class="tv-card card-hadith tv-nav-card" tabindex="0">
+            <!-- 4. شاشة مباريات اليوم المهمة (تأخذ الصف الثاني والثالث - يسار) -->
+            <section class="tv-card card-matches tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">📜</span>
-                    <h3>حديث اليوم (صحيح)</h3>
+                    <span class="card-icon">⚽</span>
+                    <h3>مباريات اليوم المهمة</h3>
                 </div>
-                <div class="card-body">
-                    <blockquote id="daily-hadith" class="digital-font-text">جاري التحميل...</blockquote>
+                <div id="matches-container" class="matches-list">
+                    <div class="loading-text">جاري جلب جدول المباريات...</div>
                 </div>
             </section>
 
-            <!-- 5. شاشة أسعار العملات والذهب المحدثة (بكام في البنك / آي صاغة / Gulf News) -->
-            <section class="tv-card card-finance tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">💵</span>
-                    <h3>بكام في البنك والذهب</h3>
-                    <span class="badge-accent">محدث كل 30 دقيقة</span>
-                </div>
-                <div class="finance-grid" id="finance-rates-container">
-                    <div class="finance-box">
-                        <div class="finance-label">دولار البنك (مصر)</div>
-                        <div class="finance-value" id="rate-usd-egp">--.- ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ريال البنك (مصر)</div>
-                        <div class="finance-value" id="rate-qar-egp">--.- ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب مصر (iSaagha)</div>
-                        <div class="finance-subvalue" id="gold-egp-24">24: ---- ج.م</div>
-                        <div class="finance-subvalue" id="gold-egp-21">21: ---- ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب قطر (Gulf News)</div>
-                        <div class="finance-subvalue" id="gold-qar-24">24: --- ر.ق</div>
-                        <div class="finance-subvalue" id="gold-qar-21">21: --- ر.ق</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 6. شاشة الذكر المتغير كل دقيقة -->
+            <!-- 5. شاشة الذكر المتغير كل دقيقة (الصف الثاني - وسط يسار) -->
             <section class="tv-card card-dhikr tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🤲</span>
@@ -133,38 +104,65 @@
                 </div>
             </section>
 
-            <!-- 7. شاشة مباريات اليوم بي إن سبورتس -->
-            <section class="tv-card card-matches tv-nav-card" tabindex="0">
+            <!-- 6. شاشة أسعار العملات والذهب (الصف الثاني - وسط يمين) -->
+            <section class="tv-card card-finance tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">⚽</span>
-                    <h3>مباريات اليوم (beIN SPORTS)</h3>
+                    <span class="card-icon">💵</span>
+                    <h3>العملات والذهب</h3>
+                    <span class="badge-accent">محدث كل 30 دقيقة</span>
                 </div>
-                <div id="matches-container" class="matches-list">
-                    <div class="loading-text">جاري جلب جدول مباريات بي إن سبورتس...</div>
+                <div class="finance-grid" id="finance-rates-container">
+                    <div class="finance-box">
+                        <div class="finance-label">USD / EGP</div>
+                        <div class="finance-value" id="rate-usd-egp">56.27 ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">QAR / EGP</div>
+                        <div class="finance-value" id="rate-qar-egp">15.46 ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب 21 مصر</div>
+                        <div class="finance-value" id="gold-egp-21">3865 ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب 24 قطر</div>
+                        <div class="finance-value" id="gold-qar-24">286 ر.ق</div>
+                    </div>
                 </div>
             </section>
 
-            <!-- 8. شاشة حالة الطقس والتوقعات -->
-            <section class="tv-card card-weather tv-nav-card" tabindex="0">
+            <!-- 7. شاشة حديث اليوم الصحيح (الصف الثاني - يمين) -->
+            <section class="tv-card card-hadith tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">🌤️</span>
-                    <h3>الطقس بالدوحة</h3>
-                    <span id="current-weather-temp" class="badge-accent">--°C</span>
+                    <span class="card-icon">📜</span>
+                    <h3>حديث اليوم (صحيح)</h3>
                 </div>
-                <div id="weather-forecast" class="weather-grid">
-                    <span>جاري جلب الطقس...</span>
+                <div class="card-body">
+                    <blockquote id="daily-hadith" class="digital-font-text">جاري التحميل...</blockquote>
                 </div>
             </section>
 
-            <!-- 9. شاشة صغيرة للعداد التنازلي لرمضان (بالأيام فقط) -->
+            <!-- 8. شاشة العداد التنازلي لرمضان (الصف الثالث - وسط يسار) -->
             <section class="tv-card card-ramadan-compact tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
                     <h3>رمضان المبارك</h3>
                 </div>
                 <div class="ramadan-days-only" id="ramadan-countdown-days">
-                    <span class="days-count" id="ramadan-days-value">--</span>
+                    <span class="days-count" id="ramadan-days-value">114</span>
                     <span class="days-label">يوماً متبقياً</span>
+                </div>
+            </section>
+
+            <!-- 9. شاشة حالة الطقس بالدوحة (الصف الثالث - يمين، تمتد لعمودين) -->
+            <section class="tv-card card-weather tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">☀️</span>
+                    <h3>الطقس بالدوحة</h3>
+                    <span id="current-weather-temp" class="badge-accent">☀️ 29°C</span>
+                </div>
+                <div id="weather-forecast" class="weather-grid">
+                    <span>جاري جلب الطقس...</span>
                 </div>
             </section>
         </main>

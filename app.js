@@ -152,33 +152,33 @@ async function fetchFinancialRatesAndGold() {
             const qarRate = data.rates.QAR || 3.64;
             const qarEgpBankRate = parseFloat((usdEgpBankRate / qarRate).toFixed(2));
 
-            document.getElementById('rate-usd-egp').innerText = `${usdEgpBankRate.toFixed(2)} ج.م`;
-            document.getElementById('rate-qar-egp').innerText = `${qarEgpBankRate} ج.م`;
+            const usdEgpEl = document.getElementById('rate-usd-egp');
+            const qarEgpEl = document.getElementById('rate-qar-egp');
+            const goldEgp21El = document.getElementById('gold-egp-21');
+            const goldQar24El = document.getElementById('gold-qar-24');
 
-            // iSaagha Egypt Gold Price Benchmarks
-            // Gold 24K in Egypt (Approx ~$81/g international base * EGP rate)
+            if (usdEgpEl) usdEgpEl.innerText = `${usdEgpBankRate.toFixed(2)} ج.م`;
+            if (qarEgpEl) qarEgpEl.innerText = `${qarEgpBankRate} ج.م`;
+
             const internationalGold24GramUSD = 82.5;
             const goldEgypt24K = Math.round(internationalGold24GramUSD * usdEgpBankRate);
             const goldEgypt21K = Math.round(goldEgypt24K * (21 / 24));
-
-            document.getElementById('gold-egp-24').innerText = `24: ${goldEgypt24K} ج.م`;
-            document.getElementById('gold-egp-21').innerText = `21: ${goldEgypt21K} ج.م`;
-
-            // Gulf News Qatar Gold Price Benchmarks (in QAR)
             const goldQatar24K = Math.round(internationalGold24GramUSD * qarRate);
-            const goldQatar21K = Math.round(goldQatar24K * (21 / 24));
 
-            document.getElementById('gold-qar-24').innerText = `24: ${goldQatar24K} ر.ق`;
-            document.getElementById('gold-qar-21').innerText = `21: ${goldQatar21K} ر.ق`;
+            if (goldEgp21El) goldEgp21El.innerText = `${goldEgypt21K} ج.م`;
+            if (goldQar24El) goldQar24El.innerText = `${goldQatar24K} ر.ق`;
         }
     } catch (e) {
         console.log("Setting reliable bank exchange and gold price benchmarks");
-        document.getElementById('rate-usd-egp').innerText = "48.65 ج.م";
-        document.getElementById('rate-qar-egp').innerText = "13.35 ج.م";
-        document.getElementById('gold-egp-24').innerText = "24: 4010 ج.م";
-        document.getElementById('gold-egp-21').innerText = "21: 3510 ج.م";
-        document.getElementById('gold-qar-24').innerText = "24: 300 ر.ق";
-        document.getElementById('gold-qar-21').innerText = "21: 262.5 ر.ق";
+        const usdEgpEl = document.getElementById('rate-usd-egp');
+        const qarEgpEl = document.getElementById('rate-qar-egp');
+        const goldEgp21El = document.getElementById('gold-egp-21');
+        const goldQar24El = document.getElementById('gold-qar-24');
+
+        if (usdEgpEl) usdEgpEl.innerText = "56.27 ج.م";
+        if (qarEgpEl) qarEgpEl.innerText = "15.46 ج.م";
+        if (goldEgp21El) goldEgp21El.innerText = "3865 ج.م";
+        if (goldQar24El) goldQar24El.innerText = "286 ر.ق";
     }
 }
 
