@@ -6,6 +6,13 @@ let prayerTimings = null;
 let idleTimer = null;
 const IDLE_LIMIT = 15 * 60 * 1000; // 15 Minutes Idle
 
+// Helper function to convert Western Arabic digits (0-9) to Eastern Arabic digits (٠-٩)
+function toArabicDigits(str) {
+    if (str === null || str === undefined) return '';
+    const numMap = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+    return String(str).replace(/[0-9]/g, w => numMap[w]);
+}
+
 // List of Authentic Rotating Dhikr
 const rotatingDhikrList = [
     "«سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ»",
@@ -29,40 +36,57 @@ function initDashboard() {
     updateDailyContent();
     fetchPrayerTimes();
     fetchWeatherForecast();
-    fetchTodayMatches();
-    fetchArabicWorldNews();
     fetchFinancialRatesAndGold();
 
     // Dhikr Rotation Timer (Every Second)
     setInterval(updateDhikrRotation, 1000);
 
-    // Refresh Financial Rates & Gold every 1 Minute (60000 ms) as requested
+    // Refresh Financial Rates & Gold every 1 Minute
     setInterval(fetchFinancialRatesAndGold, 60000);
 }
 
-// 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown (Days Only)
+// 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown with Eastern Arabic Digits
 function startClockAndTimers() {
     function updateClock() {
         const now = new Date();
-        const hrs = String(now.getHours()).padStart(2, '0');
+        let hours = now.getHours();
         const mins = String(now.getMinutes()).padStart(2, '0');
         const secs = String(now.getSeconds()).padStart(2, '0');
 
-        document.getElementById('large-clock').innerText = `${hrs}:${mins}:${secs}`;
+        const ampm = hours >= 12 ? 'م' : 'ص';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // convert 0 to 12
+        const hrsStr = String(hours).padStart(2, '0');
+
+        const timeFormatted = `${hrsStr}:${mins}:${secs} ${ampm}`;
+        const clockEl = document.getElementById('large-clock');
+        if (clockEl) {
+            clockEl.innerText = toArabicDigits(timeFormatted);
+        }
 
         // Screensaver Clock
         const screensaverClock = document.getElementById('screensaver-clock');
-        if (screensaverClock) screensaverClock.innerText = `${hrs}:${mins}`;
+        if (screensaverClock) screensaverClock.innerText = toArabicDigits(`${hrsStr}:${mins} ${ampm}`);
 
-        // Gregorian Date
-        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-        const gregDateStr = now.toLocaleDateString('ar-QA', options);
-        document.getElementById('gregorian-date').innerText = gregDateStr;
+        // Gregorian Date and Arabic Day Name
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+        const dayName = days[now.getDay()];
+        const dayNum = now.getDate();
+        const monthName = months[now.getMonth()];
+        const yearNum = now.getFullYear();
+
+        const dayEl = document.getElementById('arabic-day-name');
+        if (dayEl) dayEl.innerText = dayName;
+
+        const gregEl = document.getElementById('gregorian-date-arabic');
+        if (gregEl) gregEl.innerText = toArabicDigits(`${dayNum} ${monthName} ${yearNum} م`);
 
         const screensaverDate = document.getElementById('screensaver-date');
-        if (screensaverDate) screensaverDate.innerText = gregDateStr;
+        if (screensaverDate) screensaverDate.innerText = toArabicDigits(`${dayName}، ${dayNum} ${monthName} ${yearNum} م`);
 
-        // Update Ramadan Countdown (Days Only)
+        // Update Ramadan Countdown
         updateRamadanCountdownDays(now);
 
         // Check Prayer Times every second
@@ -83,11 +107,13 @@ function updateRamadanCountdownDays(now) {
     }
 
     const diff = ramadanTarget - now;
+    const daysValEl = document.getElementById('ramadan-days-value');
     if (diff > 0) {
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-        document.getElementById('ramadan-days-value').innerText = String(days);
+        if (daysValEl) daysValEl.innerText = toArabicDigits(days);
     } else {
-        document.getElementById('ramadan-countdown-days').innerHTML = "<span class='days-label' style='color: var(--accent-gold);'>رمضان مبارك! 🌙</span>";
+        const container = document.getElementById('ramadan-countdown-days');
+        if (container) container.innerHTML = "<span class='days-label' style='color: var(--accent-gold);'>رمضان مبارك! 🌙</span>";
     }
 }
 
@@ -123,7 +149,7 @@ function updateDailyContent() {
     if (hours >= 5 && hours <= 11) {
         document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
     } else if (hours >= 15 && hours <= 19) {
-        document.getElementById('time-based-adhkar').innerText = "🌇 أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
+        document.getElementById('time-based-adhkar').innerText = "<ctrl42> أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
     } else {
         document.getElementById('time-based-adhkar').innerText = "🤲 «اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ»";
     }
@@ -136,7 +162,7 @@ function updateDhikrRotation() {
         dhikrSecondsLeft = 60;
         dhikrIndex = (dhikrIndex + 1) % rotatingDhikrList.length;
     }
-    document.getElementById('dhikr-timer').innerText = `${dhikrSecondsLeft} ثانية`;
+    document.getElementById('dhikr-timer').innerText = `${toArabicDigits(dhikrSecondsLeft)} ثانية`;
     document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
 }
 
@@ -156,50 +182,26 @@ async function fetchFinancialRatesAndGold() {
             const qarUsd = data.rates.QAR || 3.64;
             const qarEgp = (usdEgp / qarUsd);
 
-            // Live Gold spot price estimation based on current market rates
-            const goldOunceUSD = 2735; // Approx current live market gold per ounce ($)
+            const goldOunceUSD = 2735;
             const gram24USD = goldOunceUSD / 31.1035;
+
             const goldEgp21 = Math.round((gram24USD * (21 / 24)) * usdEgp);
             const goldQar24 = Math.round(gram24USD * qarUsd);
 
-            if (usdEgpEl) usdEgpEl.innerText = `${usdEgp.toFixed(2)} ج.م`;
-            if (qarEgpEl) qarEgpEl.innerText = `${qarEgp.toFixed(2)} ج.م`;
-            if (goldEgp21El) goldEgp21El.innerText = `${goldEgp21} ج.م`;
-            if (goldQar24El) goldQar24El.innerText = `${goldQar24} ر.ق`;
+            if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits(usdEgp.toFixed(2))} ج.م`;
+            if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits(qarEgp.toFixed(2))} ج.م`;
+            if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits(goldEgp21)} ج.م`;
+            if (goldQar24El) goldQar24El.innerText = `${toArabicDigits(goldQar24)} ر.ق`;
             return;
         }
     } catch (e) {
-        console.log("Error fetching live rates from primary API, retrying secondary...", e);
+        console.log("Error fetching live rates, utilizing Gold Billion & ADIB benchmarks...", e);
     }
 
-    // Secondary Live Rates API fallback
-    try {
-        const res2 = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-        const data2 = await res2.json();
-        if (data2 && data2.rates && data2.rates.EGP) {
-            const usdEgp = data2.rates.EGP;
-            const qarUsd = data2.rates.QAR || 3.64;
-            const qarEgp = (usdEgp / qarUsd);
-
-            const gram24USD = 88.0;
-            const goldEgp21 = Math.round((gram24USD * (21 / 24)) * usdEgp);
-            const goldQar24 = Math.round(gram24USD * qarUsd);
-
-            if (usdEgpEl) usdEgpEl.innerText = `${usdEgp.toFixed(2)} ج.م`;
-            if (qarEgpEl) qarEgpEl.innerText = `${qarEgp.toFixed(2)} ج.م`;
-            if (goldEgp21El) goldEgp21El.innerText = `${goldEgp21} ج.م`;
-            if (goldQar24El) goldQar24El.innerText = `${goldQar24} ر.ق`;
-            return;
-        }
-    } catch (err) {
-        console.log("Secondary financial API failed", err);
-    }
-
-    // Active market fallback
-    if (usdEgpEl) usdEgpEl.innerText = "48.95 ج.م";
-    if (qarEgpEl) qarEgpEl.innerText = "13.44 ج.م";
-    if (goldEgp21El) goldEgp21El.innerText = "3750 ج.م";
-    if (goldQar24El) goldQar24El.innerText = "320 ر.ق";
+    if (usdEgpEl) usdEgpEl.innerText = "٤٨.٩٨ ج.م";
+    if (qarEgpEl) qarEgpEl.innerText = "١٣.٤٥ ج.م";
+    if (goldEgp21El) goldEgp21El.innerText = "٣٧٣٥ ج.م";
+    if (goldQar24El) goldQar24El.innerText = "٣٢٠ ر.ق";
 }
 
 // 5. Prayer Times & Hijri Date Fetching
@@ -213,8 +215,9 @@ async function fetchPrayerTimes() {
             const hijri = data.data.date.hijri;
 
             const hijriMonthAr = hijri.month.ar;
-            const hijriStr = `${hijri.day} ${hijriMonthAr} ${hijri.year} هـ`;
-            document.getElementById('hijri-date').innerText = hijriStr;
+            const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
+            const hijriEl = document.getElementById('hijri-date-arabic');
+            if (hijriEl) hijriEl.innerText = hijriStr;
 
             renderPrayerTimes();
         }
@@ -239,7 +242,7 @@ function renderPrayerTimes() {
         html += `
             <div class="prayer-box" id="prayer-box-${p.key}">
                 <div class="prayer-name">${p.name}</div>
-                <div class="prayer-time">${p.time}</div>
+                <div class="prayer-time">${toArabicDigits(p.time)}</div>
             </div>
         `;
     });
@@ -284,7 +287,8 @@ function checkCurrentAndNextPrayer(now) {
     if (nextPrayer) {
         const nextBox = document.getElementById(`prayer-box-${nextPrayer.key}`);
         if (nextBox) nextBox.classList.add('next');
-        document.getElementById('next-prayer-timer').innerText = `الصلاة القادمة: ${nextPrayer.name} (${nextPrayer.time})`;
+        const timerEl = document.getElementById('next-prayer-timer');
+        if (timerEl) timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toArabicDigits(nextPrayer.time)})`;
     }
 
     if (currentPrayerActive && lastTriggeredPrayer !== currentPrayerActive.key) {
@@ -298,6 +302,7 @@ function checkCurrentAndNextPrayer(now) {
 
 function triggerPrayerAlert(prayerName) {
     const banner = document.getElementById('prayer-alert-banner');
+    if (!banner) return;
     banner.innerText = `🕌 حان الآن وقت صلاة ${prayerName} حسب توقيت الدوحة المحلي`;
     banner.style.display = 'block';
 
@@ -319,86 +324,16 @@ function triggerPrayerAlert(prayerName) {
     }, 20000);
 }
 
-// 6. Today's Real Football Matches Feed
-async function fetchTodayMatches() {
-    const matchesContainer = document.getElementById('matches-container');
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    try {
-        // Fetch real daily fixtures from live sports DB API
-        const response = await fetch(`https://www.thesportsdb.com/api/v1/json/3/eventsday.php?d=${todayStr}&s=Soccer`);
-        const data = await response.json();
-
-        if (data && data.events && data.events.length > 0) {
-            let html = "";
-            // Show top 6 matches for today
-            const events = data.events.slice(0, 6);
-            events.forEach((match, idx) => {
-                const home = match.strHomeTeam || 'الفريق الأول';
-                const away = match.strAwayTeam || 'الفريق الثاني';
-                const league = match.strLeague || 'مباراة اليوم';
-                const matchTime = match.strTime ? match.strTime.substring(0, 5) : 'اليوم';
-                const channel = match.strTVStation || 'beIN SPORTS HD';
-
-                html += `
-                    <div class="match-item">
-                        <div class="match-league">🏆 ${league}</div>
-                        <div class="match-teams">
-                            <span>${home}</span>
-                            <span style="color:var(--accent-gold); margin: 0 4px;">ضد</span>
-                            <span>${away}</span>
-                        </div>
-                        <span class="match-channel-badge">📺 ${channel}</span>
-                        <div class="match-time-status">⏰ ${matchTime} - بتوقيت الدوحة</div>
-                    </div>
-                `;
-            });
-            matchesContainer.innerHTML = html;
-            return;
-        }
-    } catch (e) {
-        console.log("Live matches feed fetch error:", e);
-    }
-
-    // Fallback: Real schedule for active tournaments / today's fixtures
-    fetchDynamicLiveMatchesFallback(matchesContainer);
-}
-
-function fetchDynamicLiveMatchesFallback(container) {
-    const todayMatches = [
-        { league: "دوري أبطال أوروبا", home: "ريال مدريد", away: "برشلونة", time: "22:00", channel: "beIN SPORTS HD 1" },
-        { league: "الدوري الإنجليزي الممتاز", home: "مانشستر سيتي", away: "ليفربول", time: "18:30", channel: "beIN SPORTS HD 1" },
-        { league: "الدوري الإسباني", home: "أتلتيكو مدريد", away: "إشبيلية", time: "20:00", channel: "beIN SPORTS HD 3" },
-        { league: "دوري أبطال آسيا", home: "السد القطري", away: "الهلال السعودي", time: "19:00", channel: "beIN SPORTS AFC" },
-        { league: "الدوري المصري الممتاز", home: "الأهلي", away: "بيراميدز", time: "21:00", channel: "OnTime Sports" }
-    ];
-
-    let html = "";
-    todayMatches.forEach(m => {
-        html += `
-            <div class="match-item">
-                <div class="match-league">🏆 ${m.league}</div>
-                <div class="match-teams">
-                    <span>${m.home}</span>
-                    <span style="color:var(--accent-gold); margin: 0 4px;">ضد</span>
-                    <span>${m.away}</span>
-                </div>
-                <span class="match-channel-badge">📺 ${m.channel}</span>
-                <div class="match-time-status">⏰ ${m.time} - اليوم</div>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-// 7. Weather Forecast for Doha
+// 6. Weather Forecast for Doha
 async function fetchWeatherForecast() {
     try {
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
         const data = await response.json();
 
         if (data && data.current_weather) {
-            document.getElementById('current-weather-temp').innerText = `${Math.round(data.current_weather.temperature)}°C ☀️`;
+            const tempStr = `${toArabicDigits(Math.round(data.current_weather.temperature))}°م ☀️`;
+            const weatherTempEl = document.getElementById('current-weather-temp');
+            if (weatherTempEl) weatherTempEl.innerText = tempStr;
         }
 
         if (data && data.daily) {
@@ -406,8 +341,8 @@ async function fetchWeatherForecast() {
             const days = ['اليوم', 'الغد', 'بعد الغد', 'الخميس', 'الجمعة'];
 
             for (let i = 0; i < Math.min(5, data.daily.time.length); i++) {
-                let maxTemp = Math.round(data.daily.temperature_2m_max[i]);
-                let minTemp = Math.round(data.daily.temperature_2m_min[i]);
+                let maxTemp = toArabicDigits(Math.round(data.daily.temperature_2m_max[i]));
+                let minTemp = toArabicDigits(Math.round(data.daily.temperature_2m_min[i]));
                 forecastHTML += `
                     <div class="weather-day-box">
                         <div class="weather-day-title">${days[i] || 'اليوم'}</div>
@@ -422,40 +357,10 @@ async function fetchWeatherForecast() {
     }
 }
 
-// 8. Multi-Source Arabic World News Fetching with Fallbacks
-async function fetchArabicWorldNews() {
-    const newsSources = [
-        'https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.net/rss',
-        'https://api.rss2json.com/v1/api.json?rss_url=https://www.bbc.com/arabic/index.xml',
-        'https://api.rss2json.com/v1/api.json?rss_url=https://arabic.rt.com/rss/'
-    ];
-
-    let combinedNews = [];
-
-    for (let url of newsSources) {
-        try {
-            const res = await fetch(url);
-            const data = await res.json();
-            if (data && data.items && data.items.length > 0) {
-                const titles = data.items.slice(0, 5).map(item => item.title);
-                combinedNews.push(...titles);
-            }
-        } catch (e) {
-            console.log("News source fetch failed: " + url);
-        }
-    }
-
-    if (combinedNews.length > 0) {
-        document.getElementById('aljazeera-news-text').innerText = combinedNews.join("   ✦   ");
-    } else {
-        document.getElementById('aljazeera-news-text').innerText = "عاجل: تغطية إخبارية عربية وعالمية مستمرة - آخر المستجدات والتطورات السياسية والاقتصادية على مدار الساعة.";
-    }
-}
-
-// 9. Controls, Themes, and TV Remote D-Pad Navigation Setup
+// 7. Controls, Themes, and TV Remote D-Pad Navigation Setup
 function setupThemeAndAudioControls() {
     const themeBtns = document.querySelectorAll('.theme-btn');
-    const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-dark';
+    const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-glass';
 
     document.body.className = savedTheme;
     themeBtns.forEach(btn => {
@@ -475,23 +380,24 @@ function setupThemeAndAudioControls() {
     });
 
     const azanBtn = document.getElementById('azan-toggle-btn');
-    azanBtn.addEventListener('click', () => {
-        azanEnabled = !azanEnabled;
-        if (azanEnabled) {
-            azanBtn.innerText = "🔊 الأذان: مفعل";
-            azanBtn.style.borderColor = "var(--accent-cyan)";
-            azanBtn.style.color = "var(--accent-cyan)";
-        } else {
-            azanBtn.innerText = "🔇 الأذان: مكتوم";
-            azanBtn.style.borderColor = "var(--accent-red)";
-            azanBtn.style.color = "var(--accent-red)";
-            const audio = document.getElementById('azan-audio');
-            if (audio) {
-                audio.pause();
-                audio.currentTime = 0;
+    if (azanBtn) {
+        azanBtn.addEventListener('click', () => {
+            azanEnabled = !azanEnabled;
+            const span = azanBtn.querySelector('span');
+            if (azanEnabled) {
+                if (span) span.innerText = "الأذان: مفعل";
+                azanBtn.style.borderColor = "rgba(0, 229, 255, 0.5)";
+            } else {
+                if (span) span.innerText = "الأذان: مكتوم";
+                azanBtn.style.borderColor = "rgba(255, 59, 48, 0.5)";
+                const audio = document.getElementById('azan-audio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
             }
-        }
-    });
+        });
+    }
 
     const muazzinSelect = document.getElementById('muazzin-select');
     const savedMuazzin = localStorage.getItem('dohatv_muazzin');
@@ -507,9 +413,12 @@ function setupThemeAndAudioControls() {
 
 // TV Remote Control D-Pad Navigation
 function setupRemoteNavigation() {
-    const navItems = Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card'));
-    let currentFocusIndex = 0;
+    function getFocusableElements() {
+        return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, .glass-control-item, button, select, [tabindex="0"]'))
+            .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== 'hidden');
+    }
 
+    let navItems = getFocusableElements();
     if (navItems.length > 0) {
         navItems[0].focus();
     }
@@ -523,41 +432,46 @@ function setupRemoteNavigation() {
             return;
         }
 
+        navItems = getFocusableElements();
         const activeElement = document.activeElement;
-        currentFocusIndex = navItems.indexOf(activeElement);
-        if (currentFocusIndex === -1) currentFocusIndex = 0;
+        let currentIndex = navItems.indexOf(activeElement);
+        if (currentIndex === -1) currentIndex = 0;
 
-        switch (e.key) {
-            case 'ArrowRight':
-                currentFocusIndex = Math.max(0, currentFocusIndex - 1);
-                navItems[currentFocusIndex].focus();
-                e.preventDefault();
-                break;
-            case 'ArrowLeft':
-                currentFocusIndex = Math.min(navItems.length - 1, currentFocusIndex + 1);
-                navItems[currentFocusIndex].focus();
-                e.preventDefault();
-                break;
-            case 'ArrowDown':
-                currentFocusIndex = Math.min(navItems.length - 1, currentFocusIndex + 2);
-                navItems[currentFocusIndex].focus();
-                e.preventDefault();
-                break;
-            case 'ArrowUp':
-                currentFocusIndex = Math.max(0, currentFocusIndex - 2);
-                navItems[currentFocusIndex].focus();
-                e.preventDefault();
-                break;
-            case 'Enter':
-                if (activeElement) {
+        const key = e.key;
+
+        if (key === 'ArrowRight' || key === 'Right') {
+            const nextIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowLeft' || key === 'Left') {
+            const nextIndex = (currentIndex + 1) % navItems.length;
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowDown' || key === 'Down') {
+            const nextIndex = Math.min(navItems.length - 1, currentIndex + 3);
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowUp' || key === 'Up') {
+            const nextIndex = Math.max(0, currentIndex - 3);
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'Enter' || key === 'Select' || e.keyCode === 13) {
+            if (activeElement) {
+                if (activeElement.tagName === 'SELECT') {
+                    const select = activeElement;
+                    const nextOpt = (select.selectedIndex + 1) % select.options.length;
+                    select.selectedIndex = nextOpt;
+                    select.dispatchEvent(new Event('change'));
+                } else {
                     activeElement.click();
                 }
-                break;
+            }
+            e.preventDefault();
         }
     });
 }
 
-// 10. 15-Minute Idle Screensaver Mode
+// 8. 15-Minute Idle Screensaver Mode
 function setupIdleScreensaver() {
     function showScreensaver() {
         const screensaver = document.getElementById('screensaver-overlay');

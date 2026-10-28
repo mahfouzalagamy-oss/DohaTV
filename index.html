@@ -6,60 +6,63 @@
     <title>DohaTV - الشاشة الذكية</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="theme-dark">
+<body class="theme-glass">
+
+    <!-- خلفية صورة مدينة الدوحة مع طبقة زجاجية -->
+    <div class="doha-bg-overlay"></div>
 
     <div class="tv-container">
-        <!-- شريط العنوان والتحكم بالثيم والصوت واختيار المؤذن بالريموت -->
-        <header class="tv-header">
-            <div class="header-title-group">
+        <!-- شريط التحكم العلوي بالأيقونات الزجاجية العصري -->
+        <header class="tv-header-glass">
+            <div class="header-brand">
                 <span class="app-logo">📺</span>
-                <h1>DohaTV - الشاشة الذكية</h1>
+                <span class="app-title">DohaTV</span>
             </div>
 
-            <div class="header-controls">
-                <div class="theme-selector" role="group" aria-label="اختيار الثيم">
-                    <button class="theme-btn active tv-nav" tabindex="0" data-theme="theme-dark" title="ثيم داكن حديث">🌙 داكن</button>
-                    <button class="theme-btn tv-nav" tabindex="0" data-theme="theme-islamic" title="ثيم إسلامي كلاسيكي">🕌 إسلامي</button>
-                    <button class="theme-btn tv-nav" tabindex="0" data-theme="theme-emerald" title="ثيم زمردي">🟢 زمردي</button>
-                </div>
-
-                <div class="muazzin-selector">
-                    <label for="muazzin-select" class="control-label">المؤذن:</label>
-                    <select id="muazzin-select" class="tv-nav-select tv-nav" tabindex="0" title="اختر صوت المؤذن">
+            <div class="glass-controls">
+                <div class="glass-control-item" tabindex="0" title="المؤذن">
+                    <span class="control-icon">🕌</span>
+                    <select id="muazzin-select" class="tv-glass-select tv-nav" tabindex="0">
                         <option value="https://cdn.pixabay.com/download/audio/2022/03/15/audio_11e03f0b24.mp3?filename=azan-108842.mp3">أذان مكة المكرمة</option>
                         <option value="https://www.islamcan.com/audio/adhan/makkah.mp3">أذان المسجد الحرام</option>
                         <option value="https://www.islamcan.com/audio/adhan/madina.mp3">أذان المسجد النبوي</option>
                         <option value="https://www.islamcan.com/audio/adhan/egypt.mp3">الأذان المصري القديم</option>
-                        <option value="https://www.islamcan.com/audio/adhan/al-afasy.mp3">أذان الشيخ مشاري العفاسي</option>
+                        <option value="https://www.islamcan.com/audio/adhan/al-afasy.mp3">أذان مشاري العفاسي</option>
                     </select>
                 </div>
 
-                <div class="audio-control">
-                    <button id="azan-toggle-btn" class="azan-btn tv-nav" tabindex="0" title="تفعيل/إيقاف صوت الأذان عند وقت الصلاة">🔊 الأذان: مفعل</button>
-                    <audio id="azan-audio" preload="none"></audio>
+                <div class="glass-control-item theme-group" tabindex="0">
+                    <span class="control-icon">🎨</span>
+                    <button class="glass-btn theme-btn active tv-nav" data-theme="theme-glass" tabindex="0">زجاجي</button>
+                    <button class="glass-btn theme-btn tv-nav" data-theme="theme-dark" tabindex="0">داكن</button>
+                    <button class="glass-btn theme-btn tv-nav" data-theme="theme-islamic" tabindex="0">إسلامي</button>
                 </div>
+
+                <button id="azan-toggle-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="تفعيل/إيقاف الأذان">
+                    🔊 <span>الأذان: مفعل</span>
+                </button>
+                <audio id="azan-audio" preload="none"></audio>
             </div>
         </header>
 
-        <!-- شبكة الشاشات الموحدة في صفحة واحدة -->
-        <main class="tv-grid">
-            <!-- 1. شاشة آية اليوم (الصف الأول - يسار) -->
-            <section class="tv-card card-ayah tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">📖</span>
-                    <h3>آية اليوم</h3>
-                </div>
-                <div class="card-body">
-                    <blockquote id="daily-ayah" class="digital-font-text">جاري التحميل...</blockquote>
+        <!-- شبكة الشاشات الموحدة بتصميم الزجاج الفاخر (Glassmorphic TV Grid) -->
+        <main class="tv-grid-glass">
+            <!-- 1. شاشة الساعة الرقمية والتاريخ المفرغة (يمين العلوي - مثل التصميم) -->
+            <section class="glass-card card-clock tv-nav-card" tabindex="0">
+                <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
+                <div class="date-details-arabic">
+                    <div id="arabic-day-name" class="day-text">الأربعاء</div>
+                    <div id="hijri-date-arabic" class="date-text hijri">١٧ جمادى الأولى ١٤٤٨ هـ</div>
+                    <div id="gregorian-date-arabic" class="date-text">٢٨ أكتوبر ٢٠٢٦ م</div>
                 </div>
             </section>
 
-            <!-- 2. شاشة مواقيت الصلاة (الصف الأول - الوسط) -->
-            <section class="tv-card card-prayer tv-nav-card" tabindex="0">
+            <!-- 2. شاشة مواقيت الصلاة (الوسط) -->
+            <section class="glass-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
-                    <h3>مواقيت الصلاة (الدوحة)</h3>
-                    <span id="next-prayer-timer" class="badge-accent">الصلاة القادمة: ...</span>
+                    <h3>أوقات الصلاة (الدوحة)</h3>
+                    <span id="next-prayer-timer" class="badge-glass">الصلاة القادمة: ...</span>
                 </div>
                 <div id="prayer-times-container" class="prayer-grid">
                     <span>جاري حساب الأوقات...</span>
@@ -67,119 +70,98 @@
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
             </section>
 
-            <!-- 3. شاشة الساعة الرقمية والتاريخ (الصف الأول - يمين) -->
-            <section class="tv-card card-clock tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">⏰</span>
-                    <h3>الوقت والتاريخ</h3>
-                </div>
-                <div class="clock-display" id="large-clock">00:00:00</div>
-                <div class="date-details">
-                    <div id="gregorian-date" class="date-text">جاري تحميل التاريخ الميلادي...</div>
-                    <div id="hijri-date" class="date-text hijri">جاري تحميل التاريخ الهجري...</div>
-                </div>
-            </section>
-
-            <!-- 4. شاشة مباريات اليوم المهمة (تأخذ الصف الثاني والثالث - يسار) -->
-            <section class="tv-card card-matches tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">⚽</span>
-                    <h3>مباريات اليوم المهمة</h3>
-                </div>
-                <div id="matches-container" class="matches-list">
-                    <div class="loading-text">جاري جلب جدول المباريات...</div>
-                </div>
-            </section>
-
-            <!-- 5. شاشة الذكر المتغير كل دقيقة (الصف الثاني - وسط يسار) -->
-            <section class="tv-card card-dhikr tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">🤲</span>
-                    <h3>ذكر دائم (يتغير كل دقيقة)</h3>
-                    <span id="dhikr-timer" class="dhikr-timer-badge">60 ثانية</span>
-                </div>
-                <div class="card-body">
-                    <p id="rotating-dhikr" class="dhikr-text digital-font-text">جاري التحميل...</p>
-                    <p id="time-based-adhkar" class="sub-adhkar digital-font-text"></p>
-                </div>
-            </section>
-
-            <!-- 6. شاشة أسعار العملات والذهب (الصف الثاني - وسط يمين) -->
-            <section class="tv-card card-finance tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">💵</span>
-                    <h3>العملات والذهب</h3>
-                    <span class="badge-accent">محدث كل دقيقة</span>
-                </div>
-                <div class="finance-grid" id="finance-rates-container">
-                    <div class="finance-box">
-                        <div class="finance-label">USD / EGP</div>
-                        <div class="finance-value" id="rate-usd-egp">56.27 ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">QAR / EGP</div>
-                        <div class="finance-value" id="rate-qar-egp">15.46 ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب 21 مصر</div>
-                        <div class="finance-value" id="gold-egp-21">3865 ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب 24 قطر</div>
-                        <div class="finance-value" id="gold-qar-24">286 ر.ق</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- 7. شاشة حديث اليوم الصحيح (الصف الثاني - يمين) -->
-            <section class="tv-card card-hadith tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">📜</span>
-                    <h3>حديث اليوم (صحيح)</h3>
-                </div>
-                <div class="card-body">
-                    <blockquote id="daily-hadith" class="digital-font-text">جاري التحميل...</blockquote>
-                </div>
-            </section>
-
-            <!-- 8. شاشة العداد التنازلي لرمضان (الصف الثالث - وسط يسار) -->
-            <section class="tv-card card-ramadan-compact tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">🌙</span>
-                    <h3>رمضان المبارك</h3>
-                </div>
-                <div class="ramadan-days-only" id="ramadan-countdown-days">
-                    <span class="days-count" id="ramadan-days-value">114</span>
-                    <span class="days-label">يوماً متبقياً</span>
-                </div>
-            </section>
-
-            <!-- 9. شاشة حالة الطقس بالدوحة (الصف الثالث - يمين، تمتد لعمودين) -->
-            <section class="tv-card card-weather tv-nav-card" tabindex="0">
+            <!-- 3. شاشة حالة الطقس بالدوحة (يسار) -->
+            <section class="glass-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
                     <h3>الطقس بالدوحة</h3>
-                    <span id="current-weather-temp" class="badge-accent">☀️ 29°C</span>
+                    <span id="current-weather-temp" class="badge-glass">☀️ ٢٩°م</span>
                 </div>
                 <div id="weather-forecast" class="weather-grid">
                     <span>جاري جلب الطقس...</span>
                 </div>
             </section>
-        </main>
 
-        <!-- شريط الأخبار العربية العالمية العاجلة -->
-        <footer class="news-ticker tv-nav-card" tabindex="0">
-            <span class="ticker-label">🔴 أخبار عاجلة:</span>
-            <div class="ticker-wrapper">
-                <span id="aljazeera-news-text">جاري جلب آخر الأخبار العربية والعالمية العاجلة...</span>
-            </div>
-        </footer>
+            <!-- 4. شاشة آية اليوم -->
+            <section class="glass-card card-ayah tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">📖</span>
+                    <h3>آية اليوم</h3>
+                </div>
+                <div class="card-body">
+                    <blockquote id="daily-ayah">جاري التحميل...</blockquote>
+                </div>
+            </section>
+
+            <!-- 5. شاشة حديث اليوم الصحيح -->
+            <section class="glass-card card-hadith tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">📜</span>
+                    <h3>حديث اليوم (صحيح)</h3>
+                </div>
+                <div class="card-body">
+                    <blockquote id="daily-hadith">جاري التحميل...</blockquote>
+                </div>
+            </section>
+
+            <!-- 6. شاشة أسعار العملات والذهب -->
+            <section class="glass-card card-finance tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">💵</span>
+                    <h3>العملات والذهب</h3>
+                    <span class="badge-glass">محدث حي</span>
+                </div>
+                <div class="finance-grid" id="finance-rates-container">
+                    <div class="finance-box">
+                        <div class="finance-label">USD / EGP</div>
+                        <div class="finance-value" id="rate-usd-egp">٤٨.٩٨ ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">QAR / EGP</div>
+                        <div class="finance-value" id="rate-qar-egp">١٣.٤٥ ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب ٢١ مصر</div>
+                        <div class="finance-value" id="gold-egp-21">٣٧٣٥ ج.م</div>
+                    </div>
+                    <div class="finance-box">
+                        <div class="finance-label">ذهب ٢٤ قطر</div>
+                        <div class="finance-value" id="gold-qar-24">٣٢٠ ر.ق</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. شاشة الذكر المتغير كل دقيقة -->
+            <section class="glass-card card-dhikr tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">🤲</span>
+                    <h3>ذكر دائم (يتغير كل دقيقة)</h3>
+                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
+                </div>
+                <div class="card-body">
+                    <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
+                    <p id="time-based-adhkar" class="sub-adhkar"></p>
+                </div>
+            </section>
+
+            <!-- 8. شاشة العداد التنازلي لرمضان -->
+            <section class="glass-card card-ramadan tv-nav-card" tabindex="0">
+                <div class="card-header">
+                    <span class="card-icon">🌙</span>
+                    <h3>رمضان المبارك</h3>
+                </div>
+                <div class="ramadan-days-only" id="ramadan-countdown-days">
+                    <span class="days-count" id="ramadan-days-value">١١٤</span>
+                    <span class="days-label">يوماً متبقياً</span>
+                </div>
+            </section>
+        </main>
     </div>
 
     <!-- مؤشر الخمول لشاشة التوقف بعد 15 دقيقة -->
     <div id="screensaver-overlay" class="screensaver-mode" style="display: none;">
         <div class="screensaver-content">
-            <div class="screensaver-clock" id="screensaver-clock">00:00</div>
+            <div class="screensaver-clock" id="screensaver-clock">٠٠:٠٠</div>
             <div class="screensaver-date" id="screensaver-date">--</div>
             <div class="screensaver-msg">اضغط أي زر في ريموت التلفزيون للعودة إلى اللوحة</div>
         </div>
