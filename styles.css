@@ -655,24 +655,31 @@ blockquote {
     to { opacity: 1; transform: scale(1.02); }
 }
 
-/* Responsive Scaling */
-@media (max-width: 1024px) {
-    .tv-grid {
-        grid-template-columns: repeat(2, 1fr);
-        grid-template-rows: auto;
-        overflow-y: auto;
-    }
-    .card-clock, .card-prayer, .card-weather, .card-matches {
-        grid-column: span 2;
-    }
-    .card-matches {
-        grid-row: span 1;
-    }
-    body {
-        overflow: auto;
-    }
+/* Enforce strict single-screen 100vh layout for Smart TVs without scrollbars */
+@media screen and (max-height: 800px) {
     .tv-container {
-        height: auto;
-        min-height: 100vh;
+        padding: 6px 10px;
+        gap: 6px;
+    }
+    .tv-header {
+        padding: 4px 10px;
+    }
+    .tv-header h1 {
+        font-size: 15px;
+    }
+    .clock-display {
+        font-size: 26px;
+    }
+    .card-header h3 {
+        font-size: 13px;
+    }
+    .prayer-time {
+        font-size: 13px;
+    }
+    .days-count {
+        font-size: 24px;
+    }
+    .news-ticker {
+        height: 30px;
     }
 }
