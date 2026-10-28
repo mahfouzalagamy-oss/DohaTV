@@ -149,7 +149,7 @@ function updateDailyContent() {
     if (hours >= 5 && hours <= 11) {
         document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
     } else if (hours >= 15 && hours <= 19) {
-        document.getElementById('time-based-adhkar').innerText = "<ctrl42> أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
+        document.getElementById('time-based-adhkar').innerText = "🌆 أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
     } else {
         document.getElementById('time-based-adhkar').innerText = "🤲 «اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ»";
     }
@@ -166,42 +166,22 @@ function updateDhikrRotation() {
     document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
 }
 
-// 4. Financial Rates & Gold Prices Live Auto-Update
+// 4. Financial Rates & Gold Prices Update (Benchmarked to User Official Sources)
 async function fetchFinancialRatesAndGold() {
     const usdEgpEl = document.getElementById('rate-usd-egp');
     const qarEgpEl = document.getElementById('rate-qar-egp');
     const goldEgp21El = document.getElementById('gold-egp-21');
     const goldQar24El = document.getElementById('gold-qar-24');
 
-    try {
-        const response = await fetch('https://open.er-api.com/v6/latest/USD');
-        const data = await response.json();
-
-        if (data && data.rates && data.rates.EGP) {
-            const usdEgp = data.rates.EGP;
-            const qarUsd = data.rates.QAR || 3.64;
-            const qarEgp = (usdEgp / qarUsd);
-
-            const goldOunceUSD = 2735;
-            const gram24USD = goldOunceUSD / 31.1035;
-
-            const goldEgp21 = Math.round((gram24USD * (21 / 24)) * usdEgp);
-            const goldQar24 = Math.round(gram24USD * qarUsd);
-
-            if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits(usdEgp.toFixed(2))} ج.م`;
-            if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits(qarEgp.toFixed(2))} ج.م`;
-            if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits(goldEgp21)} ج.م`;
-            if (goldQar24El) goldQar24El.innerText = `${toArabicDigits(goldQar24)} ر.ق`;
-            return;
-        }
-    } catch (e) {
-        console.log("Error fetching live rates, utilizing Gold Billion & ADIB benchmarks...", e);
-    }
-
-    if (usdEgpEl) usdEgpEl.innerText = "٤٨.٩٨ ج.م";
-    if (qarEgpEl) qarEgpEl.innerText = "١٣.٤٥ ج.م";
-    if (goldEgp21El) goldEgp21El.innerText = "٣٧٣٥ ج.م";
-    if (goldQar24El) goldQar24El.innerText = "٣٢٠ ر.ق";
+    // Official user-specified benchmarks:
+    // USD / EGP: 56.09 (البنك الأهلي المصري)
+    // QAR / EGP: 15.39 (Wise)
+    // Gold 21K Egypt: 6380 (GOLD-PRICE-LIVE.COM)
+    // Gold 24K Qatar: 473 (QATAR-GOLDPRICE.COM)
+    if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits("56.09")} ج.م`;
+    if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits("15.39")} ج.م`;
+    if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits("6380")} ج.م`;
+    if (goldQar24El) goldQar24El.innerText = `${toArabicDigits("473")} ر.ق`;
 }
 
 // 5. Prayer Times & Hijri Date Fetching
