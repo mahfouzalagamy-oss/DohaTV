@@ -9,9 +9,9 @@
 <body class="theme-glass">
 
     <!-- خلفية صورة مدينة الدوحة مع طبقة زجاجية -->
-    <div class="doha-bg-overlay"></div>
+    <div class="doha-bg-overlay" id="doha-bg"></div>
 
-    <div class="tv-container">
+    <div class="tv-container" id="main-tv-container">
         <!-- شريط التحكم العلوي بالأيقونات الزجاجية العصري -->
         <header class="tv-header-glass">
             <div class="header-brand">
@@ -38,6 +38,15 @@
                     <button class="glass-btn theme-btn tv-nav" data-theme="theme-islamic" tabindex="0">إسلامي</button>
                 </div>
 
+                <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="إذاعة القرآن المباشرة">
+                    📻 <span>إذاعة القرآن</span>
+                </button>
+                <audio id="quran-radio-audio" src="https://stream.radiojar.com/8s443pctspuvv" preload="none"></audio>
+
+                <button id="mosque-mode-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="وضع المصلى">
+                    🕋 <span>وضع المصلى</span>
+                </button>
+
                 <button id="azan-toggle-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="تفعيل/إيقاف الأذان">
                     🔊 <span>الأذان: مفعل</span>
                 </button>
@@ -47,7 +56,7 @@
 
         <!-- شبكة الشاشات الموحدة بتصميم الزجاج الفاخر (Glassmorphic TV Grid) -->
         <main class="tv-grid-glass">
-            <!-- 1. شاشة الساعة الرقمية والتاريخ المفرغة (يمين العلوي - مثل التصميم) -->
+            <!-- 1. شاشة الساعة الرقمية والتاريخ المفرغة -->
             <section class="glass-card card-clock tv-nav-card" tabindex="0">
                 <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
                 <div class="date-details-arabic">
@@ -57,25 +66,31 @@
                 </div>
             </section>
 
-            <!-- 2. شاشة مواقيت الصلاة (الوسط) -->
+            <!-- 2. شاشة مواقيت الصلاة -->
             <section class="glass-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
                     <h3>أوقات الصلاة (الدوحة)</h3>
                     <span id="next-prayer-timer" class="badge-glass">الصلاة القادمة: ...</span>
                 </div>
+                <div id="friday-banner" class="friday-special-banner" style="display:none;">✨ الجمعة مباركة: سورة الكهف، كثرة الصلاة على النبي ﷺ وساعة الاستجابة</div>
                 <div id="prayer-times-container" class="prayer-grid">
                     <span>جاري حساب الأوقات...</span>
                 </div>
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
             </section>
 
-            <!-- 3. شاشة حالة الطقس بالدوحة (يسار) -->
+            <!-- 3. شاشة حالة الطقس بالدوحة -->
             <section class="glass-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
                     <h3>الطقس بالدوحة</h3>
                     <span id="current-weather-temp" class="badge-glass">☀️ ٢٩°م</span>
+                </div>
+                <div id="weather-details-row" class="weather-meta-row">
+                    <span id="weather-feels">المحسوسة: --</span>
+                    <span id="weather-wind">الرياح: --</span>
+                    <span id="weather-uv">الأشعة UV: --</span>
                 </div>
                 <div id="weather-forecast" class="weather-grid">
                     <span>جاري جلب الطقس...</span>

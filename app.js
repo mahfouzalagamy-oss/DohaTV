@@ -1,5 +1,7 @@
 // Global State
 let azanEnabled = true;
+let quranRadioPlaying = false;
+let mosqueModeActive = false;
 let dhikrSecondsLeft = 60;
 let dhikrIndex = 0;
 let prayerTimings = null;
@@ -30,6 +32,7 @@ const rotatingDhikrList = [
 // Initialize Dashboard
 function initDashboard() {
     setupThemeAndAudioControls();
+    setupMosqueAndRadioControls();
     setupRemoteNavigation();
     setupIdleScreensaver();
     startClockAndTimers();
@@ -45,7 +48,7 @@ function initDashboard() {
     setInterval(fetchFinancialRatesAndGold, 60000);
 }
 
-// 1. Clock, Date (Gregorian & Hijri), Ramadan Countdown with Eastern Arabic Digits
+// 1. Clock, Date, Friday Check, Time-of-Day Skyline
 function startClockAndTimers() {
     function updateClock() {
         const now = new Date();
@@ -54,9 +57,8 @@ function startClockAndTimers() {
         const secs = String(now.getSeconds()).padStart(2, '0');
 
         const ampm = hours >= 12 ? 'م' : 'ص';
-        hours = hours % 12;
-        hours = hours ? hours : 12; // convert 0 to 12
-        const hrsStr = String(hours).padStart(2, '0');
+        const displayHours = hours % 12 ? hours % 12 : 12;
+        const hrsStr = String(displayHours).padStart(2, '0');
 
         const timeFormatted = `${hrsStr}:${mins}:${secs} ${ampm}`;
         const clockEl = document.getElementById('large-clock');
@@ -72,7 +74,8 @@ function startClockAndTimers() {
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-        const dayName = days[now.getDay()];
+        const dayOfWeek = now.getDay();
+        const dayName = days[dayOfWeek];
         const dayNum = now.getDate();
         const monthName = months[now.getMonth()];
         const yearNum = now.getFullYear();
@@ -86,6 +89,15 @@ function startClockAndTimers() {
         const screensaverDate = document.getElementById('screensaver-date');
         if (screensaverDate) screensaverDate.innerText = toArabicDigits(`${dayName}، ${dayNum} ${monthName} ${yearNum} م`);
 
+        // Check Friday Mode Banner
+        const fridayBanner = document.getElementById('friday-banner');
+        if (fridayBanner) {
+            fridayBanner.style.display = (dayOfWeek === 5) ? 'block' : 'none';
+        }
+
+        // Dynamic Time-of-Day Background Switcher (Day, Sunset, Night)
+        updateTimeOfDaySkyline(hours);
+
         // Update Ramadan Countdown
         updateRamadanCountdownDays(now);
 
@@ -97,6 +109,17 @@ function startClockAndTimers() {
 
     updateClock();
     setInterval(updateClock, 1000);
+}
+
+function updateTimeOfDaySkyline(hours) {
+    document.body.classList.remove('time-day', 'time-sunset', 'time-night');
+    if (hours >= 6 && hours < 16) {
+        document.body.classList.add('time-day');
+    } else if (hours >= 16 && hours < 18) {
+        document.body.classList.add('time-sunset');
+    } else {
+        document.body.classList.add('time-night');
+    }
 }
 
 function updateRamadanCountdownDays(now) {
@@ -166,25 +189,20 @@ function updateDhikrRotation() {
     document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
 }
 
-// 4. Financial Rates & Gold Prices Update (Benchmarked to User Official Sources)
+// 4. Financial Rates & Gold Prices Update
 async function fetchFinancialRatesAndGold() {
     const usdEgpEl = document.getElementById('rate-usd-egp');
     const qarEgpEl = document.getElementById('rate-qar-egp');
     const goldEgp21El = document.getElementById('gold-egp-21');
     const goldQar24El = document.getElementById('gold-qar-24');
 
-    // Official user-specified benchmarks:
-    // USD / EGP: 56.09 (البنك الأهلي المصري)
-    // QAR / EGP: 15.39 (Wise)
-    // Gold 21K Egypt: 6380 (GOLD-PRICE-LIVE.COM)
-    // Gold 24K Qatar: 473 (QATAR-GOLDPRICE.COM)
     if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits("56.09")} ج.م`;
     if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits("15.39")} ج.م`;
     if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits("6380")} ج.م`;
     if (goldQar24El) goldQar24El.innerText = `${toArabicDigits("473")} ر.ق`;
 }
 
-// 5. Prayer Times & Hijri Date Fetching
+// 5. Prayer Times Fetching & Pre-Azan 15-Min Alert
 async function fetchPrayerTimes() {
     try {
         const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=4');
@@ -248,12 +266,8 @@ function checkCurrentAndNextPrayer(now) {
     });
 
     let nextPrayer = null;
-    let currentPrayerActive = null;
 
     for (let i = 0; i < prayers.length; i++) {
-        if (prayers[i].time === currentStr) {
-            currentPrayerActive = prayers[i];
-        }
         if (prayers[i].time > currentStr) {
             nextPrayer = prayers[i];
             break;
@@ -267,17 +281,34 @@ function checkCurrentAndNextPrayer(now) {
     if (nextPrayer) {
         const nextBox = document.getElementById(`prayer-box-${nextPrayer.key}`);
         if (nextBox) nextBox.classList.add('next');
+
+        // Calculate minutes remaining for next prayer
+        const [pMaxH, pMaxM] = nextPrayer.time.split(':').map(Number);
+        const pDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), pMaxH, pMaxM);
+        if (pDate < now) pDate.setDate(pDate.getDate() + 1);
+
+        const diffMins = Math.floor((pDate - now) / (1000 * 60));
+
         const timerEl = document.getElementById('next-prayer-timer');
-        if (timerEl) timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toArabicDigits(nextPrayer.time)})`;
+        if (timerEl) {
+            if (diffMins <= 15 && diffMins > 0) {
+                timerEl.innerText = `اقتربت صلاة ${nextPrayer.name} (باقي ${toArabicDigits(diffMins)} دقيقة)`;
+                timerEl.style.borderColor = "var(--accent-gold)";
+            } else {
+                timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toArabicDigits(nextPrayer.time)})`;
+            }
+        }
     }
 
-    if (currentPrayerActive && lastTriggeredPrayer !== currentPrayerActive.key) {
-        lastTriggeredPrayer = currentPrayerActive.key;
-        const currentBox = document.getElementById(`prayer-box-${currentPrayerActive.key}`);
-        if (currentBox) currentBox.classList.add('active');
-
-        triggerPrayerAlert(currentPrayerActive.name);
-    }
+    // Check exact Azan Time
+    prayers.forEach(p => {
+        if (p.time === currentStr && lastTriggeredPrayer !== p.key) {
+            lastTriggeredPrayer = p.key;
+            const currentBox = document.getElementById(`prayer-box-${p.key}`);
+            if (currentBox) currentBox.classList.add('active');
+            triggerPrayerAlert(p.name);
+        }
+    });
 }
 
 function triggerPrayerAlert(prayerName) {
@@ -293,9 +324,7 @@ function triggerPrayerAlert(prayerName) {
             if (muazzinSelect && muazzinSelect.value) {
                 audio.src = muazzinSelect.value;
             }
-            audio.play().catch(() => {
-                console.log("Autoplay audio blocked or not supported");
-            });
+            audio.play().catch(() => {});
         }
     }
 
@@ -304,16 +333,26 @@ function triggerPrayerAlert(prayerName) {
     }, 20000);
 }
 
-// 6. Weather Forecast for Doha
+// 6. Advanced Weather Forecast for Doha
 async function fetchWeatherForecast() {
     try {
-        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&hourly=apparent_temperature,uv_index&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
         const data = await response.json();
 
         if (data && data.current_weather) {
             const tempStr = `${toArabicDigits(Math.round(data.current_weather.temperature))}°م ☀️`;
             const weatherTempEl = document.getElementById('current-weather-temp');
             if (weatherTempEl) weatherTempEl.innerText = tempStr;
+
+            const windStr = `الرياح: ${toArabicDigits(Math.round(data.current_weather.windspeed))} كم/س`;
+            document.getElementById('weather-wind').innerText = windStr;
+        }
+
+        if (data && data.hourly) {
+            const feels = data.hourly.apparent_temperature[0];
+            const uv = data.hourly.uv_index[0];
+            if (feels !== undefined) document.getElementById('weather-feels').innerText = `المحسوسة: ${toArabicDigits(Math.round(feels))}°م`;
+            if (uv !== undefined) document.getElementById('weather-uv').innerText = `الأشعة UV: ${toArabicDigits(Math.round(uv))}`;
         }
 
         if (data && data.daily) {
@@ -337,7 +376,49 @@ async function fetchWeatherForecast() {
     }
 }
 
-// 7. Controls, Themes, and TV Remote D-Pad Navigation Setup
+// 7. Mosque Mode and Live Quran Radio Setup
+function setupMosqueAndRadioControls() {
+    const quranBtn = document.getElementById('quran-radio-btn');
+    const quranAudio = document.getElementById('quran-radio-audio');
+
+    if (quranBtn && quranAudio) {
+        quranBtn.addEventListener('click', () => {
+            quranRadioPlaying = !quranRadioPlaying;
+            const span = quranBtn.querySelector('span');
+            if (quranRadioPlaying) {
+                quranAudio.play().then(() => {
+                    if (span) span.innerText = "إذاعة القرآن: تعمل";
+                    quranBtn.classList.add('active');
+                }).catch(() => {
+                    if (span) span.innerText = "إذاعة القرآن: متعذرة";
+                });
+            } else {
+                quranAudio.pause();
+                if (span) span.innerText = "إذاعة القرآن";
+                quranBtn.classList.remove('active');
+            }
+        });
+    }
+
+    const mosqueBtn = document.getElementById('mosque-mode-btn');
+    if (mosqueBtn) {
+        mosqueBtn.addEventListener('click', () => {
+            mosqueModeActive = !mosqueModeActive;
+            const span = mosqueBtn.querySelector('span');
+            if (mosqueModeActive) {
+                document.body.classList.add('mosque-mode-active');
+                if (span) span.innerText = "وضع المصلى: مفعل";
+                mosqueBtn.classList.add('active');
+            } else {
+                document.body.classList.remove('mosque-mode-active');
+                if (span) span.innerText = "وضع المصلى";
+                mosqueBtn.classList.remove('active');
+            }
+        });
+    }
+}
+
+// 8. Theme and Audio Controls
 function setupThemeAndAudioControls() {
     const themeBtns = document.querySelectorAll('.theme-btn');
     const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-glass';
@@ -391,7 +472,7 @@ function setupThemeAndAudioControls() {
     }
 }
 
-// TV Remote Control D-Pad Navigation
+// 9. TV Remote Control D-Pad Navigation
 function setupRemoteNavigation() {
     function getFocusableElements() {
         return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, .glass-control-item, button, select, [tabindex="0"]'))
@@ -451,7 +532,7 @@ function setupRemoteNavigation() {
     });
 }
 
-// 8. 15-Minute Idle Screensaver Mode
+// 10. 15-Minute Idle Screensaver Mode
 function setupIdleScreensaver() {
     function showScreensaver() {
         const screensaver = document.getElementById('screensaver-overlay');
