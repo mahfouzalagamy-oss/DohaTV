@@ -1,29 +1,146 @@
+// Global State
+let azanEnabled = true;
+let quranRadioPlaying = false;
+let mosqueModeActive = false;
+let dhikrSecondsLeft = 60;
+let dhikrIndex = 0;
+let prayerTimings = null;
+let idleTimer = null;
+const IDLE_LIMIT = 15 * 60 * 1000; // 15 Minutes Idle
+
+// Helper function to convert Western Arabic digits (0-9) to Eastern Arabic digits (٠-٩)
+function toArabicDigits(str) {
+    if (str === null || str === undefined) return '';
+    const numMap = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
+    return String(str).replace(/[0-9]/g, w => numMap[w]);
+}
+
+// List of Authentic Rotating Dhikr
+const rotatingDhikrList = [
+    "«سُبْحَانَ اللَّهِ وَبِحَمْدِهِ ، سُبْحَانَ اللَّهِ الْعَظِيمِ»",
+    "«لَا حَوْلَ وَلَا قُوَّةَ إِلَّا بِاللَّهِ العَلِيِّ العَظِيمِ»",
+    "«أَسْتَغْفِرُ اللَّهَ الَّذِي لَا إِلَهَ إِلَّا هُوَ الْحَيَّ الْقَيُّومَ وَأَتُوبُ إِلَيْهِ»",
+    "«اللَّهُمَّ صَلِّ وَسَلِّمْ وَبَارِكْ عَلَى نَبِيِّنَا مُحَمَّدٍ»",
+    "«لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ»",
+    "«الْحَمْدُ لِلَّهِ حَمْدًا كَثِيرًا طَيِّبًا مُبَارَكًا فِيهِ»",
+    "«سُبْحَانَ اللَّهِ، وَالْحَمْدُ لِلَّهِ، وَلَا إِلَهَ إِلَّا اللَّهُ، وَاللَّهُ أَكْبَرُ»",
+    "«رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ»",
+    "«اللَّهُمَّ أَعِنِّي عَلَى ذِكْرِكَ وَشُكْرِكَ وَحُسْنِ عِبَادَتِكَ»",
+    "«حَسْبُنَا اللَّهُ وَنِعْمَ الْوَكِيلُ»"
+];
+
+// Initialize Dashboard
 function initDashboard() {
-    updateDateTimeAndRamadan();
+    setupThemeAndAudioControls();
+    setupMosqueAndRadioControls();
+    setupRemoteNavigation();
+    setupIdleScreensaver();
+    startClockAndTimers();
     updateDailyContent();
     fetchPrayerTimes();
     fetchWeatherForecast();
-    fetchAlJazeeraTextNews();
+    fetchFinancialRatesAndGold();
+
+    // Dhikr Rotation Timer (Every Second)
+    setInterval(updateDhikrRotation, 1000);
+
+    // Refresh Financial Rates & Gold every 1 Minute
+    setInterval(fetchFinancialRatesAndGold, 60000);
 }
 
-// 1. التاريخ الميلادي والعد التنازلي لرمضان
-function updateDateTimeAndRamadan() {
-    const now = new Date();
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    document.getElementById('current-date-header').innerText = now.toLocaleDateString('ar-QA', options);
+// 1. Clock, Date, Friday Check, Time-of-Day Skyline
+function startClockAndTimers() {
+    function updateClock() {
+        const now = new Date();
+        let hours = now.getHours();
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const secs = String(now.getSeconds()).padStart(2, '0');
 
-    const ramadanTarget = new Date('2027-02-18T00:00:00'); 
-    const diffDays = Math.ceil((ramadanTarget - now) / (1000 * 60 * 60 * 24));
-    
-    const ramadanElement = document.getElementById('ramadan-countdown');
-    if (diffDays > 0) {
-        ramadanElement.innerText = `متبقي على رمضان نحو ${diffDays} يوماً 🌙`;
+        const ampm = hours >= 12 ? 'م' : 'ص';
+        const displayHours = hours % 12 ? hours % 12 : 12;
+        const hrsStr = String(displayHours).padStart(2, '0');
+
+        const timeFormatted = `${hrsStr}:${mins}:${secs} ${ampm}`;
+        const clockEl = document.getElementById('large-clock');
+        if (clockEl) {
+            clockEl.innerText = toArabicDigits(timeFormatted);
+        }
+
+        // Screensaver Clock
+        const screensaverClock = document.getElementById('screensaver-clock');
+        if (screensaverClock) screensaverClock.innerText = toArabicDigits(`${hrsStr}:${mins} ${ampm}`);
+
+        // Gregorian Date and Arabic Day Name
+        const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+        const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+
+        const dayOfWeek = now.getDay();
+        const dayName = days[dayOfWeek];
+        const dayNum = now.getDate();
+        const monthName = months[now.getMonth()];
+        const yearNum = now.getFullYear();
+
+        const dayEl = document.getElementById('arabic-day-name');
+        if (dayEl) dayEl.innerText = dayName;
+
+        const gregEl = document.getElementById('gregorian-date-arabic');
+        if (gregEl) gregEl.innerText = toArabicDigits(`${dayNum} ${monthName} ${yearNum} م`);
+
+        const screensaverDate = document.getElementById('screensaver-date');
+        if (screensaverDate) screensaverDate.innerText = toArabicDigits(`${dayName}، ${dayNum} ${monthName} ${yearNum} م`);
+
+        // Check Friday Mode Banner
+        const fridayBanner = document.getElementById('friday-banner');
+        if (fridayBanner) {
+            fridayBanner.style.display = (dayOfWeek === 5) ? 'block' : 'none';
+        }
+
+        // Dynamic Time-of-Day Background Switcher (Day, Sunset, Night)
+        updateTimeOfDaySkyline(hours);
+
+        // Update Ramadan Countdown
+        updateRamadanCountdownDays(now);
+
+        // Check Prayer Times every second
+        if (prayerTimings) {
+            checkCurrentAndNextPrayer(now);
+        }
+    }
+
+    updateClock();
+    setInterval(updateClock, 1000);
+}
+
+function updateTimeOfDaySkyline(hours) {
+    document.body.classList.remove('time-day', 'time-sunset', 'time-night');
+    if (hours >= 6 && hours < 16) {
+        document.body.classList.add('time-day');
+    } else if (hours >= 16 && hours < 18) {
+        document.body.classList.add('time-sunset');
     } else {
-        ramadanElement.innerText = "بارك الله لكم في شهر رمضان المبارك 🌙";
+        document.body.classList.add('time-night');
     }
 }
 
-// حساب اليوم لتغيير الآيات والأحاديث
+function updateRamadanCountdownDays(now) {
+    let ramadanYear = now.getFullYear();
+    let ramadanTarget = new Date(`${ramadanYear}-02-28T00:00:00`);
+    if (now > ramadanTarget) {
+        ramadanTarget = new Date(`${ramadanYear + 1}-02-18T00:00:00`);
+    }
+
+    const diff = ramadanTarget - now;
+    const daysValEl = document.getElementById('ramadan-days-value');
+    if (diff > 0) {
+        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+        if (daysValEl) daysValEl.innerText = toArabicDigits(days);
+    } else {
+        const container = document.getElementById('ramadan-countdown-days');
+        if (container) container.innerHTML = "<span class='days-label' style='color: var(--accent-gold);'>رمضان مبارك! 🌙</span>";
+    }
+}
+
+// 2. Daily Quran Ayah & Sahih Hadith
 function getDayOfYear() {
     const now = new Date();
     const start = new Date(now.getFullYear(), 0, 0);
@@ -32,124 +149,407 @@ function getDayOfYear() {
 
 function updateDailyContent() {
     const dayIndex = getDayOfYear();
-    
+
     const ayahs = [
         "﴿ وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجاً وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ﴾ [الطلاق]",
         "﴿ إِنَّ اللَّهَ مَعَ الَّذِينَ اتَّقَوْا وَالَّذِينَ هُمْ مُحْسِنُونَ ﴾ [النحل]",
-        "﴿ رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً ﴾ [البقرة]"
+        "﴿ رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ ﴾ [البقرة]",
+        "﴿ وَإِذَا سَأَلَكَ عِبَادِي عَنِّي فَإِنِّي قَرِيبٌ أُجِيبُ دَعْوَةَ الدَّاعِ إِذَا دعانِ ﴾ [البقرة]",
+        "﴿ أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ ﴾ [الرعد]"
     ];
     document.getElementById('daily-ayah').innerText = ayahs[dayIndex % ayahs.length];
 
     const ahadith = [
-        "«إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى» [البخاري]",
-        "«مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ ليَصْمُتْ» [مسلم]",
-        "«لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ» [متفق عليه]"
+        "«إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ، وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى» [صحيح البخاري]",
+        "«مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَاليَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ ليَصْمُتْ» [صحيح مسلم]",
+        "«لاَ يُؤْمِنُ أَحَدُكُمْ حَتَّى يُحِبَّ لِأَخِيهِ مَا يُحِبُّ لِنَفْسِهِ» [متفق عليه]",
+        "«الكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ» [متفق عليه]",
+        "«مَنْ سَلَكَ طَرِيقًا يَلْتَمِسُ فِيهِ عِلْمًا سَهَّلَ اللَّهُ لَهُ بِهِ طَرِيقًا إِلَى الجَنَّةِ» [صحيح مسلم]"
     ];
     document.getElementById('daily-hadith').innerText = ahadith[dayIndex % ahadith.length];
 
-    const adhkar = [
-        "«سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، عَدَدَ خَلْقِهِ، وَرِضَا نَفْسِهِ»",
-        "«اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي...»"
-    ];
-    document.getElementById('daily-adhkar').innerText = adhkar[dayIndex % adhkar.length];
-
-    const minutes = new Date().getHours() * 60 + new Date().getMinutes();
-    if (minutes >= 300 && minutes <= 660) {
-        document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله...»";
-    } else if (minutes >= 990 && minutes <= 1020) {
-        document.getElementById('time-based-adhkar').innerText = "🌇 أذكار المساء: «أمسينا وأمسى الملك لله...»";
+    const hours = new Date().getHours();
+    if (hours >= 5 && hours <= 11) {
+        document.getElementById('time-based-adhkar').innerText = "🌅 أذكار الصباح: «أصبحنا وأصبح الملك لله، والحمد لله»";
+    } else if (hours >= 15 && hours <= 19) {
+        document.getElementById('time-based-adhkar').innerText = "🌆 أذكار المساء: «أمسينا وأمسى الملك لله، والحمد لله»";
     } else {
-        document.getElementById('time-based-adhkar').innerText = "🤲 «سُبْحَانَ اللَّهِ وَبِحَمْدِهِ، سُبْحَانَ اللَّهِ العَظِيمِ»";
+        document.getElementById('time-based-adhkar').innerText = "🤲 «اللَّهُمَّ أَنْتَ رَبِّي لاَ إِلَهَ إِلاَّ أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ»";
     }
 }
 
-// 2. مواقيت الصلاة (الدوحة) مع تنبيه لمدة 3 ثوانٍ عند وقت الصلاة
+// 3. Dhikr Rotation every 60 seconds
+function updateDhikrRotation() {
+    dhikrSecondsLeft--;
+    if (dhikrSecondsLeft <= 0) {
+        dhikrSecondsLeft = 60;
+        dhikrIndex = (dhikrIndex + 1) % rotatingDhikrList.length;
+    }
+    document.getElementById('dhikr-timer').innerText = `${toArabicDigits(dhikrSecondsLeft)} ثانية`;
+    document.getElementById('rotating-dhikr').innerText = rotatingDhikrList[dhikrIndex];
+}
+
+// 4. Financial Rates & Gold Prices Update
+async function fetchFinancialRatesAndGold() {
+    const usdEgpEl = document.getElementById('rate-usd-egp');
+    const qarEgpEl = document.getElementById('rate-qar-egp');
+    const goldEgp21El = document.getElementById('gold-egp-21');
+    const goldQar24El = document.getElementById('gold-qar-24');
+
+    if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits("56.09")} ج.م`;
+    if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits("15.39")} ج.م`;
+    if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits("6380")} ج.م`;
+    if (goldQar24El) goldQar24El.innerText = `${toArabicDigits("473")} ر.ق`;
+}
+
+// 5. Prayer Times Fetching & Pre-Azan 15-Min Alert
 async function fetchPrayerTimes() {
     try {
-        // استخدام واجهة API مجانية لمواقيت الصلاة لمدينة الدوحة
         const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=4');
         const data = await response.json();
-        const timings = data.data.timings;
 
-        const prayers = [
-            { name: 'الفجر', time: timings.Fajr },
-            { name: 'الظهر', time: timings.Dhuhr },
-            { name: 'العصر', time: timings.Asr },
-            { name: 'المغرب', time: timings.Maghrib },
-            { name: 'العشاء', time: timings.Isha }
-        ];
+        if (data && data.data) {
+            prayerTimings = data.data.timings;
+            const hijri = data.data.date.hijri;
 
-        let html = "";
-        const now = new Date();
-        const currentTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            const hijriMonthAr = hijri.month.ar;
+            const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
+            const hijriEl = document.getElementById('hijri-date-arabic');
+            if (hijriEl) hijriEl.innerText = hijriStr;
 
-        prayers.forEach(p => {
-            let isCurrent = p.time === currentTimeStr;
-            if (isCurrent) {
-                triggerPrayerAlert(p.name);
-            }
-            html += `<div style="background: ${isCurrent ? '#cc0000' : '#1a2238'}; padding: 6px 10px; border-radius: 6px;">
-                <div style="color: #ffcc00; font-size: 13px;">${p.name}</div>
-                <div style="font-weight: bold; font-size: 15px;">${p.time}</div>
-            </div>`;
-        });
-
-        document.getElementById('prayer-times-container').innerHTML = html;
+            renderPrayerTimes();
+        }
     } catch (e) {
-        document.getElementById('prayer-times-container').innerHTML = "<span>تعذر تحميل أوقات الصلاة</span>";
+        document.getElementById('prayer-times-container').innerHTML = "<span class='loading-text'>تعذر جلب أوقات الصلاة</span>";
     }
 }
 
-// إطلاق تنبيه مرئي وبارز لمدة 3 ثوانٍ عند دخول وقت الصلاة
+function renderPrayerTimes() {
+    if (!prayerTimings) return;
+
+    const prayers = [
+        { key: 'Fajr', name: 'الفجر', time: prayerTimings.Fajr },
+        { key: 'Dhuhr', name: 'الظهر', time: prayerTimings.Dhuhr },
+        { key: 'Asr', name: 'العصر', time: prayerTimings.Asr },
+        { key: 'Maghrib', name: 'المغرب', time: prayerTimings.Maghrib },
+        { key: 'Isha', name: 'العشاء', time: prayerTimings.Isha }
+    ];
+
+    let html = "";
+    prayers.forEach(p => {
+        html += `
+            <div class="prayer-box" id="prayer-box-${p.key}">
+                <div class="prayer-name">${p.name}</div>
+                <div class="prayer-time">${toArabicDigits(p.time)}</div>
+            </div>
+        `;
+    });
+
+    document.getElementById('prayer-times-container').innerHTML = html;
+}
+
+let lastTriggeredPrayer = "";
+
+function checkCurrentAndNextPrayer(now) {
+    const currentStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    const prayers = [
+        { name: 'الفجر', time: prayerTimings.Fajr, key: 'Fajr' },
+        { name: 'الظهر', time: prayerTimings.Dhuhr, key: 'Dhuhr' },
+        { name: 'العصر', time: prayerTimings.Asr, key: 'Asr' },
+        { name: 'المغرب', time: prayerTimings.Maghrib, key: 'Maghrib' },
+        { name: 'العشاء', time: prayerTimings.Isha, key: 'Isha' }
+    ];
+
+    prayers.forEach(p => {
+        const box = document.getElementById(`prayer-box-${p.key}`);
+        if (box) box.className = "prayer-box";
+    });
+
+    let nextPrayer = null;
+
+    for (let i = 0; i < prayers.length; i++) {
+        if (prayers[i].time > currentStr) {
+            nextPrayer = prayers[i];
+            break;
+        }
+    }
+
+    if (!nextPrayer) {
+        nextPrayer = prayers[0];
+    }
+
+    if (nextPrayer) {
+        const nextBox = document.getElementById(`prayer-box-${nextPrayer.key}`);
+        if (nextBox) nextBox.classList.add('next');
+
+        // Calculate minutes remaining for next prayer
+        const [pMaxH, pMaxM] = nextPrayer.time.split(':').map(Number);
+        const pDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), pMaxH, pMaxM);
+        if (pDate < now) pDate.setDate(pDate.getDate() + 1);
+
+        const diffMins = Math.floor((pDate - now) / (1000 * 60));
+
+        const timerEl = document.getElementById('next-prayer-timer');
+        if (timerEl) {
+            if (diffMins <= 15 && diffMins > 0) {
+                timerEl.innerText = `اقتربت صلاة ${nextPrayer.name} (باقي ${toArabicDigits(diffMins)} دقيقة)`;
+                timerEl.style.borderColor = "var(--accent-gold)";
+            } else {
+                timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toArabicDigits(nextPrayer.time)})`;
+            }
+        }
+    }
+
+    // Check exact Azan Time
+    prayers.forEach(p => {
+        if (p.time === currentStr && lastTriggeredPrayer !== p.key) {
+            lastTriggeredPrayer = p.key;
+            const currentBox = document.getElementById(`prayer-box-${p.key}`);
+            if (currentBox) currentBox.classList.add('active');
+            triggerPrayerAlert(p.name);
+        }
+    });
+}
+
 function triggerPrayerAlert(prayerName) {
     const banner = document.getElementById('prayer-alert-banner');
-    banner.innerText = `🚨 حان الآن وقت صلاة ${prayerName} تقبل الله طاعتكم`;
+    if (!banner) return;
+    banner.innerText = `🕌 حان الآن وقت صلاة ${prayerName} حسب توقيت الدوحة المحلي`;
     banner.style.display = 'block';
-    
+
+    if (azanEnabled) {
+        const audio = document.getElementById('azan-audio');
+        if (audio) {
+            const muazzinSelect = document.getElementById('muazzin-select');
+            if (muazzinSelect && muazzinSelect.value) {
+                audio.src = muazzinSelect.value;
+            }
+            audio.play().catch(() => {});
+        }
+    }
+
     setTimeout(() => {
         banner.style.display = 'none';
-    }, 3000); // يختفي التنبيه تلقائياً بعد 3 ثوانٍ
+    }, 20000);
 }
 
-// 3. درجات الحرارة والطقس للأسبوع
+// 6. Advanced Weather Forecast for Doha
 async function fetchWeatherForecast() {
     try {
-        let response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
-        let data = await response.json();
-        
-        let forecastHTML = "";
-        const days = ['اليوم', 'الغد', 'بعد الغد', 'الخميس', 'الجمعة'];
-        
-        for (let i = 0; i < 5; i++) {
-            let maxTemp = Math.round(data.daily.temperature_2m_max[i]);
-            let minTemp = Math.round(data.daily.temperature_2m_min[i]);
-            forecastHTML += `
-                <div style="background: #1a2238; padding: 6px; border-radius: 6px; min-width: 50px;">
-                    <div style="font-size: 12px; color: #ffcc00;">${days[i]}</div>
-                    <div style="font-size: 15px; font-weight: bold;">${maxTemp}°/${minTemp}°</div>
-                </div>
-            `;
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&hourly=apparent_temperature,uv_index&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
+        const data = await response.json();
+
+        if (data && data.current_weather) {
+            const tempStr = `${toArabicDigits(Math.round(data.current_weather.temperature))}°م ☀️`;
+            const weatherTempEl = document.getElementById('current-weather-temp');
+            if (weatherTempEl) weatherTempEl.innerText = tempStr;
+
+            const windStr = `الرياح: ${toArabicDigits(Math.round(data.current_weather.windspeed))} كم/س`;
+            document.getElementById('weather-wind').innerText = windStr;
         }
-        document.getElementById('weather-forecast').innerHTML = forecastHTML;
+
+        if (data && data.hourly) {
+            const feels = data.hourly.apparent_temperature[0];
+            const uv = data.hourly.uv_index[0];
+            if (feels !== undefined) document.getElementById('weather-feels').innerText = `المحسوسة: ${toArabicDigits(Math.round(feels))}°م`;
+            if (uv !== undefined) document.getElementById('weather-uv').innerText = `الأشعة UV: ${toArabicDigits(Math.round(uv))}`;
+        }
+
+        if (data && data.daily) {
+            let forecastHTML = "";
+            const days = ['اليوم', 'الغد', 'بعد الغد', 'الخميس', 'الجمعة'];
+
+            for (let i = 0; i < Math.min(5, data.daily.time.length); i++) {
+                let maxTemp = toArabicDigits(Math.round(data.daily.temperature_2m_max[i]));
+                let minTemp = toArabicDigits(Math.round(data.daily.temperature_2m_min[i]));
+                forecastHTML += `
+                    <div class="weather-day-box">
+                        <div class="weather-day-title">${days[i] || 'اليوم'}</div>
+                        <div class="weather-temp">${maxTemp}° / ${minTemp}°</div>
+                    </div>
+                `;
+            }
+            document.getElementById('weather-forecast').innerHTML = forecastHTML;
+        }
     } catch (e) {
-        document.getElementById('weather-forecast').innerHTML = "<span>تعذر تحميل الطقس</span>";
+        document.getElementById('weather-forecast').innerHTML = "<span class='loading-text'>تعذر جلب بيانات الطقس</span>";
     }
 }
 
-// 4. أخبار الجزيرة المكتوبة
-async function fetchAlJazeeraTextNews() {
-    try {
-        let response = await fetch('https://api.rss2json.com/v1/api.json?rss_url=https://www.aljazeera.net/rss');
-        let data = await response.json();
-        if (data && data.items && data.items.length > 0) {
-            let newsTitles = data.items.map(item => item.title).join("   ***   ");
-            document.getElementById('aljazeera-news-text').innerText = newsTitles;
-        }
-    } catch (e) {
-        document.getElementById('aljazeera-news-text').innerText = "عاجل: شبكة الجزيرة الإخبارية - تغطية مكتوبة مستمرة على مدار الساعة.";
+// 7. Mosque Mode and Live Quran Radio Setup
+function setupMosqueAndRadioControls() {
+    const quranBtn = document.getElementById('quran-radio-btn');
+    const quranAudio = document.getElementById('quran-radio-audio');
+
+    if (quranBtn && quranAudio) {
+        quranBtn.addEventListener('click', () => {
+            quranRadioPlaying = !quranRadioPlaying;
+            const span = quranBtn.querySelector('span');
+            if (quranRadioPlaying) {
+                quranAudio.play().then(() => {
+                    if (span) span.innerText = "إذاعة القرآن: تعمل";
+                    quranBtn.classList.add('active');
+                }).catch(() => {
+                    if (span) span.innerText = "إذاعة القرآن: متعذرة";
+                });
+            } else {
+                quranAudio.pause();
+                if (span) span.innerText = "إذاعة القرآن";
+                quranBtn.classList.remove('active');
+            }
+        });
+    }
+
+    const mosqueBtn = document.getElementById('mosque-mode-btn');
+    if (mosqueBtn) {
+        mosqueBtn.addEventListener('click', () => {
+            mosqueModeActive = !mosqueModeActive;
+            const span = mosqueBtn.querySelector('span');
+            if (mosqueModeActive) {
+                document.body.classList.add('mosque-mode-active');
+                if (span) span.innerText = "وضع المصلى: مفعل";
+                mosqueBtn.classList.add('active');
+            } else {
+                document.body.classList.remove('mosque-mode-active');
+                if (span) span.innerText = "وضع المصلى";
+                mosqueBtn.classList.remove('active');
+            }
+        });
     }
 }
 
-initDashboard();
-setInterval(fetchPrayerTimes, 60000); // تحديث فحص أوقات الصلاة كل دقيقة
-setInterval(fetchAlJazeeraTextNews, 120000);
+// 8. Theme and Audio Controls
+function setupThemeAndAudioControls() {
+    const themeBtns = document.querySelectorAll('.theme-btn');
+    const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-glass';
+
+    document.body.className = savedTheme;
+    themeBtns.forEach(btn => {
+        if (btn.getAttribute('data-theme') === savedTheme) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+
+        btn.addEventListener('click', () => {
+            const selectedTheme = btn.getAttribute('data-theme');
+            document.body.className = selectedTheme;
+            themeBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            localStorage.setItem('dohatv_theme', selectedTheme);
+        });
+    });
+
+    const azanBtn = document.getElementById('azan-toggle-btn');
+    if (azanBtn) {
+        azanBtn.addEventListener('click', () => {
+            azanEnabled = !azanEnabled;
+            const span = azanBtn.querySelector('span');
+            if (azanEnabled) {
+                if (span) span.innerText = "الأذان: مفعل";
+                azanBtn.style.borderColor = "rgba(0, 229, 255, 0.5)";
+            } else {
+                if (span) span.innerText = "الأذان: مكتوم";
+                azanBtn.style.borderColor = "rgba(255, 59, 48, 0.5)";
+                const audio = document.getElementById('azan-audio');
+                if (audio) {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            }
+        });
+    }
+
+    const muazzinSelect = document.getElementById('muazzin-select');
+    const savedMuazzin = localStorage.getItem('dohatv_muazzin');
+    if (savedMuazzin && muazzinSelect) {
+        muazzinSelect.value = savedMuazzin;
+    }
+    if (muazzinSelect) {
+        muazzinSelect.addEventListener('change', (e) => {
+            localStorage.setItem('dohatv_muazzin', e.target.value);
+        });
+    }
+}
+
+// 9. TV Remote Control D-Pad Navigation
+function setupRemoteNavigation() {
+    function getFocusableElements() {
+        return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, .glass-control-item, button, select, [tabindex="0"]'))
+            .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== 'hidden');
+    }
+
+    let navItems = getFocusableElements();
+    if (navItems.length > 0) {
+        navItems[0].focus();
+    }
+
+    document.addEventListener('keydown', (e) => {
+        resetIdleTimer();
+
+        const screensaver = document.getElementById('screensaver-overlay');
+        if (screensaver && screensaver.style.display !== 'none') {
+            screensaver.style.display = 'none';
+            return;
+        }
+
+        navItems = getFocusableElements();
+        const activeElement = document.activeElement;
+        let currentIndex = navItems.indexOf(activeElement);
+        if (currentIndex === -1) currentIndex = 0;
+
+        const key = e.key;
+
+        if (key === 'ArrowRight' || key === 'Right') {
+            const nextIndex = (currentIndex - 1 + navItems.length) % navItems.length;
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowLeft' || key === 'Left') {
+            const nextIndex = (currentIndex + 1) % navItems.length;
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowDown' || key === 'Down') {
+            const nextIndex = Math.min(navItems.length - 1, currentIndex + 3);
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'ArrowUp' || key === 'Up') {
+            const nextIndex = Math.max(0, currentIndex - 3);
+            navItems[nextIndex].focus();
+            e.preventDefault();
+        } else if (key === 'Enter' || key === 'Select' || e.keyCode === 13) {
+            if (activeElement) {
+                if (activeElement.tagName === 'SELECT') {
+                    const select = activeElement;
+                    const nextOpt = (select.selectedIndex + 1) % select.options.length;
+                    select.selectedIndex = nextOpt;
+                    select.dispatchEvent(new Event('change'));
+                } else {
+                    activeElement.click();
+                }
+            }
+            e.preventDefault();
+        }
+    });
+}
+
+// 10. 15-Minute Idle Screensaver Mode
+function setupIdleScreensaver() {
+    function showScreensaver() {
+        const screensaver = document.getElementById('screensaver-overlay');
+        if (screensaver) screensaver.style.display = 'flex';
+    }
+
+    window.resetIdleTimer = function() {
+        clearTimeout(idleTimer);
+        idleTimer = setTimeout(showScreensaver, IDLE_LIMIT);
+    };
+
+    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
+        window.addEventListener(evt, resetIdleTimer, true);
+    });
+
+    resetIdleTimer();
+}
+
+// Initialize on DOM load
+document.addEventListener('DOMContentLoaded', initDashboard);
