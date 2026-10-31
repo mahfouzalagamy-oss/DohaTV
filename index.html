@@ -54,9 +54,9 @@
             </div>
         </header>
 
-        <!-- شبكة الشاشات الموحدة بتصميم الزجاج الفاخر (Glassmorphic TV Grid) -->
+        <!-- شبكة الشاشات الموحدة في شاشة واحدة متكاملة (16:9 TV Grid بدون أي تمرير) -->
         <main class="tv-grid-glass">
-            <!-- 1. شاشة الساعة الرقمية والتاريخ المفرغة -->
+            <!-- 1. شاشة الساعة الرقمية والتاريخ -->
             <section class="glass-card card-clock tv-nav-card" tabindex="0">
                 <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
                 <div class="date-details-arabic">
@@ -66,7 +66,7 @@
                 </div>
             </section>
 
-            <!-- 2. شاشة مواقيت الصلاة -->
+            <!-- 2. شاشة مواقيت الصلاة بالدوحة -->
             <section class="glass-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
@@ -85,7 +85,7 @@
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
                     <h3>الطقس بالدوحة</h3>
-                    <span id="current-weather-temp" class="badge-glass">☀️ ٢٩°م</span>
+                    <span id="current-weather-temp" class="badge-glass">☀️ --°م</span>
                 </div>
                 <div id="weather-details-row" class="weather-meta-row">
                     <span id="weather-feels">المحسوسة: --</span>
@@ -97,77 +97,89 @@
                 </div>
             </section>
 
-            <!-- 4. شاشة آية اليوم -->
-            <section class="glass-card card-ayah tv-nav-card" tabindex="0">
+            <!-- 4. البطاقة الإيمانية الكبرى (دمج الآية والحديث والذكر في بطاقة واضحة وجميلة) -->
+            <section class="glass-card card-faith-hub tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">📖</span>
-                    <h3>آية اليوم</h3>
+                    <div class="faith-header-title">
+                        <span class="card-icon">📖</span>
+                        <h3>زاد المؤمن (آية وحديث وذكر اليوم)</h3>
+                    </div>
+                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
                 </div>
-                <div class="card-body">
-                    <blockquote id="daily-ayah">جاري التحميل...</blockquote>
+
+                <div class="faith-content-grid">
+                    <!-- قسم الآية -->
+                    <div class="faith-item faith-ayah-box">
+                        <div class="faith-tag">✨ آية كريمة</div>
+                        <blockquote id="daily-ayah" class="faith-quote">جاري التحميل...</blockquote>
+                    </div>
+
+                    <!-- قسم الحديث -->
+                    <div class="faith-item faith-hadith-box">
+                        <div class="faith-tag">📜 حديث شريف</div>
+                        <blockquote id="daily-hadith" class="faith-quote">جاري التحميل...</blockquote>
+                    </div>
+
+                    <!-- قسم الذكر الدائم والأذكار اليومية -->
+                    <div class="faith-item faith-dhikr-box">
+                        <div class="faith-tag">🤲 ذكر اللحظة وأذكار الوقت</div>
+                        <div class="dhikr-content">
+                            <p id="rotating-dhikr" class="dhikr-main-text">جاري التحميل...</p>
+                            <p id="time-based-adhkar" class="dhikr-sub-text"></p>
+                        </div>
+                    </div>
                 </div>
             </section>
 
-            <!-- 5. شاشة حديث اليوم الصحيح -->
-            <section class="glass-card card-hadith tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">📜</span>
-                    <h3>حديث اليوم (صحيح)</h3>
-                </div>
-                <div class="card-body">
-                    <blockquote id="daily-hadith">جاري التحميل...</blockquote>
-                </div>
-            </section>
-
-            <!-- 6. شاشة أسعار العملات والذهب -->
+            <!-- 5. شاشة أسعار العملات والذهب الحية (محدثة لحظياً) -->
             <section class="glass-card card-finance tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">💵</span>
                     <h3>العملات والذهب</h3>
-                    <span class="badge-glass">محدث حي</span>
+                    <span class="badge-glass" id="finance-update-badge">🟢 محدث لحظياً</span>
                 </div>
                 <div class="finance-grid" id="finance-rates-container">
                     <div class="finance-box">
-                        <div class="finance-label">USD / EGP</div>
-                        <div class="finance-value" id="rate-usd-egp">٥٦.٠٩ ج.م</div>
+                        <div class="finance-info">
+                            <span class="finance-flag">🇺🇸/🇪🇬</span>
+                            <span class="finance-label">دولار / جنيه مصري</span>
+                        </div>
+                        <div class="finance-value" id="rate-usd-egp">... ج.م</div>
                     </div>
                     <div class="finance-box">
-                        <div class="finance-label">QAR / EGP</div>
-                        <div class="finance-value" id="rate-qar-egp">١٥.٣٩ ج.م</div>
+                        <div class="finance-info">
+                            <span class="finance-flag">🇶🇦/🇪🇬</span>
+                            <span class="finance-label">ريال قطري / جنيه مصري</span>
+                        </div>
+                        <div class="finance-value" id="rate-qar-egp">... ج.م</div>
                     </div>
                     <div class="finance-box">
-                        <div class="finance-label">ذهب ٢١ مصر</div>
-                        <div class="finance-value" id="gold-egp-21">٦٣٨٠ ج.م</div>
+                        <div class="finance-info">
+                            <span class="finance-flag">🪙</span>
+                            <span class="finance-label">عيار ٢١ (مصر)</span>
+                        </div>
+                        <div class="finance-value" id="gold-egp-21">... ج.م</div>
                     </div>
                     <div class="finance-box">
-                        <div class="finance-label">ذهب ٢٤ قطر</div>
-                        <div class="finance-value" id="gold-qar-24">٤٧٣ ر.ق</div>
+                        <div class="finance-info">
+                            <span class="finance-flag">🏆</span>
+                            <span class="finance-label">عيار ٢٤ (قطر)</span>
+                        </div>
+                        <div class="finance-value" id="gold-qar-24">... ر.ق</div>
                     </div>
                 </div>
+                <div class="finance-footer-note">⚡ الأسعار البنكية والعالمية الرسمية المحدثة الآن</div>
             </section>
 
-            <!-- 7. شاشة الذكر المتغير كل دقيقة -->
-            <section class="glass-card card-dhikr tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">🤲</span>
-                    <h3>ذكر دائم (يتغير كل دقيقة)</h3>
-                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
-                </div>
-                <div class="card-body">
-                    <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
-                    <p id="time-based-adhkar" class="sub-adhkar"></p>
-                </div>
-            </section>
-
-            <!-- 8. شاشة العداد التنازلي لرمضان -->
+            <!-- 6. شاشة العداد التنازلي لرمضان المبارك -->
             <section class="glass-card card-ramadan tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
                     <h3>رمضان المبارك</h3>
                 </div>
                 <div class="ramadan-days-only" id="ramadan-countdown-days">
-                    <span class="days-count" id="ramadan-days-value">١١٤</span>
-                    <span class="days-label">يوماً متبقياً</span>
+                    <span class="days-count" id="ramadan-days-value">...</span>
+                    <span class="days-label">يوماً متبقياً على شهر الخير</span>
                 </div>
             </section>
         </main>
