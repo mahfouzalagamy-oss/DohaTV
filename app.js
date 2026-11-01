@@ -36,16 +36,25 @@ function initDashboard() {
     setupRemoteNavigation();
     setupIdleScreensaver();
     startClockAndTimers();
+    setupDohaLandmarksRotatingBackground();
+    setupProductShowcaseSlider();
     updateDailyContent();
     fetchPrayerTimes();
     fetchWeatherForecast();
     fetchFinancialRatesAndGold();
 
+    const refreshBtn = document.getElementById('finance-refresh-btn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', () => {
+            fetchFinancialRatesAndGold();
+        });
+    }
+
+    // Auto-refresh financial rates every 15 minutes
+    setInterval(fetchFinancialRatesAndGold, 15 * 60 * 1000);
+
     // Dhikr Rotation Timer (Every Second)
     setInterval(updateDhikrRotation, 1000);
-
-    // Refresh Financial Rates & Gold every 2 Minutes
-    setInterval(fetchFinancialRatesAndGold, 120000);
 }
 
 // 1. Clock, Date, Friday Check, Time-of-Day Skyline
@@ -198,23 +207,70 @@ function updateDhikrRotation() {
 }
 
 // 4. Financial Rates & Gold Prices Update (Live from Bank Exchange & Bullion APIs)
+const STORAGE_KEY_FINANCE = 'dohatv_finance_cache';
+
 async function fetchFinancialRatesAndGold() {
     const usdEgpEl = document.getElementById('rate-usd-egp');
     const qarEgpEl = document.getElementById('rate-qar-egp');
+    const goldEgp24El = document.getElementById('gold-egp-24');
     const goldEgp21El = document.getElementById('gold-egp-21');
+    const goldEgp18El = document.getElementById('gold-egp-18');
+    const goldEgpPoundEl = document.getElementById('gold-egp-pound');
     const goldQar24El = document.getElementById('gold-qar-24');
+    const goldQar21El = document.getElementById('gold-qar-21');
+    const badge = document.getElementById('finance-update-badge');
+    const noteEl = document.getElementById('finance-timestamp-note');
 
-    // Default Fallbacks
-    let usdEgp = 56.09;
-    let qarEgp = 15.39;
-    let goldEgp21 = 6380;
-    let goldQar24 = 473;
+    // Default Fallbacks or Cached values
+    let cached = null;
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY_FINANCE);
+        if (raw) cached = JSON.parse(raw);
+    } catch (_) {}
+
+    let data = cached || {
+        usdEgp: 56.09,
+        qarEgp: 15.39,
+        goldEgp24: 6962.25,
+        goldEgp21: 6091.97,
+        goldEgp18: 5221.69,
+        goldEgpPound: 48735.76,
+        goldQar24: 453.53,
+        goldQar21: 396.84,
+        timestamp: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+    };
+
+    function renderFinanceUI(d, isLive = true) {
+        if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits(d.usdEgp.toFixed(2))} ج.م`;
+        if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits(d.qarEgp.toFixed(2))} ج.م`;
+        if (goldEgp24El) goldEgp24El.innerText = `${toArabicDigits(d.goldEgp24.toFixed(2))} ج.م`;
+        if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits(d.goldEgp21.toFixed(2))} ج.م`;
+        if (goldEgp18El) goldEgp18El.innerText = `${toArabicDigits(d.goldEgp18.toFixed(2))} ج.م`;
+        if (goldEgpPoundEl) goldEgpPoundEl.innerText = `${toArabicDigits(d.goldEgpPound.toFixed(2))} ج.م`;
+        if (goldQar24El) goldQar24El.innerText = `${toArabicDigits(d.goldQar24.toFixed(2))} ر.ق`;
+        if (goldQar21El) goldQar21El.innerText = `${toArabicDigits(d.goldQar21.toFixed(2))} ر.ق`;
+
+        if (badge) {
+            badge.innerText = isLive ? "🟢 محدث لحظياً" : "🟡 آخر تحديث محفوظ";
+            badge.style.color = isLive ? "var(--accent-emerald)" : "var(--accent-gold)";
+        }
+        if (noteEl && d.timestamp) {
+            noteEl.innerText = `⚡ أسعار الصرف والذهب رسمياً (آخر تحديث: ${toArabicDigits(d.timestamp)})`;
+        }
+    }
+
+    // Render immediately from cache/fallback
+    renderFinanceUI(data, !!cached);
 
     try {
-        // Fetch Real-time Bank FX Rates
-        const fxResponse = await fetch('https://open.er-api.com/v6/latest/USD');
-        const fxData = await fxResponse.json();
+        if (badge) badge.innerText = "⏳ جاري التحديث...";
 
+        // 1. Currency Rates (USD to EGP & QAR to EGP)
+        let usdEgp = data.usdEgp;
+        let qarEgp = data.qarEgp;
+
+        const fxRes = await fetch('https://open.er-api.com/v6/latest/USD');
+        const fxData = await fxRes.json();
         if (fxData && fxData.rates) {
             if (fxData.rates.EGP) usdEgp = fxData.rates.EGP;
             if (fxData.rates.EGP && fxData.rates.QAR) {
@@ -222,37 +278,75 @@ async function fetchFinancialRatesAndGold() {
             }
         }
 
-        // Fetch Live International Gold Bullion Rates (XAU)
-        const goldResponse = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json');
-        const goldData = await goldResponse.json();
+        // 2. Gold Bullion Rates (XAU: 1 troy ounce = 31.1034768 grams)
+        let ounceEgp = 0;
+        let ounceQar = 0;
 
-        if (goldData && goldData.usd && goldData.usd.xau) {
-            const xauRate = goldData.usd.xau; // ounce in usd
-            const usdPerOunce = 1.0 / xauRate;
-            const gram24Usd = usdPerOunce / 31.1034768;
-            const gram21Usd = gram24Usd * (21.0 / 24.0);
-
-            // Qatar 24k Gram in QAR (3.64 fixed peg)
-            goldQar24 = Math.round(gram24Usd * 3.64);
-
-            // Egypt 21k Gram in EGP (Calculated based on live exchange + local Egyptian market retail premium)
-            // Egyptian retail 21k gold reflects physical premium ~ 4.5% above pure currency spot
-            goldEgp21 = Math.round(gram21Usd * usdEgp * 1.045);
+        try {
+            // Primary Gold API
+            const goldRes = await fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/xau.json');
+            const goldJson = await goldRes.json();
+            if (goldJson && goldJson.xau) {
+                ounceEgp = goldJson.xau.egp || (goldJson.xau.usd ? goldJson.xau.usd * usdEgp : 0);
+                ounceQar = goldJson.xau.qar || (goldJson.xau.usd ? goldJson.xau.usd * 3.64 : 0);
+            }
+        } catch (e1) {
+            console.warn("Primary gold API failed, trying fallback...", e1);
         }
 
-        if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits(usdEgp.toFixed(2))} ج.م`;
-        if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits(qarEgp.toFixed(2))} ج.م`;
-        if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits(goldEgp21)} ج.م`;
-        if (goldQar24El) goldQar24El.innerText = `${toArabicDigits(goldQar24)} ر.ق`;
+        // Secondary fallback Gold API
+        if (!ounceEgp || !ounceQar) {
+            try {
+                const altGoldRes = await fetch('https://api.gold-api.com/price/XAU');
+                const altGoldJson = await altGoldRes.json();
+                if (altGoldJson && altGoldJson.price) {
+                    const ounceUsd = altGoldJson.price;
+                    ounceEgp = ounceUsd * usdEgp;
+                    ounceQar = ounceUsd * 3.64;
+                }
+            } catch (e2) {
+                console.warn("Alternative gold API failed", e2);
+            }
+        }
 
-        const badge = document.getElementById('finance-update-badge');
-        if (badge) badge.innerText = "🟢 محدث لحظياً";
-    } catch (e) {
-        // Use realistic benchmarks if network is slow
-        if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits(usdEgp.toFixed(2))} ج.م`;
-        if (qarEgpEl) qarEgpEl.innerText = `${toArabicDigits(qarEgp.toFixed(2))} ج.م`;
-        if (goldEgp21El) goldEgp21El.innerText = `${toArabicDigits(goldEgp21)} ج.م`;
-        if (goldQar24El) goldQar24El.innerText = `${toArabicDigits(goldQar24)} ر.ق`;
+        // Formulas:
+        // سعر جرام الذهب عيار 24: سعر الأونصة ÷ 31.1035
+        // سعر جرام الذهب عيار 21: عيار 24 × (21 / 24)
+        // سعر جرام الذهب عيار 18: عيار 24 × (18 / 24)
+        // سعر الجنيه الذهب: عيار 21 × 8
+        const OUNCE_GRAMS = 31.1035;
+
+        const goldEgp24 = ounceEgp ? (ounceEgp / OUNCE_GRAMS) : data.goldEgp24;
+        const goldEgp21 = goldEgp24 * (21 / 24);
+        const goldEgp18 = goldEgp24 * (18 / 24);
+        const goldEgpPound = goldEgp21 * 8;
+
+        const goldQar24 = ounceQar ? (ounceQar / OUNCE_GRAMS) : data.goldQar24;
+        const goldQar21 = goldQar24 * (21 / 24);
+
+        const currentNow = new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+
+        const updatedData = {
+            usdEgp,
+            qarEgp,
+            goldEgp24,
+            goldEgp21,
+            goldEgp18,
+            goldEgpPound,
+            goldQar24,
+            goldQar21,
+            timestamp: currentNow
+        };
+
+        // Save to cache
+        try {
+            localStorage.setItem(STORAGE_KEY_FINANCE, JSON.stringify(updatedData));
+        } catch (_) {}
+
+        renderFinanceUI(updatedData, true);
+    } catch (err) {
+        console.error("Finance fetch error:", err);
+        renderFinanceUI(data, false);
     }
 }
 
@@ -603,6 +697,131 @@ function setupIdleScreensaver() {
     });
 
     resetIdleTimer();
+}
+
+// 11. Doha Landmark Backgrounds Rotation (Every 3 seconds crossfade)
+function setupDohaLandmarksRotatingBackground() {
+    const dohaImages = [
+        'images/doha/corniche.svg',
+        'images/doha/mia.svg',
+        'images/doha/katara.svg',
+        'images/doha/lusail.svg',
+        'images/doha/fanar.svg'
+    ];
+
+    let currentBgIndex = 0;
+    let activeLayer = 1;
+
+    const bg1 = document.getElementById('doha-bg-1');
+    const bg2 = document.getElementById('doha-bg-2');
+
+    if (!bg1 || !bg2) return;
+
+    bg1.style.backgroundImage = `url('${dohaImages[0]}')`;
+    bg1.style.opacity = '1';
+    bg2.style.opacity = '0';
+
+    setInterval(() => {
+        currentBgIndex = (currentBgIndex + 1) % dohaImages.length;
+        const nextImg = dohaImages[currentBgIndex];
+
+        if (activeLayer === 1) {
+            bg2.style.backgroundImage = `url('${nextImg}')`;
+            bg2.style.opacity = '1';
+            bg1.style.opacity = '0';
+            activeLayer = 2;
+        } else {
+            bg1.style.backgroundImage = `url('${nextImg}')`;
+            bg1.style.opacity = '1';
+            bg2.style.opacity = '0';
+            activeLayer = 1;
+        }
+    }, 3000);
+}
+
+// 12. Perfect Weight Product Showcase Slider (Every 3 seconds transition)
+function setupProductShowcaseSlider() {
+    const products = [
+        {
+            name: "American Keto Advanced",
+            sub: "كبسولات كيتو الأمريكية لحرق الدهون",
+            tag: "الأكثر مبيعاً ⭐",
+            desc: "تركيبة أمريكية متقدمة لتعزيز حرق الدهون وسد الشهية طبيعياً بأمان تام.",
+            img: "images/products/prod_1.svg"
+        },
+        {
+            name: "NaturaDiet Slim Gold",
+            sub: "ناتشورادايت سليم للتخسيس الطبيعي",
+            tag: "طبيعي 100% 🌿",
+            desc: "مستخلصات أعشاب ونباتات طبيعية نقية لرفع معدل الأيض اليومي وتخسيس البطن.",
+            img: "images/products/prod_2.svg"
+        },
+        {
+            name: "Collagen Protein Plus",
+            sub: "كولاجين وبروتين متكامل للرشاقة",
+            tag: "صحة وجمال 💎",
+            desc: "يحافظ على نضارة البشرة وشد الجسم والقضاء على الترهلات أثناء إنقاص الوزن.",
+            img: "images/products/prod_3.svg"
+        },
+        {
+            name: "Detox Cleanse Herbal Tea",
+            sub: "شاي الديتوكس لتنقية الجسم وتصريف السوائل",
+            tag: "نتائج سريعة 🍵",
+            desc: "تنظيف طبيعي للجهاز الهضمي والتخلص من السوائل المحتبسة والانتفاخات بكفاءة.",
+            img: "images/products/prod_4.svg"
+        },
+        {
+            name: "L-Carnitine 3000 Max",
+            sub: "إل-كارنتين لحرق الدهون وإنتاج الطاقة",
+            tag: "طاقة ونشاط ⚡",
+            desc: "يعزز حرق الشحوم العنيدة أثناء الأنشطة اليومية والتمارين الرياضية بدون تعب.",
+            img: "images/products/prod_5.svg"
+        },
+        {
+            name: "Perfect Weight Fiber",
+            sub: "ألياف الشبع والامتلاء الطبيعية",
+            tag: "بدون حرمان 🌾",
+            desc: "كبسولات ألياف طبيعية تمنح إحساساً دائماً بالشبع والامتلاء لساعات طويلة.",
+            img: "images/products/prod_6.svg"
+        }
+    ];
+
+    let prodIndex = 0;
+    const imgEl = document.getElementById('product-slide-img');
+    const nameEl = document.getElementById('product-slide-name');
+    const subEl = document.getElementById('product-slide-sub');
+    const descEl = document.getElementById('product-slide-desc');
+    const tagEl = document.getElementById('product-slide-tag');
+    const badgeEl = document.getElementById('product-slide-badge');
+
+    function renderProduct(index) {
+        const p = products[index];
+        if (!p) return;
+
+        if (imgEl) {
+            imgEl.style.opacity = '0';
+            imgEl.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                imgEl.src = p.img;
+                imgEl.style.opacity = '1';
+                imgEl.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        if (nameEl) nameEl.innerText = p.name;
+        if (subEl) subEl.innerText = p.sub;
+        if (descEl) descEl.innerText = p.desc;
+        if (tagEl) tagEl.innerText = p.tag;
+        if (badgeEl) badgeEl.innerText = `${toArabicDigits(index + 1)} / ${toArabicDigits(products.length)}`;
+    }
+
+    renderProduct(0);
+
+    // Auto rotate every 3 seconds
+    setInterval(() => {
+        prodIndex = (prodIndex + 1) % products.length;
+        renderProduct(prodIndex);
+    }, 3000);
 }
 
 // Initialize on DOM load

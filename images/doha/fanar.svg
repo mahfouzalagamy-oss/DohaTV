@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="sky5" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0c1724"/>
+      <stop offset="50%" stop-color="#182b3d"/>
+      <stop offset="100%" stop-color="#241b12"/>
+    </linearGradient>
+    <linearGradient id="spiral" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffcf40" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#d4af37" stop-opacity="0.6"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky5)"/>
+  <polygon points="0,1080 1920,1080 1920,720 1600,680 1400,740 1000,710 600,750 200,700 0,720" fill="#2a1e17"/>
+  <rect x="920" y="580" width="80" height="140" fill="url(#spiral)"/>
+  <ellipse cx="960" cy="580" rx="36" ry="12" fill="#ffd700"/>
+  <rect x="930" y="460" width="60" height="120" fill="url(#spiral)"/>
+  <ellipse cx="960" cy="460" rx="27" ry="10" fill="#ffd700"/>
+  <rect x="940" y="360" width="40" height="100" fill="url(#spiral)"/>
+  <ellipse cx="960" cy="360" rx="18" ry="8" fill="#ffd700"/>
+  <polygon points="960,260 945,360 975,360" fill="#ffffff" opacity="0.9"/>
+</svg>

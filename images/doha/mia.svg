@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="sky2" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#07111e"/>
+      <stop offset="50%" stop-color="#14283c"/>
+      <stop offset="100%" stop-color="#1c364f"/>
+    </linearGradient>
+    <linearGradient id="stone" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e2d4b7" stop-opacity="0.85"/>
+      <stop offset="50%" stop-color="#fdfbf7" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#c9b794" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky2)"/>
+  <rect y="740" width="1920" height="340" fill="#081422"/>
+  <polygon points="660,740 1260,740 1220,580 700,580" fill="#24384e"/>
+  <polygon points="720,580 1200,580 1160,460 760,460" fill="url(#stone)"/>
+  <polygon points="780,460 1140,460 1110,360 810,360" fill="#ded3bc"/>
+  <polygon points="840,360 1080,360 1050,280 870,280" fill="url(#stone)"/>
+  <polygon points="900,280 1020,280 980,220 940,220" fill="#ffffff" opacity="0.9"/>
+  <rect x="700" y="745" width="520" height="120" fill="#e2d4b7" opacity="0.08"/>
+</svg>

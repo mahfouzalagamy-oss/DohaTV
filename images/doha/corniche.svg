@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="sky1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0a192f"/>
+      <stop offset="60%" stop-color="#172a45"/>
+      <stop offset="100%" stop-color="#0d1b2a"/>
+    </linearGradient>
+    <linearGradient id="sea1" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#0d2538"/>
+      <stop offset="100%" stop-color="#050d1a"/>
+    </linearGradient>
+    <linearGradient id="bldg-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#4facfe" stop-opacity="0.3"/>
+    </linearGradient>
+    <linearGradient id="bldg-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6d365" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#fda085" stop-opacity="0.3"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky1)"/>
+  <rect y="720" width="1920" height="360" fill="url(#sea1)"/>
+  <path d="M 0 720 L 150 720 L 150 480 L 220 480 L 220 720 L 320 720 L 320 380 L 380 320 L 440 380 L 440 720 L 520 720 L 520 280 L 600 200 L 680 280 L 680 720 L 780 720 L 780 420 L 880 420 L 880 720 L 960 720 L 960 220 L 1020 140 L 1080 220 L 1080 720 L 1200 720 L 1200 340 L 1300 340 L 1300 720 L 1420 720 L 1420 400 L 1500 400 L 1500 720 L 1650 720 L 1650 450 L 1750 450 L 1750 720 L 1920 720 Z" fill="#0b1728" opacity="0.95"/>
+  <rect x="600" y="240" width="80" height="480" rx="40" fill="url(#bldg-cyan)"/>
+  <rect x="980" y="160" width="100" height="560" rx="20" fill="url(#bldg-gold)"/>
+  <path d="M 330 380 L 380 320 L 430 380 L 430 720 L 330 720 Z" fill="#1e3a5f" opacity="0.6"/>
+  <circle cx="640" cy="280" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="640" cy="340" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="640" cy="400" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="1030" cy="200" r="5" fill="#ffffff" opacity="0.9"/>
+  <circle cx="1030" cy="260" r="5" fill="#ffffff" opacity="0.9"/>
+  <ellipse cx="640" cy="800" rx="50" ry="10" fill="#00f2fe" opacity="0.15"/>
+  <ellipse cx="1030" cy="820" rx="70" ry="12" fill="#f6d365" opacity="0.2"/>
+</svg>

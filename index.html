@@ -8,8 +8,10 @@
 </head>
 <body class="theme-glass">
 
-    <!-- خلفية صورة مدينة الدوحة مع طبقة زجاجية -->
-    <div class="doha-bg-overlay" id="doha-bg"></div>
+    <!-- خلفية صورة معالم مدينة الدوحة الدوارة مع طبقة زجاجية عصرية -->
+    <div class="doha-bg-layer" id="doha-bg-1"></div>
+    <div class="doha-bg-layer" id="doha-bg-2"></div>
+    <div class="doha-bg-gradient-overlay"></div>
 
     <div class="tv-container" id="main-tv-container">
         <!-- شريط التحكم العلوي بالأيقونات الزجاجية العصري -->
@@ -131,57 +133,130 @@
                 </div>
             </section>
 
-            <!-- 5. شاشة أسعار العملات والذهب الحية (محدثة لحظياً) -->
+            <!-- 5. شاشة أسعار العملات والذهب الحية (محدثة لحظياً بدقة) -->
             <section class="glass-card card-finance tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">💵</span>
                     <h3>العملات والذهب</h3>
-                    <span class="badge-glass" id="finance-update-badge">🟢 محدث لحظياً</span>
+                    <div class="finance-header-actions">
+                        <button id="finance-refresh-btn" class="glass-refresh-btn" title="تحديث الأسعار الآن">🔄 تحديث</button>
+                        <span class="badge-glass" id="finance-update-badge">🟢 محدث</span>
+                    </div>
                 </div>
                 <div class="finance-grid" id="finance-rates-container">
+                    <!-- دولار مقابل الجنيه -->
                     <div class="finance-box">
                         <div class="finance-info">
                             <span class="finance-flag">🇺🇸/🇪🇬</span>
-                            <span class="finance-label">دولار / جنيه مصري</span>
+                            <span class="finance-label">دولار / جنيه</span>
                         </div>
                         <div class="finance-value" id="rate-usd-egp">... ج.م</div>
                     </div>
+                    <!-- ريال قطري مقابل الجنيه -->
                     <div class="finance-box">
                         <div class="finance-info">
                             <span class="finance-flag">🇶🇦/🇪🇬</span>
-                            <span class="finance-label">ريال قطري / جنيه مصري</span>
+                            <span class="finance-label">ريال / جنيه</span>
                         </div>
                         <div class="finance-value" id="rate-qar-egp">... ج.م</div>
                     </div>
-                    <div class="finance-box">
-                        <div class="finance-info">
-                            <span class="finance-flag">🪙</span>
-                            <span class="finance-label">عيار ٢١ (مصر)</span>
-                        </div>
-                        <div class="finance-value" id="gold-egp-21">... ج.م</div>
-                    </div>
+                    <!-- ذهب عيار 24 (مصر) -->
                     <div class="finance-box">
                         <div class="finance-info">
                             <span class="finance-flag">🏆</span>
-                            <span class="finance-label">عيار ٢٤ (قطر)</span>
+                            <span class="finance-label">ذهب ٢٤ (مصر)</span>
+                        </div>
+                        <div class="finance-value" id="gold-egp-24">... ج.م</div>
+                    </div>
+                    <!-- ذهب عيار 21 (الأكثر تداولاً) -->
+                    <div class="finance-box highlight-gold">
+                        <div class="finance-info">
+                            <span class="finance-flag">🪙</span>
+                            <span class="finance-label">ذهب ٢١ (الأكثر طلباً)</span>
+                        </div>
+                        <div class="finance-value" id="gold-egp-21">... ج.م</div>
+                    </div>
+                    <!-- ذهب عيار 18 -->
+                    <div class="finance-box">
+                        <div class="finance-info">
+                            <span class="finance-flag">✨</span>
+                            <span class="finance-label">ذهب ١٨ (مصر)</span>
+                        </div>
+                        <div class="finance-value" id="gold-egp-18">... ج.م</div>
+                    </div>
+                    <!-- الجنيه الذهب 8 جرام عيار 21 -->
+                    <div class="finance-box">
+                        <div class="finance-info">
+                            <span class="finance-flag">👑</span>
+                            <span class="finance-label">الجنيه الذهب (٨غ)</span>
+                        </div>
+                        <div class="finance-value" id="gold-egp-pound">... ج.م</div>
+                    </div>
+                    <!-- ذهب عيار 24 (قطر) -->
+                    <div class="finance-box">
+                        <div class="finance-info">
+                            <span class="finance-flag">🇶🇦</span>
+                            <span class="finance-label">ذهب ٢٤ (قطر)</span>
                         </div>
                         <div class="finance-value" id="gold-qar-24">... ر.ق</div>
                     </div>
+                    <!-- ذهب عيار 21 (قطر) -->
+                    <div class="finance-box">
+                        <div class="finance-info">
+                            <span class="finance-flag">🇶🇦</span>
+                            <span class="finance-label">ذهب ٢١ (قطر)</span>
+                        </div>
+                        <div class="finance-value" id="gold-qar-21">... ر.ق</div>
+                    </div>
                 </div>
-                <div class="finance-footer-note">⚡ الأسعار البنكية والعالمية الرسمية المحدثة الآن</div>
+                <div class="finance-footer-note" id="finance-timestamp-note">⚡ الأسعار البنكية والعالمية الرسمية المحدثة الآن</div>
             </section>
 
-            <!-- 6. شاشة العداد التنازلي لرمضان المبارك -->
-            <section class="glass-card card-ramadan tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">🌙</span>
-                    <h3>رمضان المبارك</h3>
-                </div>
-                <div class="ramadan-days-only" id="ramadan-countdown-days">
-                    <span class="days-count" id="ramadan-days-value">...</span>
-                    <span class="days-label">يوماً متبقياً على شهر الخير</span>
-                </div>
-            </section>
+            <!-- 6. القسم السفلي الأيسر: مدمج بين سلايدر منتجات PERFECT WEIGHT وبطاقة رمضان المربعة -->
+            <div class="bottom-split-section">
+                <!-- سلايدر المنتجات (Perfect Weight Product Showcase) -->
+                <section class="glass-card card-products-slider tv-nav-card" tabindex="0">
+                    <div class="card-header">
+                        <div class="product-header-title">
+                            <span class="card-icon">✨</span>
+                            <h3>منتجات PERFECT WEIGHT</h3>
+                        </div>
+                        <div class="product-slider-indicator">
+                            <span id="product-slide-badge" class="badge-glass">١ / ٦</span>
+                            <span class="product-timer-dot" title="يتبدل كل 3 ثوانٍ">⏱️ ٣ ثوانٍ</span>
+                        </div>
+                    </div>
+
+                    <div class="product-showcase-container" id="product-slider-container">
+                        <div class="product-image-wrapper">
+                            <img id="product-slide-img" src="images/products/prod_1.svg" alt="منتجات PERFECT WEIGHT" class="product-slide-image">
+                        </div>
+                        <div class="product-meta-panel">
+                            <div id="product-slide-tag" class="product-tag-badge">الأكثر مبيعاً ⭐</div>
+                            <h4 id="product-slide-name" class="product-title-text">American Keto Advanced</h4>
+                            <p id="product-slide-sub" class="product-subtitle-text">كبسولات كيتو الأمريكية لحرق الدهون</p>
+                            <p id="product-slide-desc" class="product-desc-text">تركيبة متقدمة لتعزيز حرق الدهون وسد الشهية طبيعياً</p>
+                            <div class="product-contact-chip">
+                                <span class="phone-icon">📞</span>
+                                <span>للطلب والاستفسار: <strong>71002141</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- بطاقة رمضان المربعة المدمجة أسفل يسار الشاشة (~ 1/4 حجم السلايدر) -->
+                <section class="glass-card card-ramadan-compact tv-nav-card" tabindex="0">
+                    <div class="card-header compact-header">
+                        <span class="card-icon">🌙</span>
+                        <h3>رمضان المبارك</h3>
+                    </div>
+                    <div class="ramadan-compact-content" id="ramadan-countdown-days">
+                        <div class="ramadan-crescent-icon">🕌</div>
+                        <span class="days-count" id="ramadan-days-value">...</span>
+                        <span class="days-label">يوماً على شهر الخير</span>
+                    </div>
+                </section>
+            </div>
         </main>
     </div>
 

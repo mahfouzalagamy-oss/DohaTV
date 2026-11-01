@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080" width="1920" height="1080">
+  <defs>
+    <linearGradient id="sky4" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#040b17"/>
+      <stop offset="60%" stop-color="#0e1f3a"/>
+      <stop offset="100%" stop-color="#091426"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e5ff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#8a2be2" stop-opacity="0.7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1920" height="1080" fill="url(#sky4)"/>
+  <rect y="750" width="1920" height="330" fill="#040a14"/>
+  <path d="M 720 750 Q 820 200 960 200 Q 880 350 840 750 Z" fill="url(#neon)"/>
+  <path d="M 1200 750 Q 1100 200 960 200 Q 1040 350 1080 750 Z" fill="url(#neon)"/>
+  <rect x="300" y="740" width="1320" height="12" fill="#00e5ff" opacity="0.6"/>
+  <ellipse cx="960" cy="850" rx="200" ry="15" fill="#00e5ff" opacity="0.2"/>
+</svg>
