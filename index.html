@@ -7,12 +7,9 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-glass">
-
-    <!-- خلفية صورة مدينة الدوحة مع طبقة زجاجية -->
     <div class="doha-bg-overlay" id="doha-bg"></div>
 
     <div class="tv-container" id="main-tv-container">
-        <!-- شريط التحكم العلوي بالأيقونات الزجاجية العصري -->
         <header class="tv-header-glass">
             <div class="header-brand">
                 <span class="app-logo">📺</span>
@@ -39,7 +36,7 @@
                 </div>
 
                 <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="إذاعة القرآن المباشرة">
-                    📻 <span>إذاعة القرآن</span>
+                    📻 <span>إذاعة القرآن الكريم</span>
                 </button>
                 <audio id="quran-radio-audio" src="https://stream.radiojar.com/8s443pctspuvv" preload="none"></audio>
 
@@ -54,10 +51,20 @@
             </div>
         </header>
 
-        <!-- شبكة الشاشات الموحدة بتصميم الزجاج الفاخر (Glassmorphic TV Grid) -->
         <main class="tv-grid-glass">
-            <!-- 1. شاشة الساعة الرقمية والتاريخ المفرغة -->
             <section class="glass-card card-clock tv-nav-card" tabindex="0">
+                <div class="clock-analog-wrap">
+                    <div class="analog-clock" aria-label="الساعة">
+                        <span class="clock-mark mark-12"></span>
+                        <span class="clock-mark mark-3"></span>
+                        <span class="clock-mark mark-6"></span>
+                        <span class="clock-mark mark-9"></span>
+                        <span id="analog-hour" class="hand hour-hand"></span>
+                        <span id="analog-minute" class="hand minute-hand"></span>
+                        <span id="analog-second" class="hand second-hand"></span>
+                        <span class="clock-center"></span>
+                    </div>
+                </div>
                 <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
                 <div class="date-details-arabic">
                     <div id="arabic-day-name" class="day-text">الأربعاء</div>
@@ -66,21 +73,19 @@
                 </div>
             </section>
 
-            <!-- 2. شاشة مواقيت الصلاة -->
             <section class="glass-card card-prayer tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🕌</span>
                     <h3>أوقات الصلاة (الدوحة)</h3>
                     <span id="next-prayer-timer" class="badge-glass">الصلاة القادمة: ...</span>
                 </div>
-                <div id="friday-banner" class="friday-special-banner" style="display:none;">✨ الجمعة مباركة: سورة الكهف، كثرة الصلاة على النبي ﷺ وساعة الاستجابة</div>
+                <div id="friday-banner" class="friday-special-banner" style="display:none;">✨ الجمعة مباركة: سورة الكهف، كثرة الصلاة على النبي ﷺ</div>
                 <div id="prayer-times-container" class="prayer-grid">
                     <span>جاري حساب الأوقات...</span>
                 </div>
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
             </section>
 
-            <!-- 3. شاشة حالة الطقس بالدوحة -->
             <section class="glass-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
@@ -97,7 +102,6 @@
                 </div>
             </section>
 
-            <!-- 4. شاشة آية اليوم -->
             <section class="glass-card card-ayah tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📖</span>
@@ -108,7 +112,6 @@
                 </div>
             </section>
 
-            <!-- 5. شاشة حديث اليوم الصحيح -->
             <section class="glass-card card-hadith tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📜</span>
@@ -119,11 +122,10 @@
                 </div>
             </section>
 
-            <!-- 6. شاشة أسعار العملات والذهب -->
             <section class="glass-card card-finance tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">💵</span>
-                    <h3>العملات والذهب</h3>
+                    <h3>الدولار والذهب</h3>
                     <span class="badge-glass">محدث حي</span>
                 </div>
                 <div class="finance-grid" id="finance-rates-container">
@@ -132,21 +134,12 @@
                         <div class="finance-value" id="rate-usd-egp">٥٦.٠٩ ج.م</div>
                     </div>
                     <div class="finance-box">
-                        <div class="finance-label">QAR / EGP</div>
-                        <div class="finance-value" id="rate-qar-egp">١٥.٣٩ ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب ٢١ مصر</div>
-                        <div class="finance-value" id="gold-egp-21">٦٣٨٠ ج.م</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">ذهب ٢٤ قطر</div>
+                        <div class="finance-label">ذهب ٢٤ ق</div>
                         <div class="finance-value" id="gold-qar-24">٤٧٣ ر.ق</div>
                     </div>
                 </div>
             </section>
 
-            <!-- 7. شاشة الذكر المتغير كل دقيقة -->
             <section class="glass-card card-dhikr tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🤲</span>
@@ -159,7 +152,6 @@
                 </div>
             </section>
 
-            <!-- 8. شاشة العداد التنازلي لرمضان -->
             <section class="glass-card card-ramadan tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
@@ -173,7 +165,6 @@
         </main>
     </div>
 
-    <!-- مؤشر الخمول لشاشة التوقف بعد 15 دقيقة -->
     <div id="screensaver-overlay" class="screensaver-mode" style="display: none;">
         <div class="screensaver-content">
             <div class="screensaver-clock" id="screensaver-clock">٠٠:٠٠</div>
