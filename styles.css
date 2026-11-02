@@ -1,16 +1,42 @@
 /* Root Theme Variables */
 :root {
-    --bg-overlay: linear-gradient(135deg, rgba(8, 15, 30, 0.75) 0%, rgba(15, 23, 42, 0.85) 100%);
-    --card-bg: rgba(20, 30, 55, 0.55);
-    --card-border: rgba(255, 255, 255, 0.18);
-    --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
-    --text-primary: #ffffff;
-    --text-secondary: #cbd5e1;
-    --accent-cyan: #00e5ff;
-    --accent-gold: #ffcf40;
-    --accent-emerald: #10b981;
-    --focus-border: #00e5ff;
-    --focus-glow: 0 0 20px rgba(0, 229, 255, 0.7);
+    --bg-overlay: linear-gradient(135deg, rgba(9, 15, 30, 0.72) 0%, rgba(18, 28, 52, 0.82) 100%);
+    --card-bg: rgba(18, 26, 42, 0.72);
+    --card-bg-strong: rgba(12, 18, 30, 0.9);
+    --card-border: rgba(255, 230, 180, 0.25);
+    --card-shadow: 0 18px 48px rgba(6, 10, 19, 0.56);
+    --text-primary: #f8f3ea;
+    --text-secondary: #dfe8f5;
+    --accent-cyan: #5ad6ff;
+    --accent-gold: #f7c767;
+    --accent-gold-strong: #ffdd87;
+    --accent-emerald: #35d39a;
+    --focus-border: #8be7ff;
+    --focus-glow: 0 0 24px rgba(90, 214, 255, 0.72);
+    --luxury-glow: 0 0 42px rgba(247, 199, 103, 0.22);
+}
+
+body.theme-glass {
+    --bg-overlay: linear-gradient(135deg, rgba(8, 16, 26, 0.66) 0%, rgba(19, 36, 62, 0.8) 100%);
+    --card-bg: rgba(17, 25, 38, 0.74);
+    --card-border: rgba(248, 210, 134, 0.26);
+    --card-shadow: 0 22px 54px rgba(2, 7, 18, 0.58);
+}
+
+body.theme-dark {
+    --bg-overlay: linear-gradient(135deg, rgba(8, 10, 18, 0.88) 0%, rgba(14, 17, 29, 0.96) 100%);
+    --card-bg: rgba(13, 17, 29, 0.82);
+    --card-border: rgba(255, 255, 255, 0.08);
+}
+
+body.theme-islamic {
+    --bg-overlay: linear-gradient(135deg, rgba(6, 29, 24, 0.82) 0%, rgba(10, 52, 38, 0.9) 100%);
+    --card-bg: rgba(10, 38, 30, 0.76);
+    --card-border: rgba(247, 199, 103, 0.34);
+    --text-primary: #fffdf7;
+    --text-secondary: #ebf7ee;
+    --accent-gold: #ffd777;
+    --accent-cyan: #9fe7ff;
 }
 
 /* Dynamic Time-of-Day Background Overlays */
@@ -28,13 +54,14 @@ body.time-night .doha-bg-overlay {
 
 /* Home Mosque Mode Fullscreen Styling */
 body.mosque-mode-active .tv-header-glass {
-    opacity: 0.9;
+    opacity: 0.96;
 }
 
 body.mosque-mode-active .card-prayer {
     grid-column: span 2;
-    background: rgba(10, 45, 32, 0.85);
-    border-color: var(--accent-gold);
+    background: linear-gradient(135deg, rgba(7, 42, 31, 0.88), rgba(11, 64, 50, 0.8));
+    border-color: rgba(247, 199, 103, 0.8);
+    box-shadow: 0 22px 52px rgba(7, 42, 31, 0.5);
 }
 
 body.mosque-mode-active .prayer-time {
@@ -44,44 +71,30 @@ body.mosque-mode-active .prayer-time {
 
 /* Friday Special Banner */
 .friday-special-banner {
-    background: linear-gradient(90deg, rgba(255, 207, 64, 0.2) 0%, rgba(16, 185, 129, 0.2) 100%);
-    border: 1px solid var(--accent-gold);
+    background: linear-gradient(90deg, rgba(247, 199, 103, 0.22) 0%, rgba(53, 211, 154, 0.18) 100%);
+    border: 1px solid rgba(247, 199, 103, 0.58);
     color: var(--accent-gold);
-    padding: 6px 12px;
-    border-radius: 10px;
+    padding: 8px 12px;
+    border-radius: 12px;
     font-size: 13px;
     font-weight: 700;
     text-align: center;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    box-shadow: inset 0 0 18px rgba(247, 199, 103, 0.08);
 }
 
 /* Weather Meta Row */
 .weather-meta-row {
     display: flex;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
-    padding: 4px 10px;
+    border-radius: 12px;
+    padding: 6px 12px;
     font-size: 12px;
     color: var(--accent-cyan);
-    margin-bottom: 6px;
-}
-
-/* Themes */
-body.theme-dark {
-    --bg-overlay: linear-gradient(135deg, rgba(5, 8, 15, 0.92) 0%, rgba(10, 15, 26, 0.95) 100%);
-    --card-bg: rgba(15, 20, 35, 0.85);
-    --card-border: rgba(255, 255, 255, 0.1);
-}
-
-body.theme-islamic {
-    --bg-overlay: linear-gradient(135deg, rgba(4, 28, 20, 0.82) 0%, rgba(10, 45, 32, 0.88) 100%);
-    --card-bg: rgba(12, 40, 30, 0.65);
-    --card-border: rgba(255, 207, 64, 0.3);
-    --text-primary: #ffffff;
-    --text-secondary: #e2e8f0;
-    --accent-gold: #ffd700;
+    margin-bottom: 8px;
+    box-shadow: inset 0 0 18px rgba(255, 255, 255, 0.02);
 }
 
 /* General Page Styling */
@@ -89,15 +102,21 @@ body.theme-islamic {
     box-sizing: border-box;
 }
 
-body {
+html, body {
     margin: 0;
     padding: 0;
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+}
+
+body {
     color: var(--text-primary);
     font-family: 'Segoe UI', 'Amiri', 'Traditional Arabic', 'Cairo', Tahoma, sans-serif;
-    background-color: #080d1a;
+    background:
+        radial-gradient(circle at top, rgba(90, 214, 255, 0.12), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(247, 199, 103, 0.12), transparent 30%),
+        #070d18;
     position: relative;
     user-select: none;
 }
@@ -115,6 +134,7 @@ body {
     background-repeat: no-repeat;
     z-index: -1;
     transition: all 0.5s ease;
+    filter: saturate(1.1) contrast(1.04);
 }
 
 /* TV Main Container */
@@ -122,8 +142,8 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
-    padding: 20px 28px;
-    gap: 16px;
+    padding: 18px 22px 16px;
+    gap: 14px;
 }
 
 /* Modern Glass Header */
@@ -131,29 +151,31 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    background: linear-gradient(135deg, rgba(17, 25, 38, 0.86), rgba(11, 18, 29, 0.84));
     border: 1px solid var(--card-border);
-    border-radius: 16px;
-    padding: 10px 24px;
-    box-shadow: var(--card-shadow);
+    border-radius: 18px;
+    padding: 10px 18px 10px 16px;
+    box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
 .header-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    min-width: 0;
 }
 
 .app-logo {
-    font-size: 28px;
+    font-size: 30px;
+    filter: drop-shadow(0 0 18px rgba(247, 199, 103, 0.35));
 }
 
 .app-title {
     font-size: 24px;
     font-weight: 800;
-    background: linear-gradient(90deg, #ffffff 0%, var(--accent-cyan) 100%);
+    background: linear-gradient(90deg, #fff9f0 0%, var(--accent-gold) 28%, var(--accent-cyan) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: 1px;
@@ -163,27 +185,30 @@ body {
 .glass-controls {
     display: flex;
     align-items: center;
-    gap: 14px;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .glass-control-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 6px 10px;
     transition: all 0.25s ease;
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.02);
 }
 
 .glass-control-item:focus,
 .tv-nav:focus {
     outline: none;
     border-color: var(--focus-border) !important;
-    box-shadow: var(--focus-glow);
-    background: rgba(0, 229, 255, 0.15) !important;
-    transform: scale(1.03);
+    box-shadow: var(--focus-glow), inset 0 0 18px rgba(90, 214, 255, 0.08);
+    background: rgba(90, 214, 255, 0.12) !important;
+    transform: translateY(-1px) scale(1.02);
 }
 
 .control-icon {
@@ -194,8 +219,8 @@ body {
     background: transparent;
     color: var(--text-primary);
     border: none;
-    font-size: 15px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     cursor: pointer;
     outline: none;
 }
@@ -206,67 +231,77 @@ body {
 }
 
 .glass-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-primary);
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .glass-btn.active {
-    background: var(--accent-cyan);
-    color: #000000;
-    border-color: var(--accent-cyan);
+    background: linear-gradient(135deg, var(--accent-gold), #ffc84c);
+    color: #111827;
+    border-color: rgba(255, 221, 135, 0.8);
+    box-shadow: 0 0 18px rgba(247, 199, 103, 0.4);
 }
 
 /* Glass Dashboard Grid */
 .tv-grid-glass {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-template-rows: auto auto auto;
-    gap: 16px;
+    gap: 14px;
     flex: 1;
 }
 
 /* Base Glass Card */
 .glass-card {
-    background: var(--card-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    position: relative;
+    background: linear-gradient(180deg, rgba(18, 27, 42, 0.8), rgba(13, 19, 31, 0.78));
     border: 1px solid var(--card-border);
     border-radius: 20px;
-    padding: 18px;
-    box-shadow: var(--card-shadow);
+    padding: 15px 16px 14px;
+    box-shadow: var(--card-shadow), inset 0 1px 0 rgba(255,255,255,0.06);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
     outline: none;
+    overflow: hidden;
+}
+
+.glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.04), transparent 35%, transparent 70%, rgba(247,199,103,0.02));
+    pointer-events: none;
 }
 
 .glass-card:focus,
 .tv-nav-card:focus {
     border-color: var(--focus-border);
-    box-shadow: var(--focus-glow);
-    transform: translateY(-4px) scale(1.01);
+    box-shadow: var(--focus-glow), var(--card-shadow);
+    transform: translateY(-3px) scale(1.01);
 }
 
 .card-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.09);
     padding-bottom: 8px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
+    gap: 8px;
 }
 
 .card-header h3 {
     margin: 0;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
     color: var(--text-primary);
     display: flex;
@@ -279,13 +314,14 @@ body {
 }
 
 .badge-glass {
-    background: rgba(0, 229, 255, 0.15);
-    border: 1px solid rgba(0, 229, 255, 0.3);
+    background: rgba(90, 214, 255, 0.12);
+    border: 1px solid rgba(90, 214, 255, 0.28);
     color: var(--accent-cyan);
     padding: 4px 10px;
     border-radius: 20px;
-    font-size: 13px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
 }
 
 /* Card 1: Clock & Date Card */
@@ -293,14 +329,15 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
-    background: linear-gradient(135deg, rgba(0, 229, 255, 0.1) 0%, rgba(20, 30, 55, 0.6) 100%);
+    background: linear-gradient(135deg, rgba(90, 214, 255, 0.12) 0%, rgba(17, 27, 41, 0.8) 70%);
+    min-height: 220px;
 }
 
 .clock-display-arabic {
-    font-size: 54px;
+    font-size: 44px;
     font-weight: 900;
     color: var(--text-primary);
-    text-shadow: 0 4px 20px rgba(0, 229, 255, 0.4);
+    text-shadow: 0 5px 20px rgba(90, 214, 255, 0.46);
     letter-spacing: 2px;
     margin-bottom: 8px;
     direction: ltr;
@@ -313,61 +350,64 @@ body {
 }
 
 .day-text {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
     color: var(--accent-gold);
 }
 
 .date-text {
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text-secondary);
 }
 
 .date-text.hijri {
     color: var(--accent-cyan);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 /* Card 2: Prayer Times */
 .card-prayer {
     grid-column: span 1;
+    min-height: 210px;
 }
 
 .prayer-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;
     margin-top: 8px;
 }
 
 .prayer-box {
-    background: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
-    padding: 10px 6px;
+    padding: 10px 5px 8px;
     text-align: center;
     transition: all 0.3s ease;
+    box-shadow: inset 0 0 10px rgba(255,255,255,0.02);
 }
 
 .prayer-box.active {
-    background: rgba(16, 185, 129, 0.25);
-    border-color: var(--accent-emerald);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, rgba(53, 211, 154, 0.24), rgba(16, 185, 129, 0.22));
+    border-color: rgba(53, 211, 154, 0.7);
+    transform: scale(1.04);
 }
 
 .prayer-box.next {
-    background: rgba(0, 229, 255, 0.2);
-    border-color: var(--accent-cyan);
+    background: linear-gradient(135deg, rgba(90, 214, 255, 0.18), rgba(90, 214, 255, 0.1));
+    border-color: rgba(90, 214, 255, 0.7);
+    box-shadow: 0 0 18px rgba(90, 214, 255, 0.14);
 }
 
 .prayer-name {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
     margin-bottom: 4px;
 }
 
 .prayer-time {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 800;
     color: var(--text-primary);
 }
@@ -375,29 +415,29 @@ body {
 /* Card 3: Weather Card */
 .weather-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;
     margin-top: 8px;
 }
 
 .weather-day-box {
-    background: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.025));
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
-    padding: 8px 4px;
+    padding: 8px 5px;
     text-align: center;
 }
 
 .weather-day-title {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
 }
 
 .weather-temp {
-    font-size: 15px;
-    font-weight: 700;
+    font-size: 14px;
+    font-weight: 800;
     color: var(--accent-gold);
-    margin-top: 4px;
+    margin-top: 5px;
 }
 
 /* Cards 4 & 5: Ayah & Hadith */
@@ -411,65 +451,72 @@ body {
 
 blockquote {
     margin: 0;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1.6;
-    color: #e2e8f0;
+    color: #edf2ff;
     text-align: center;
-    font-weight: 500;
+    font-weight: 600;
     quotes: "«" "»";
+    text-shadow: 0 0 18px rgba(90, 214, 255, 0.08);
 }
 
 /* Card 6: Finance & Gold */
 .finance-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
 }
 
 .finance-box {
-    background: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
     border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    padding: 8px 12px;
+    border-radius: 14px;
+    padding: 10px 12px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 0 12px rgba(255,255,255,0.02);
 }
 
 .finance-label {
-    font-size: 14px;
+    font-size: 12px;
     color: var(--text-secondary);
 }
 
 .finance-value {
-    font-size: 16px;
-    font-weight: 800;
+    font-size: 15px;
+    font-weight: 900;
     color: var(--accent-gold);
+    text-shadow: 0 0 16px rgba(247, 199, 103, 0.22);
 }
 
 /* Card 7: Dhikr Card */
 .card-dhikr .dhikr-text {
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 17px;
+    font-weight: 800;
     color: var(--accent-cyan);
     text-align: center;
     margin: 8px 0;
+    line-height: 1.6;
 }
 
 .card-dhikr .sub-adhkar {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-secondary);
     text-align: center;
     margin: 0;
+    line-height: 1.5;
 }
 
 .dhikr-timer-badge {
-    background: rgba(255, 207, 64, 0.15);
-    border: 1px solid rgba(255, 207, 64, 0.3);
+    background: rgba(247, 199, 103, 0.12);
+    border: 1px solid rgba(247, 199, 103, 0.36);
     color: var(--accent-gold);
-    padding: 2px 8px;
+    padding: 3px 9px;
     border-radius: 12px;
     font-size: 12px;
+    font-weight: 700;
 }
 
 /* Card 8: Ramadan Countdown Card */
@@ -478,38 +525,39 @@ blockquote {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px 0;
+    padding: 12px 0 8px;
 }
 
 .days-count {
-    font-size: 42px;
+    font-size: 38px;
     font-weight: 900;
     color: var(--accent-gold);
-    text-shadow: 0 4px 15px rgba(255, 207, 64, 0.4);
+    text-shadow: 0 0 20px rgba(247, 199, 103, 0.4);
 }
 
 .days-label {
-    font-size: 16px;
+    font-size: 15px;
     color: var(--text-secondary);
 }
 
 /* Prayer Banner Alert */
 .prayer-alert {
-    background: rgba(239, 68, 68, 0.9);
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.96), rgba(220, 38, 38, 0.9));
     color: #ffffff;
-    padding: 8px;
-    border-radius: 10px;
+    padding: 8px 10px;
+    border-radius: 12px;
     text-align: center;
-    font-weight: bold;
-    font-size: 14px;
+    font-weight: 800;
+    font-size: 13px;
     margin-top: 8px;
     animation: pulse 1.5s infinite;
+    box-shadow: 0 0 18px rgba(239, 68, 68, 0.3);
 }
 
 @keyframes pulse {
-    0% { opacity: 0.8; }
+    0% { opacity: 0.82; }
     50% { opacity: 1; }
-    100% { opacity: 0.8; }
+    100% { opacity: 0.82; }
 }
 
 /* Screensaver Overlay */
@@ -520,7 +568,7 @@ blockquote {
     width: 100vw;
     height: 100vh;
     background: rgba(5, 8, 15, 0.96);
-    backdrop-filter: blur(25px);
+    backdrop-filter: blur(26px);
     z-index: 9999;
     display: flex;
     align-items: center;
@@ -529,19 +577,50 @@ blockquote {
 }
 
 .screensaver-clock {
-    font-size: 90px;
+    font-size: 86px;
     font-weight: 900;
     color: var(--accent-cyan);
-    text-shadow: 0 0 30px rgba(0, 229, 255, 0.6);
+    text-shadow: 0 0 32px rgba(90, 214, 255, 0.6);
 }
 
 .screensaver-date {
-    font-size: 26px;
+    font-size: 24px;
     color: var(--accent-gold);
     margin: 16px 0;
 }
 
 .screensaver-msg {
-    font-size: 18px;
+    font-size: 17px;
     color: var(--text-secondary);
+}
+
+/* Premium refinements */
+.card-prayer .prayer-grid,
+.card-weather .weather-grid,
+.card-finance .finance-grid {
+    position: relative;
+    z-index: 1;
+}
+
+@media (max-width: 1280px) {
+    .tv-container {
+        padding: 16px 18px 14px;
+    }
+
+    .app-title {
+        font-size: 20px;
+    }
+
+    .glass-controls {
+        gap: 8px;
+    }
+
+    .glass-btn,
+    .glass-control-item {
+        padding: 5px 9px;
+    }
+
+    .clock-display-arabic {
+        font-size: 38px;
+    }
 }
