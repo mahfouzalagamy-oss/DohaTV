@@ -52,23 +52,6 @@ body.time-night .doha-bg-overlay {
     background-image: linear-gradient(135deg, rgba(5, 10, 25, 0.88) 0%, rgba(10, 15, 35, 0.92) 100%), url('doha-skyline.svg');
 }
 
-/* Home Mosque Mode Fullscreen Styling */
-body.mosque-mode-active .tv-header-glass {
-    opacity: 0.96;
-}
-
-body.mosque-mode-active .card-prayer {
-    grid-column: span 6;
-    background: linear-gradient(135deg, rgba(7, 42, 31, 0.88), rgba(11, 64, 50, 0.8));
-    border-color: rgba(247, 199, 103, 0.8);
-    box-shadow: 0 22px 52px rgba(7, 42, 31, 0.5);
-}
-
-body.mosque-mode-active .prayer-time {
-    font-size: 22px;
-    color: var(--accent-gold);
-}
-
 /* Friday Special Banner */
 .friday-special-banner {
     background: linear-gradient(90deg, rgba(247, 199, 103, 0.22) 0%, rgba(53, 211, 154, 0.18) 100%);
@@ -509,7 +492,7 @@ blockquote {
     line-height: 1.5;
 }
 
-.dhikr-timer-badge {
+.carousel-indicator {
     background: rgba(247, 199, 103, 0.12);
     border: 1px solid rgba(247, 199, 103, 0.36);
     color: var(--accent-gold);
@@ -519,25 +502,29 @@ blockquote {
     font-weight: 700;
 }
 
-/* Card 8: Ramadan Countdown Card */
-.ramadan-days-only {
+/* Ramadan countdown within the date card */
+.date-ramadan {
     display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 12px 0 8px;
-}
-
-.days-count {
-    font-size: 38px;
-    font-weight: 900;
+    gap: 5px;
     color: var(--accent-gold);
-    text-shadow: 0 0 20px rgba(247, 199, 103, 0.4);
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.days-label {
-    font-size: 15px;
-    color: var(--text-secondary);
+.date-ramadan .days-count {
+    font-size: inherit;
+    font-weight: 900;
+    text-shadow: none;
+}
+
+.date-ramadan .days-label {
+    font-size: inherit;
+}
+
+.date-ramadan-icon {
+    font-size: 13px;
 }
 
 /* Prayer Banner Alert */
@@ -758,56 +745,11 @@ body {
 }
 
 .card-finance {
-    grid-column: span 4;
+    grid-column: span 3;
 }
 
 .card-products {
-    grid-column: span 4;
-}
-
-.card-ramadan {
-    grid-column: span 1;
-    min-width: 0;
-    min-height: 0;
-    height: fit-content;
-    align-self: end;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 6px 8px;
-}
-
-.card-ramadan .card-header {
-    width: 100%;
-    justify-content: center;
-    gap: 4px;
-    text-align: center;
-}
-
-.card-ramadan .card-header h3 {
-    font-size: clamp(10px, 0.75vw, 12px);
-}
-
-.card-ramadan .card-icon {
-    font-size: 13px;
-}
-
-.card-ramadan .ramadan-days-only {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 4px;
-    padding: 0;
-}
-
-.card-ramadan .days-label {
-    font-size: clamp(9px, 0.65vw, 11px);
-    white-space: nowrap;
-    line-height: 1.2;
-}
-
-.card-ramadan .days-count {
-    font-size: clamp(16px, 1.15vw, 20px);
+    grid-column: span 6;
 }
 
 .card-faith {
@@ -1241,6 +1183,10 @@ blockquote {
     text-align: center;
 }
 
+.finance-status:empty {
+    display: none;
+}
+
 .loading-text {
     align-self: center;
     color: var(--text-secondary);
@@ -1310,8 +1256,7 @@ blockquote {
 
     .card-clock,
     .card-prayer,
-    .card-weather,
-    .card-ramadan {
+    .card-weather {
         grid-column: span 2;
     }
 
@@ -1342,27 +1287,223 @@ blockquote {
     .tv-container {
         gap: 10px;
     }
+}
 
-    .tv-header-glass {
-        align-items: stretch;
-        flex-direction: column;
-        max-height: 34dvh;
-        overflow-y: auto;
-    }
+/* Stable 16:9 TV dashboard: two contained rows, with products at roughly one quarter area. */
+.tv-container {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+}
 
-    .header-brand {
-        justify-content: center;
-    }
+.tv-header-glass {
+    min-height: 0;
+    max-height: 18vh;
+}
 
     .glass-controls {
-        justify-content: center;
+        gap: clamp(4px, 0.5vw, 8px);
+    }
+
+    .glass-control-item,
+    .glass-btn {
+        min-height: 34px;
+    }
+
+    .glass-control-item {
+        gap: 5px;
+        padding: 4px 7px;
+    }
+
+    .glass-btn {
+        padding: 4px 8px;
+        font-size: clamp(10px, 0.72vw, 12px);
+    }
+
+    .adhan-source-control {
+        flex: 0 1 205px;
+        min-width: 135px;
+    }
+
+    .adhan-source-control .control-icon {
+        display: none;
+    }
+
+    .control-status {
+        max-width: 120px;
+        font-size: 10px;
+    }
+
+    .theme-group {
+        gap: 3px;
+        padding: 3px;
+    }
+
+    .theme-group .control-icon {
+        display: none;
     }
 
     .tv-grid-glass {
+        min-height: 0;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        grid-auto-rows: minmax(0, 1fr);
+        overflow: hidden;
+    }
+
+    .glass-card {
+        min-width: 0;
+        min-height: 0;
+    }
+
+    .glass-card:focus,
+    .tv-nav-card:focus {
+        transform: none;
+    }
+
+    .card-clock,
+    .card-prayer,
+    .card-weather {
+        grid-column: span 4;
+    }
+
+    .card-faith,
+    .card-finance {
+        grid-column: span 3;
+    }
+
+    .card-products {
+        grid-column: span 6;
+    }
+
+    .card-clock {
+        gap: clamp(3px, 0.45vh, 7px);
+    }
+
+    .date-details-arabic {
+        gap: 2px;
+    }
+
+    .date-ramadan {
+        margin-top: 2px;
+        font-size: clamp(11px, 0.82vw, 14px);
+    }
+
+    .prayer-grid {
+        flex: 1 1 auto;
+        align-content: center;
+    }
+
+    .weather-grid {
+        flex: 1 1 auto;
+        align-content: center;
+    }
+
+    .card-faith {
+        gap: 0;
+    }
+
+    .faith-content-list {
+        display: flex;
+        flex: 1 1 auto;
+        min-height: 0;
+        grid-template-rows: none;
+    }
+
+    .faith-content-item {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    .faith-content-item[hidden] {
+        display: none;
+    }
+
+    .finance-grid {
         flex: 1 1 auto;
         grid-template-columns: minmax(0, 1fr);
+        align-content: center;
+    }
+
+    .finance-box {
+        min-height: 0;
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: right;
+    }
+
+    .finance-label {
+        font-size: clamp(11px, 0.83vw, 14px);
+    }
+
+    .finance-value {
+        flex: 0 0 auto;
+        font-size: clamp(16px, 1.35vw, 23px);
+    }
+
+    .finance-status {
+        flex: 0 0 auto;
+        padding-top: 3px;
+    }
+
+    .products-gallery {
+        flex: 1 1 0;
+    }
+
+    .products-caption {
+        max-height: clamp(40px, 6vh, 64px);
+    }
+
+    @media (max-height: 760px) and (min-width: 901px) {
+        .tv-header-glass {
+            min-height: 0;
+            max-height: 16vh;
+        }
+
+        .tv-grid-glass {
+            grid-template-rows: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            grid-auto-rows: minmax(0, 1fr);
+            overflow: hidden;
+        }
+    }
+
+    @media (max-width: 1100px) and (orientation: landscape) {
+        .tv-header-glass {
+            max-height: 23vh;
+        }
+    }
+
+    @media (max-width: 900px) and (orientation: landscape) {
+        .tv-grid-glass {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-rows: none;
+            grid-auto-rows: minmax(170px, auto);
+            overflow-y: auto;
+        }
+
+        .card-clock,
+        .card-prayer,
+        .card-weather,
+        .card-faith,
+        .card-finance {
+            grid-column: span 1;
+        }
+
+        .card-products {
+            grid-column: span 2;
+        }
+    }
+
+@media (max-aspect-ratio: 1/1) {
+    .tv-header-glass {
+        max-height: 34dvh;
+    }
+
+    .tv-grid-glass {
+        grid-template-columns: minmax(0, 1fr);
         grid-template-rows: none;
-        grid-auto-rows: minmax(160px, auto);
+        grid-auto-rows: minmax(210px, auto);
+        overflow-y: auto;
     }
 
     .card-clock,
@@ -1370,8 +1511,7 @@ blockquote {
     .card-weather,
     .card-faith,
     .card-finance,
-    .card-products,
-    .card-ramadan {
+    .card-products {
         grid-column: 1;
     }
 
@@ -1391,11 +1531,6 @@ blockquote {
     }
 
     .card-faith {
-        min-height: 360px;
-    }
-
-    .faith-content-list {
-        grid-template-rows: none;
-        grid-auto-rows: minmax(96px, auto);
+        min-height: 200px;
     }
 }

@@ -1,9 +1,8 @@
 // Global State
 let azanEnabled = true;
 let quranRadioPlaying = false;
-let mosqueModeActive = false;
-let dhikrSecondsLeft = 60;
 let dhikrIndex = 0;
+let faithContentIndex = 0;
 let prayerTimings = null;
 let idleTimer = null;
 const IDLE_LIMIT = 15 * 60 * 1000;
@@ -128,16 +127,17 @@ function syncAnalogClock(now) {
 
 function initDashboard() {
     setupThemeAndAudioControls();
-    setupMosqueAndRadioControls();
+    setupRadioControls();
     setupProductGallery();
     setupRemoteNavigation();
     setupIdleScreensaver();
     startClockAndTimers();
     updateDailyContent();
+    showFaithContent(0);
     fetchPrayerTimes();
     fetchWeatherForecast();
     fetchFinancialRatesAndGold();
-    setInterval(updateDhikrRotation, 1000);
+    setInterval(rotateFaithContent, 5000);
     setInterval(fetchFinancialRatesAndGold, FINANCE_REFRESH_MS);
 }
 
@@ -254,8 +254,9 @@ function updateRamadanCountdownDays(now) {
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
         if (daysValEl) daysValEl.innerText = toArabicDigits(days);
     } else {
-        const container = document.getElementById('ramadan-countdown-days');
-        if (container) container.innerHTML = "<span class='days-label' style='color: var(--accent-gold);'>رمضان مبارك! 🌙</span>";
+        const label = document.querySelector('#ramadan-countdown-days .days-label');
+        if (label) label.innerText = 'رمضان مبارك';
+        if (daysValEl) daysValEl.hidden = true;
     }
 }
 
@@ -267,6 +268,7 @@ function getDayOfYear() {
 
 function updateDailyContent() {
     const dayIndex = getDayOfYear();
+    dhikrIndex = 0;
 
     const ayahs = [
         '﴿ وَمَنْ يَتَّقِ اللَّهَ يَجْعَلْ لَهُ مَخْرَجاً وَيَرْزُقْهُ مِنْ حَيْثُ لَا يَحْتَسِبُ ﴾ [الطلاق]',
@@ -289,6 +291,8 @@ function updateDailyContent() {
     if (hadithEl) hadithEl.innerText = ahadith[dayIndex % ahadith.length];
 
     const hours = new Date().getHours();
+    const dhikrEl = document.getElementById('rotating-dhikr');
+    if (dhikrEl) dhikrEl.innerText = rotatingDhikrList[dhikrIndex];
     const adhkarEl = document.getElementById('time-based-adhkar');
     if (adhkarEl) {
         if (hours >= 5 && hours <= 11) {
@@ -302,17 +306,31 @@ function updateDailyContent() {
 }
 
 function updateDhikrRotation() {
-    dhikrSecondsLeft--;
-    if (dhikrSecondsLeft <= 0) {
-        dhikrSecondsLeft = 60;
-        dhikrIndex = (dhikrIndex + 1) % rotatingDhikrList.length;
-    }
-
-    const timerEl = document.getElementById('dhikr-timer');
-    if (timerEl) timerEl.innerText = `${toArabicDigits(dhikrSecondsLeft)} ثانية`;
-
     const dhikrEl = document.getElementById('rotating-dhikr');
     if (dhikrEl) dhikrEl.innerText = rotatingDhikrList[dhikrIndex];
+}
+
+function showFaithContent(index) {
+    const cards = ['faith-ayah-card', 'faith-hadith-card', 'faith-dhikr-card'];
+    faithContentIndex = (index + cards.length) % cards.length;
+    cards.forEach((id, cardIndex) => {
+        const card = document.getElementById(id);
+        if (card) {
+            card.hidden = cardIndex !== faithContentIndex;
+            card.setAttribute('aria-hidden', String(cardIndex !== faithContentIndex));
+        }
+    });
+    const indicator = document.getElementById('faith-carousel-indicator');
+    if (indicator) indicator.innerText = `${toArabicDigits(faithContentIndex + 1)} / ${toArabicDigits(cards.length)}`;
+}
+
+function rotateFaithContent() {
+    const nextIndex = (faithContentIndex + 1) % 3;
+    if (nextIndex === 2) {
+        dhikrIndex = (dhikrIndex + 1) % rotatingDhikrList.length;
+        updateDhikrRotation();
+    }
+    showFaithContent(nextIndex);
 }
 
 async function fetchFinancialRatesAndGold() {
@@ -356,9 +374,7 @@ async function fetchFinancialRatesAndGold() {
         const failures = [];
         if (rateResult.status === 'rejected') failures.push('سعر الصرف');
         if (goldResult.status === 'rejected') failures.push('الذهب');
-        statusEl.innerText = failures.length
-            ? `تعذر تحديث: ${failures.join(' و')}`
-            : 'المصدر: Frankfurter لسعر الصرف وGold API للذهب';
+        statusEl.innerText = failures.length ? `تعذر تحديث: ${failures.join(' و')}` : '';
     }
 }
 
@@ -581,7 +597,7 @@ async function fetchWeatherForecast() {
     }
 }
 
-function setupMosqueAndRadioControls() {
+function setupRadioControls() {
     const quranBtn = document.getElementById('quran-radio-btn');
     const quranAudio = document.getElementById('quran-radio-audio');
     const quranStatus = document.getElementById('quran-radio-status');
@@ -592,51 +608,37 @@ function setupMosqueAndRadioControls() {
             quranRadioPlaying = false;
             const span = quranBtn.querySelector('span');
             if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
-            if (quranStatus) quranStatus.innerText = 'تعذر الاتصال بالبث الرسمي لإذاعة قطر.';
+            if (quranStatus) quranStatus.innerText = 'تعذر الاتصال ببث إذاعة قطر.';
             quranBtn.classList.remove('active');
         });
         quranBtn.addEventListener('click', () => {
             quranRadioPlaying = !quranRadioPlaying;
             const span = quranBtn.querySelector('span');
             if (quranRadioPlaying) {
-                if (quranStatus) quranStatus.innerText = 'جارٍ الاتصال بالبث الرسمي لإذاعة قطر...';
+                if (span) span.innerText = 'إذاعة قطر: جارٍ الاتصال';
+                if (quranStatus) quranStatus.innerText = 'جارٍ الاتصال ببث إذاعة قطر...';
                 quranAudio.load();
                 quranAudio.play().then(() => {
+                    if (!quranRadioPlaying) return;
                     if (span) span.innerText = 'إذاعة قطر: تعمل';
-                    if (quranStatus) quranStatus.innerText = 'إذاعة قطر الرسمية تعمل.';
+                    if (quranStatus) quranStatus.innerText = 'إذاعة قطر تعمل.';
                     quranBtn.classList.add('active');
                 }).catch(() => {
+                    if (!quranRadioPlaying) return;
                     quranRadioPlaying = false;
                     if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
-                    if (quranStatus) quranStatus.innerText = 'تعذر تشغيل البث الرسمي لإذاعة قطر.';
+                    if (quranStatus) quranStatus.innerText = 'تعذر تشغيل بث إذاعة قطر.';
                     quranBtn.classList.remove('active');
                 });
             } else {
                 quranAudio.pause();
-                quranAudio.currentTime = 0;
-                if (span) span.innerText = 'إذاعة قطر الرسمية';
+                if (span) span.innerText = 'إذاعة قطر';
                 if (quranStatus) quranStatus.innerText = 'تم إيقاف إذاعة قطر.';
                 quranBtn.classList.remove('active');
             }
         });
     }
 
-    const mosqueBtn = document.getElementById('mosque-mode-btn');
-    if (mosqueBtn) {
-        mosqueBtn.addEventListener('click', () => {
-            mosqueModeActive = !mosqueModeActive;
-            const span = mosqueBtn.querySelector('span');
-            if (mosqueModeActive) {
-                document.body.classList.add('mosque-mode-active');
-                if (span) span.innerText = 'وضع المصلى: مفعل';
-                mosqueBtn.classList.add('active');
-            } else {
-                document.body.classList.remove('mosque-mode-active');
-                if (span) span.innerText = 'وضع المصلى';
-                mosqueBtn.classList.remove('active');
-            }
-        });
-    }
 }
 
 function setupThemeAndAudioControls() {

@@ -41,14 +41,10 @@
                 </div>
 
                 <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="البث المباشر الرسمي لإذاعة قطر">
-                    📻 <span>إذاعة قطر الرسمية</span>
+                    📻 <span>إذاعة قطر</span>
                 </button>
                 <audio id="quran-radio-audio" src="https://live.kwikmotion.com/qmcqatarradiolive/qatarradio/playlist.m3u8" preload="none"></audio>
                 <span id="quran-radio-status" class="sr-only" aria-live="polite"></span>
-
-                <button id="mosque-mode-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="وضع المصلى">
-                    🕋 <span>وضع المصلى</span>
-                </button>
 
                 <button id="azan-toggle-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="تفعيل/إيقاف الأذان">
                     🔊 <span>الأذان: مفعل</span>
@@ -85,6 +81,11 @@
                     <div id="arabic-day-name" class="day-text">الأربعاء</div>
                     <div id="hijri-date-arabic" class="date-text hijri">١٧ جمادى الأولى ١٤٤٨ هـ</div>
                     <div id="gregorian-date-arabic" class="date-text">٢٨ أكتوبر ٢٠٢٦ م</div>
+                    <div class="date-ramadan" id="ramadan-countdown-days">
+                        <span class="date-ramadan-icon" aria-hidden="true">🌙</span>
+                        <span class="days-count" id="ramadan-days-value">١١٤</span>
+                        <span class="days-label">يوماً لرمضان</span>
+                    </div>
                 </div>
             </section>
 
@@ -120,19 +121,19 @@
             <section class="glass-card card-faith tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📖</span>
-                    <h3>زاد المؤمن (آية وحديث وذكر اليوم)</h3>
-                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
+                    <h3>زاد المؤمن</h3>
+                    <span id="faith-carousel-indicator" class="carousel-indicator" aria-live="polite">١ / ٣</span>
                 </div>
                 <div class="faith-content-list">
-                    <article class="faith-content-item faith-ayah">
+                    <article id="faith-ayah-card" class="faith-content-item faith-ayah" aria-hidden="false">
                         <span class="faith-item-label">✨ آية كريمة</span>
                         <blockquote id="daily-ayah">جاري التحميل...</blockquote>
                     </article>
-                    <article class="faith-content-item faith-hadith">
+                    <article id="faith-hadith-card" class="faith-content-item faith-hadith" aria-hidden="true" hidden>
                         <span class="faith-item-label">📜 حديث شريف</span>
                         <blockquote id="daily-hadith">جاري التحميل...</blockquote>
                     </article>
-                    <article class="faith-content-item faith-dhikr">
+                    <article id="faith-dhikr-card" class="faith-content-item faith-dhikr" aria-hidden="true" hidden>
                         <span class="faith-item-label">🤲 ذكر اليوم</span>
                         <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
                         <p id="time-based-adhkar" class="sub-adhkar"></p>
@@ -156,7 +157,7 @@
                         <div class="finance-value" id="gold-egp-ounce" aria-live="polite">—</div>
                     </div>
                 </div>
-                <div id="finance-status" class="finance-status" aria-live="polite">جارٍ جلب الأسعار...</div>
+                <div id="finance-status" class="finance-status" aria-live="polite"></div>
             </section>
 
             <section class="glass-card card-products tv-nav-card" tabindex="0">
@@ -182,16 +183,6 @@
                 </div>
             </section>
 
-            <section class="glass-card card-ramadan tv-nav-card" tabindex="0" aria-label="العد التنازلي لرمضان">
-                <div class="card-header">
-                    <span class="card-icon">🌙</span>
-                    <h3>رمضان</h3>
-                </div>
-                <div class="ramadan-days-only" id="ramadan-countdown-days">
-                    <span class="days-count" id="ramadan-days-value">١١٤</span>
-                    <span class="days-label">يوماً متبقياً</span>
-                </div>
-            </section>
         </main>
     </div>
 

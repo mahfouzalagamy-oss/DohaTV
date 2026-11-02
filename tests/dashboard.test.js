@@ -24,9 +24,11 @@ function createDashboard(fetchImpl) {
                     innerHTML: '',
                     hidden: false,
                     listeners: {},
+                    attributes: {},
                     src: '',
                     alt: '',
                     addEventListener(name, callback) { this.listeners[name] = callback; },
+                    setAttribute(name, value) { this.attributes[name] = value; },
                     removeAttribute(name) { delete this[name]; },
                     querySelector() { return null; },
                     focus() {},
@@ -74,13 +76,33 @@ test('renders the USD rate and XAU ounce in Egyptian pounds from live source res
     assert.equal(dashboard.requestedUrls[0], 'https://api.frankfurter.dev/v2/rate/usd/egp');
     assert.equal(dashboard.elements.get('rate-usd-egp').innerText, '٥٠.٠٠ ج.م');
     assert.equal(dashboard.elements.get('gold-egp-ounce').innerText, '١٢٥٠٠٠.٠٠ ج.م');
-    assert.match(dashboard.elements.get('finance-status').innerText, /المصدر/);
+    assert.equal(dashboard.elements.get('finance-status').innerText, '');
 });
 
 test('keeps a valid exchange rate visible when the gold source is unavailable', async () => {
     const dashboard = createDashboard(async url => {
         if (url.includes('gold-api.com')) return { ok: false, status: 503 };
         return { ok: true, json: async () => ({ base: 'USD', quote: 'EGP', rate: 51.25 }) };
+    });
+
+    test('cycles the faith card through ayah, hadith, and dhikr every five seconds', () => {
+        const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+        vm.runInContext('showFaithContent(0)', dashboard.context);
+        assert.equal(dashboard.elements.get('faith-ayah-card').hidden, false);
+        assert.equal(dashboard.elements.get('faith-hadith-card').hidden, true);
+        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '١ / ٣');
+
+        vm.runInContext('rotateFaithContent()', dashboard.context);
+        assert.equal(dashboard.elements.get('faith-ayah-card').hidden, true);
+        assert.equal(dashboard.elements.get('faith-hadith-card').hidden, false);
+        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٢ / ٣');
+
+        vm.runInContext('rotateFaithContent()', dashboard.context);
+        assert.equal(dashboard.elements.get('faith-dhikr-card').hidden, false);
+        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٣ / ٣');
+
+        assert.match(appSource, /setInterval\(rotateFaithContent,\s*5000\)/);
     });
 
     await vm.runInContext('fetchFinancialRatesAndGold()', dashboard.context);
@@ -243,14 +265,22 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(styles, /env\(safe-area-inset-top\)/);
     assert.match(styles, /\.analog-clock\s*\{/);
     assert.equal((html.match(/class="clock-number number-/g) || []).length, 12);
-    assert.match(styles, /\.card-ramadan\s*\{[^}]*height:\s*fit-content/s);
     assert.match(styles, /@media \(max-aspect-ratio: 1\/1\)/);
     assert.match(styles, /\.products-gallery\s*\{/);
-    assert.match(styles, /\.card-products\s*\{\s*grid-column:\s*span 4/s);
+    assert.match(styles, /\.card-products\s*\{\s*grid-column:\s*span 6/s);
     assert.match(styles, /\.product-showcase-image\s*\{[^}]*object-fit:\s*contain/s);
+    assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.9fr\)\s+minmax\(0,\s*1\.1fr\)/);
     assert.match(html, /id="products-gallery"/);
     assert.match(html, /id="product-showcase-image"/);
     assert.match(html, /id="product-gallery-name"/);
     assert.match(html, /id="product-gallery-details"/);
     assert.match(html, /card-faith/);
+    assert.match(html, /id="ramadan-countdown-days"/);
+    assert.doesNotMatch(html, /class="glass-card card-ramadan/);
+    assert.doesNotMatch(html, /id="mosque-mode-btn"/);
+    assert.match(html, /id="faith-carousel-indicator"/);
+    assert.match(html, /id="finance-status" class="finance-status" aria-live="polite"><\/div>/);
+
+    const activity = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'java', 'qa', 'dohatv', 'app', 'MainActivity.kt'), 'utf8');
+    assert.match(activity, /mediaPlaybackRequiresUserGesture = false/);
 });
