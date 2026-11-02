@@ -5,7 +5,7 @@ let dhikrIndex = 0;
 let faithContentIndex = 0;
 let prayerTimings = null;
 let idleTimer = null;
-const IDLE_LIMIT = 15 * 60 * 1000;
+const IDLE_LIMIT = 10 * 60 * 1000;
 const FINANCE_REFRESH_MS = 15 * 60 * 1000;
 const ADHAN_REPOSITORY_URL = 'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/';
 const ADHAN_SOURCES = Object.freeze({
@@ -845,6 +845,7 @@ function setupIdleScreensaver() {
         clearTimeout(idleTimer);
         idleTimer = setTimeout(showScreensaver, IDLE_LIMIT);
     };
+    const resetIdleTimer = window.resetIdleTimer;
 
     ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
         window.addEventListener(evt, resetIdleTimer, true);

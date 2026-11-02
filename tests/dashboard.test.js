@@ -11,6 +11,9 @@ function createDashboard(fetchImpl) {
     const storedValues = new Map();
     const requestedUrls = [];
     const intervalCalls = [];
+    const timeoutCalls = [];
+    const clearedTimeouts = [];
+    const windowListeners = {};
     const document = {
         body: { classList: { add() {}, remove() {} } },
         addEventListener() {},
@@ -42,7 +45,11 @@ function createDashboard(fetchImpl) {
     };
     const context = vm.createContext({
         document,
-        window: { addEventListener() {} },
+        window: {
+            addEventListener(name, callback) {
+                windowListeners[name] = callback;
+            }
+        },
         localStorage: {
             getItem(key) { return storedValues.get(key) || null; },
             setItem(key, value) { storedValues.set(key, String(value)); },
@@ -55,12 +62,16 @@ function createDashboard(fetchImpl) {
         },
         console: { error() {} },
         setInterval(callback, delay) { intervalCalls.push({ callback, delay }); },
-        clearTimeout() {},
-        setTimeout() {}
+        clearTimeout(id) { clearedTimeouts.push(id); },
+        setTimeout(callback, delay) {
+            const id = timeoutCalls.length + 1;
+            timeoutCalls.push({ id, callback, delay });
+            return id;
+        }
     });
 
     vm.runInContext(appSource, context);
-    return { context, elements, storedValues, requestedUrls, intervalCalls };
+    return { context, elements, storedValues, requestedUrls, intervalCalls, timeoutCalls, clearedTimeouts, windowListeners };
 }
 
 test('renders the USD rate and XAU ounce in Egyptian pounds from live source responses', async () => {
@@ -85,31 +96,44 @@ test('keeps a valid exchange rate visible when the gold source is unavailable', 
         return { ok: true, json: async () => ({ base: 'USD', quote: 'EGP', rate: 51.25 }) };
     });
 
-    test('cycles the faith card through ayah, hadith, and dhikr every five seconds', () => {
-        const dashboard = createDashboard(async () => { throw new Error('not used'); });
-
-        vm.runInContext('showFaithContent(0)', dashboard.context);
-        assert.equal(dashboard.elements.get('faith-ayah-card').hidden, false);
-        assert.equal(dashboard.elements.get('faith-hadith-card').hidden, true);
-        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '١ / ٣');
-
-        vm.runInContext('rotateFaithContent()', dashboard.context);
-        assert.equal(dashboard.elements.get('faith-ayah-card').hidden, true);
-        assert.equal(dashboard.elements.get('faith-hadith-card').hidden, false);
-        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٢ / ٣');
-
-        vm.runInContext('rotateFaithContent()', dashboard.context);
-        assert.equal(dashboard.elements.get('faith-dhikr-card').hidden, false);
-        assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٣ / ٣');
-
-        assert.match(appSource, /setInterval\(rotateFaithContent,\s*5000\)/);
-    });
-
     await vm.runInContext('fetchFinancialRatesAndGold()', dashboard.context);
 
     assert.equal(dashboard.elements.get('rate-usd-egp').innerText, '٥١.٢٥ ج.م');
     assert.equal(dashboard.elements.get('gold-egp-ounce').innerText, 'غير متاح');
     assert.match(dashboard.elements.get('finance-status').innerText, /الذهب/);
+});
+
+test('cycles the faith card through ayah, hadith, and dhikr every five seconds', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    vm.runInContext('showFaithContent(0)', dashboard.context);
+    assert.equal(dashboard.elements.get('faith-ayah-card').hidden, false);
+    assert.equal(dashboard.elements.get('faith-hadith-card').hidden, true);
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '١ / ٣');
+
+    vm.runInContext('rotateFaithContent()', dashboard.context);
+    assert.equal(dashboard.elements.get('faith-ayah-card').hidden, true);
+    assert.equal(dashboard.elements.get('faith-hadith-card').hidden, false);
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٢ / ٣');
+
+    vm.runInContext('rotateFaithContent()', dashboard.context);
+    assert.equal(dashboard.elements.get('faith-dhikr-card').hidden, false);
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٣ / ٣');
+
+    assert.match(appSource, /setInterval\(rotateFaithContent,\s*5000\)/);
+});
+
+test('shows the in-app screensaver after ten minutes without activity', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    vm.runInContext('setupIdleScreensaver()', dashboard.context);
+    assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
+    dashboard.timeoutCalls.at(-1).callback();
+    assert.equal(dashboard.elements.get('screensaver-overlay').style.display, 'flex');
+
+    dashboard.windowListeners.keydown();
+    assert.ok(dashboard.clearedTimeouts.length > 0);
+    assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
 });
 
 test('requests Doha prayer times with the verified Qatar calculation method', async () => {
