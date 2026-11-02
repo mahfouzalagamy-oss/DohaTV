@@ -748,7 +748,7 @@ function setupThemeAndAudioControls() {
             localStorage.setItem('dohatv_adhan_url', normalizedSource);
             if (adhanSourceSelect) adhanSourceSelect.value = 'custom';
             if (azanAudio) azanAudio.src = normalizedSource;
-            if (azanStatus) azanStatus.innerText = 'تم حفظ مصدر الأذان. اضغط تجربة الأذان للتحقق من تشغيله.';
+            if (azanStatus) azanStatus.innerText = 'تم حفظ مصدر الأذان. اضغط زر التشغيل للتحقق من الصوت.';
         });
     }
     if (azanAudio) {

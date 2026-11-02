@@ -304,6 +304,8 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.doesNotMatch(html, /id="mosque-mode-btn"/);
     assert.match(html, /id="faith-carousel-indicator"/);
     assert.match(html, /id="finance-status" class="finance-status" aria-live="polite"><\/div>/);
+    assert.match(html, /id="adhan-preview-btn"[^>]*aria-label="تشغيل الأذان للتجربة"/);
+    assert.doesNotMatch(html.match(/<button id="adhan-preview-btn"[\s\S]*?<\/button>/)?.[0] || '', /تجربة الأذان/);
 
     const activity = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'java', 'qa', 'dohatv', 'app', 'MainActivity.kt'), 'utf8');
     assert.match(activity, /mediaPlaybackRequiresUserGesture = false/);
