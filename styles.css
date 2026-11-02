@@ -58,7 +58,7 @@ body.mosque-mode-active .tv-header-glass {
 }
 
 body.mosque-mode-active .card-prayer {
-    grid-column: span 2;
+    grid-column: span 6;
     background: linear-gradient(135deg, rgba(7, 42, 31, 0.88), rgba(11, 64, 50, 0.8));
     border-color: rgba(247, 199, 103, 0.8);
     box-shadow: 0 22px 52px rgba(7, 42, 31, 0.5);
@@ -622,5 +622,780 @@ blockquote {
 
     .clock-display-arabic {
         font-size: 38px;
+    }
+}
+
+/* TV-safe, aspect-ratio-aware dashboard layout */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
+
+body {
+    overflow: hidden;
+}
+
+.tv-container {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    padding:
+        calc(clamp(10px, 1.35vw, 26px) + env(safe-area-inset-top))
+        calc(clamp(12px, 1.6vw, 30px) + env(safe-area-inset-right))
+        calc(clamp(10px, 1.25vw, 24px) + env(safe-area-inset-bottom))
+        calc(clamp(12px, 1.6vw, 30px) + env(safe-area-inset-left));
+    gap: clamp(9px, 1vw, 18px);
+}
+
+.tv-header-glass {
+    flex: 0 0 auto;
+    min-height: clamp(68px, 9vh, 104px);
+    padding: clamp(8px, 1vw, 16px) clamp(12px, 1.5vw, 24px);
+    gap: 12px;
+}
+
+.glass-controls {
+    min-width: 0;
+    gap: clamp(5px, 0.65vw, 10px);
+}
+
+.glass-control-item,
+.glass-btn {
+    min-height: 40px;
+}
+
+.adhan-source-control {
+    flex: 0 1 270px;
+    min-width: 190px;
+}
+
+.adhan-source-control .tv-glass-input {
+    flex: 1 1 0;
+    width: auto;
+}
+
+.adhan-source-control select option {
+    color: #17212b;
+    background: #fff;
+}
+
+.tv-glass-input {
+    width: 100%;
+    min-width: 0;
+    color: var(--text-primary);
+    background: transparent;
+    border: 0;
+    outline: 0;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.tv-glass-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.tv-glass-input:focus-visible {
+    outline: 2px solid var(--focus-border);
+    outline-offset: 3px;
+}
+
+.control-status {
+    max-width: 180px;
+    color: var(--text-secondary);
+    font-size: 11px;
+    line-height: 1.35;
+}
+
+.tv-grid-glass {
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: clamp(8px, 0.9vw, 16px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+}
+
+.tv-grid-glass::-webkit-scrollbar {
+    display: none;
+}
+
+.glass-card {
+    min-width: 0;
+    min-height: 0;
+    padding: clamp(10px, 1vw, 18px);
+    border-radius: clamp(14px, 1.25vw, 22px);
+}
+
+.card-clock {
+    grid-column: span 4;
+    min-height: 0;
+    gap: clamp(4px, 0.5vw, 9px);
+}
+
+.card-prayer {
+    grid-column: span 4;
+    min-height: 0;
+}
+
+.card-weather {
+    grid-column: span 4;
+}
+
+.card-faith,
+.card-finance {
+    grid-column: span 4;
+}
+
+.card-faith {
+    grid-column: span 3;
+}
+
+.card-finance {
+    grid-column: span 4;
+}
+
+.card-products {
+    grid-column: span 4;
+}
+
+.card-ramadan {
+    grid-column: span 1;
+    min-width: 0;
+    min-height: 0;
+    height: fit-content;
+    align-self: end;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 8px;
+}
+
+.card-ramadan .card-header {
+    width: 100%;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+}
+
+.card-ramadan .card-header h3 {
+    font-size: clamp(10px, 0.75vw, 12px);
+}
+
+.card-ramadan .card-icon {
+    font-size: 13px;
+}
+
+.card-ramadan .ramadan-days-only {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+    padding: 0;
+}
+
+.card-ramadan .days-label {
+    font-size: clamp(9px, 0.65vw, 11px);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.card-ramadan .days-count {
+    font-size: clamp(16px, 1.15vw, 20px);
+}
+
+.card-faith {
+    gap: 4px;
+}
+
+.faith-content-list {
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: clamp(5px, 0.6vw, 10px);
+}
+
+.faith-content-item {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(7px, 0.75vw, 12px);
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-right: 3px solid var(--accent-cyan);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.035);
+}
+
+.faith-ayah {
+    border-right-color: var(--accent-gold);
+}
+
+.faith-hadith {
+    border-right-color: var(--accent-cyan);
+}
+
+.faith-dhikr {
+    border-right-color: var(--accent-emerald);
+}
+
+.faith-item-label {
+    margin-bottom: 4px;
+    color: var(--accent-gold);
+    font-size: clamp(11px, 0.8vw, 13px);
+    font-weight: 800;
+}
+
+.faith-hadith .faith-item-label {
+    color: var(--accent-cyan);
+}
+
+.faith-dhikr .faith-item-label {
+    color: var(--accent-emerald);
+}
+
+.faith-content-item blockquote {
+    font-size: clamp(12px, 0.92vw, 16px);
+    line-height: 1.45;
+}
+
+.faith-content-item .dhikr-text {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: clamp(12px, 0.92vw, 16px);
+    line-height: 1.45;
+}
+
+.faith-content-item .sub-adhkar {
+    margin: 3px 0 0;
+    color: var(--text-secondary);
+    font-size: clamp(10px, 0.72vw, 12px);
+    line-height: 1.35;
+}
+
+.card-products {
+    gap: 6px;
+}
+
+.products-gallery {
+    position: relative;
+    display: grid;
+    flex: 1 1 auto;
+    min-height: 0;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid rgba(90, 214, 255, 0.16);
+    border-radius: 16px;
+    background:
+        radial-gradient(ellipse at 75% 30%, rgba(90, 214, 255, 0.12), transparent 46%),
+        radial-gradient(ellipse at 25% 80%, rgba(247, 199, 103, 0.1), transparent 45%),
+        rgba(5, 12, 22, 0.56);
+}
+
+.products-gallery::before,
+.products-gallery::after {
+    position: absolute;
+    width: 38%;
+    aspect-ratio: 1;
+    border: 1px solid rgba(90, 214, 255, 0.1);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+}
+
+.products-gallery::before {
+    top: -34%;
+    right: -9%;
+}
+
+.products-gallery::after {
+    bottom: -42%;
+    left: -10%;
+    border-color: rgba(247, 199, 103, 0.12);
+}
+
+.product-showcase-image {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-width: 0;
+    min-height: 0;
+    object-fit: contain;
+    object-position: center;
+}
+
+.product-showcase-image[hidden] {
+    display: none;
+}
+
+.product-gallery-control {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    display: grid;
+    width: clamp(32px, 3vw, 44px);
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.24);
+    border-radius: 50%;
+    background: rgba(5, 12, 22, 0.72);
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: clamp(22px, 2vw, 30px);
+    line-height: 1;
+    transform: translateY(-50%);
+}
+
+.product-gallery-control:focus-visible {
+    outline: 2px solid var(--focus-border);
+    outline-offset: 3px;
+}
+
+.product-gallery-prev {
+    left: 10px;
+}
+
+.product-gallery-next {
+    right: 10px;
+}
+
+.product-gallery-count {
+    position: absolute;
+    z-index: 2;
+    top: 10px;
+    left: 10px;
+    padding: 4px 9px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 999px;
+    background: rgba(5, 12, 22, 0.72);
+    color: var(--text-primary);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.products-empty-state {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: clamp(7px, 0.8vw, 13px);
+    padding: 18px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.products-empty-state[hidden] {
+    display: none;
+}
+
+.products-empty-icon {
+    display: grid;
+    width: clamp(54px, 5vw, 78px);
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid rgba(90, 214, 255, 0.28);
+    border-radius: 20px;
+    background: rgba(90, 214, 255, 0.08);
+    color: var(--accent-cyan);
+    font-size: clamp(28px, 2.8vw, 42px);
+}
+
+.products-empty-state strong {
+    color: var(--text-primary);
+    font-size: clamp(15px, 1.15vw, 20px);
+}
+
+.products-empty-state > span:last-child,
+.products-caption {
+    color: var(--text-secondary);
+    font-size: clamp(11px, 0.82vw, 14px);
+}
+
+.products-caption {
+    display: grid;
+    flex: 0 0 auto;
+    gap: 3px;
+    margin: 0;
+    max-height: clamp(42px, 6vh, 68px);
+    overflow: hidden;
+    text-align: center;
+}
+
+.products-caption strong {
+    color: var(--text-primary);
+    font-size: clamp(12px, 0.9vw, 15px);
+}
+
+.products-caption span {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: clamp(10px, 0.72vw, 12px);
+    line-height: 1.35;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+.card-header {
+    padding-bottom: clamp(5px, 0.55vw, 9px);
+    margin-bottom: clamp(6px, 0.65vw, 11px);
+    gap: 6px;
+}
+
+.card-header h3 {
+    min-width: 0;
+    font-size: clamp(14px, 1.15vw, 20px);
+}
+
+.card-icon {
+    font-size: clamp(17px, 1.35vw, 23px);
+}
+
+.badge-glass {
+    max-width: 58%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: clamp(10px, 0.78vw, 13px);
+}
+
+.clock-analog-wrap {
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.analog-clock {
+    position: relative;
+    width: clamp(76px, 11vh, 112px);
+    aspect-ratio: 1;
+    border: 2px solid rgba(247, 199, 103, 0.62);
+    border-radius: 50%;
+    background:
+        radial-gradient(circle, rgba(90, 214, 255, 0.1) 0 56%, transparent 57%),
+        rgba(5, 12, 22, 0.35);
+    box-shadow: 0 0 22px rgba(90, 214, 255, 0.16), inset 0 0 16px rgba(90, 214, 255, 0.1);
+}
+
+.clock-number {
+    position: absolute;
+    z-index: 1;
+    color: var(--accent-gold);
+    font-size: clamp(10px, 1.2vh, 12px);
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+    transform: translate(-50%, -50%);
+}
+
+.number-12 { left: 50%; top: 10%; }
+.number-1 { left: 70%; top: 15%; }
+.number-2 { left: 84%; top: 30%; }
+.number-3 { left: 90%; top: 50%; }
+.number-4 { left: 84%; top: 70%; }
+.number-5 { left: 70%; top: 85%; }
+.number-6 { left: 50%; top: 90%; }
+.number-7 { left: 30%; top: 85%; }
+.number-8 { left: 16%; top: 70%; }
+.number-9 { left: 10%; top: 50%; }
+.number-10 { left: 16%; top: 30%; }
+.number-11 { left: 30%; top: 15%; }
+
+.hand {
+    position: absolute;
+    left: 50%;
+    bottom: 50%;
+    display: block;
+    width: 3px;
+    border-radius: 4px;
+    transform-origin: 50% 100%;
+}
+
+.hour-hand {
+    height: 25%;
+    background: var(--text-primary);
+}
+
+.minute-hand {
+    height: 35%;
+    width: 2px;
+    background: var(--accent-cyan);
+}
+
+.second-hand {
+    height: 39%;
+    width: 1px;
+    background: #ff8278;
+}
+
+.clock-center {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    left: 50%;
+    top: 50%;
+    border-radius: 50%;
+    background: var(--accent-gold);
+    transform: translate(-50%, -50%);
+}
+
+.clock-display-arabic {
+    margin: 0;
+    font-size: clamp(22px, 2.5vw, 42px);
+    letter-spacing: 0;
+}
+
+.day-text {
+    font-size: clamp(15px, 1.3vw, 22px);
+}
+
+.date-text {
+    font-size: clamp(12px, 0.95vw, 16px);
+}
+
+.prayer-grid {
+    gap: clamp(4px, 0.45vw, 8px);
+}
+
+.prayer-box {
+    min-width: 0;
+    padding: clamp(6px, 0.65vw, 10px) 3px;
+}
+
+.prayer-name {
+    font-size: clamp(11px, 0.9vw, 15px);
+}
+
+.prayer-time {
+    font-size: clamp(12px, 1vw, 17px);
+}
+
+.weather-meta-row {
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    padding: 5px 8px;
+    font-size: clamp(10px, 0.8vw, 13px);
+}
+
+.weather-grid {
+    gap: clamp(4px, 0.45vw, 8px);
+}
+
+.weather-day-box {
+    min-width: 0;
+    padding: 6px 3px;
+}
+
+.weather-day-title {
+    font-size: clamp(10px, 0.76vw, 13px);
+}
+
+.weather-temp {
+    font-size: clamp(11px, 0.9vw, 15px);
+}
+
+blockquote {
+    font-size: clamp(14px, 1.12vw, 19px);
+    line-height: 1.55;
+}
+
+.finance-grid {
+    gap: clamp(5px, 0.6vw, 10px);
+}
+
+.finance-box {
+    min-width: 0;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    padding: 8px 6px;
+    text-align: center;
+}
+
+.finance-label {
+    font-size: clamp(11px, 0.85vw, 14px);
+}
+
+.finance-value {
+    font-size: clamp(13px, 1.15vw, 19px);
+    overflow-wrap: anywhere;
+}
+
+.finance-status {
+    padding-top: 6px;
+    color: var(--text-secondary);
+    font-size: clamp(10px, 0.72vw, 12px);
+    text-align: center;
+}
+
+.loading-text {
+    align-self: center;
+    color: var(--text-secondary);
+    font-size: clamp(12px, 0.9vw, 15px);
+    text-align: center;
+}
+
+.card-dhikr .dhikr-text {
+    font-size: clamp(14px, 1.1vw, 18px);
+    line-height: 1.5;
+}
+
+.card-dhikr .sub-adhkar {
+    font-size: clamp(11px, 0.85vw, 14px);
+}
+
+.days-count {
+    font-size: clamp(24px, 2.4vw, 40px);
+}
+
+.days-label {
+    font-size: clamp(12px, 0.95vw, 16px);
+}
+
+.friday-special-banner {
+    padding: 6px 8px;
+    margin-bottom: 6px;
+    font-size: clamp(10px, 0.75vw, 13px);
+}
+
+.prayer-alert {
+    font-size: clamp(11px, 0.85vw, 14px);
+}
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+@media (max-width: 1100px) and (orientation: landscape) {
+    .tv-header-glass {
+        align-items: flex-start;
+        flex-wrap: wrap;
+        max-height: 26vh;
+        overflow-y: auto;
+    }
+
+    .glass-controls {
+        flex: 1 1 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    .tv-grid-glass {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: none;
+        grid-auto-rows: minmax(170px, auto);
+    }
+
+    .card-clock,
+    .card-prayer,
+    .card-weather,
+    .card-ramadan {
+        grid-column: span 2;
+    }
+
+    .card-faith,
+    .card-finance,
+    .card-products {
+        grid-column: span 1;
+    }
+
+}
+
+@media (max-height: 760px) and (min-width: 901px) {
+    .tv-header-glass {
+        min-height: 60px;
+    }
+
+    .tv-grid-glass {
+        grid-template-rows: repeat(2, minmax(165px, auto)) minmax(68px, auto);
+    }
+
+    .analog-clock {
+        width: clamp(64px, 9vh, 84px);
+    }
+
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .tv-container {
+        gap: 10px;
+    }
+
+    .tv-header-glass {
+        align-items: stretch;
+        flex-direction: column;
+        max-height: 34dvh;
+        overflow-y: auto;
+    }
+
+    .header-brand {
+        justify-content: center;
+    }
+
+    .glass-controls {
+        justify-content: center;
+    }
+
+    .tv-grid-glass {
+        flex: 1 1 auto;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: none;
+        grid-auto-rows: minmax(160px, auto);
+    }
+
+    .card-clock,
+    .card-prayer,
+    .card-weather,
+    .card-faith,
+    .card-finance,
+    .card-products,
+    .card-ramadan {
+        grid-column: 1;
+    }
+
+    .card-clock {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        align-content: center;
+    }
+
+    .clock-analog-wrap {
+        grid-row: span 2;
+    }
+
+    .card-clock .date-details-arabic {
+        grid-column: 2;
+    }
+
+    .card-faith {
+        min-height: 360px;
+    }
+
+    .faith-content-list {
+        grid-template-rows: none;
+        grid-auto-rows: minmax(96px, auto);
     }
 }

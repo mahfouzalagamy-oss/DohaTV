@@ -1,7 +1,7 @@
 {
-  "name": "دوحة TV | DohaTV",
-  "short_name": "دوحة TV",
-  "description": "لوحة عربية للتلفزيون في الدوحة",
+  "name": "PERFECT WEIGHT TV",
+  "short_name": "PERFECT WEIGHT TV",
+  "description": "شاشة تلفزيونية لعرض منتجات PERFECT WEIGHT",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",

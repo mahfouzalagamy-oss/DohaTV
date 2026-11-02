@@ -2,8 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DohaTV - الشاشة الذكية</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>PERFECT WEIGHT TV</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="theme-glass">
@@ -13,20 +13,25 @@
         <header class="tv-header-glass">
             <div class="header-brand">
                 <span class="app-logo">📺</span>
-                <span class="app-title">DohaTV</span>
+                <span class="app-title">PERFECT WEIGHT TV</span>
             </div>
 
             <div class="glass-controls">
-                <div class="glass-control-item" tabindex="0" title="المؤذن">
+                <label class="glass-control-item adhan-source-control" title="اختر تسجيل الأذان المناسب">
                     <span class="control-icon">🕌</span>
-                    <select id="muazzin-select" class="tv-glass-select tv-nav" tabindex="0">
-                        <option value="https://cdn.pixabay.com/download/audio/2022/03/15/audio_11e03f0b24.mp3?filename=azan-108842.mp3">أذان مكة المكرمة</option>
-                        <option value="https://www.islamcan.com/audio/adhan/makkah.mp3">أذان المسجد الحرام</option>
-                        <option value="https://www.islamcan.com/audio/adhan/madina.mp3">أذان المسجد النبوي</option>
-                        <option value="https://www.islamcan.com/audio/adhan/egypt.mp3">الأذان المصري القديم</option>
-                        <option value="https://www.islamcan.com/audio/adhan/al-afasy.mp3">أذان مشاري العفاسي</option>
+                    <select id="adhan-source-select" class="tv-glass-input tv-nav" aria-label="اختيار مصدر الأذان">
+                        <option value="qatar">قطر — أحمد العمادي</option>
+                        <option value="egypt">مصر — عبد الباسط عبد الصمد</option>
+                        <option value="makkah">مكة المكرمة — أذان الفجر</option>
+                        <option value="madinah">المدينة المنورة — أذان الحرم</option>
+                        <option value="custom">رابط صوت مخصص…</option>
                     </select>
-                </div>
+                    <input id="adhan-custom-source-input" class="tv-glass-input tv-nav" type="url" inputmode="url"
+                           placeholder="رابط HTTPS مباشر للأذان" aria-label="رابط HTTPS مخصص لملف الأذان" hidden>
+                </label>
+                <button id="adhan-preview-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="تجربة مصدر الأذان">
+                    ▶ <span>تجربة الأذان</span>
+                </button>
 
                 <div class="glass-control-item theme-group" tabindex="0">
                     <span class="control-icon">🎨</span>
@@ -35,10 +40,11 @@
                     <button class="glass-btn theme-btn tv-nav" data-theme="theme-islamic" tabindex="0">إسلامي</button>
                 </div>
 
-                <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="إذاعة القرآن المباشرة">
-                    📻 <span>إذاعة القرآن الكريم</span>
+                <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="البث المباشر الرسمي لإذاعة قطر">
+                    📻 <span>إذاعة قطر الرسمية</span>
                 </button>
-                <audio id="quran-radio-audio" src="https://stream.radiojar.com/8s443pctspuvv" preload="none"></audio>
+                <audio id="quran-radio-audio" src="https://live.kwikmotion.com/qmcqatarradiolive/qatarradio/playlist.m3u8" preload="none"></audio>
+                <span id="quran-radio-status" class="sr-only" aria-live="polite"></span>
 
                 <button id="mosque-mode-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="وضع المصلى">
                     🕋 <span>وضع المصلى</span>
@@ -48,6 +54,7 @@
                     🔊 <span>الأذان: مفعل</span>
                 </button>
                 <audio id="azan-audio" preload="none"></audio>
+                <span id="azan-status" class="control-status" aria-live="polite"></span>
             </div>
         </header>
 
@@ -55,10 +62,18 @@
             <section class="glass-card card-clock tv-nav-card" tabindex="0">
                 <div class="clock-analog-wrap">
                     <div class="analog-clock" aria-label="الساعة">
-                        <span class="clock-mark mark-12"></span>
-                        <span class="clock-mark mark-3"></span>
-                        <span class="clock-mark mark-6"></span>
-                        <span class="clock-mark mark-9"></span>
+                        <span class="clock-number number-12">١٢</span>
+                        <span class="clock-number number-1">١</span>
+                        <span class="clock-number number-2">٢</span>
+                        <span class="clock-number number-3">٣</span>
+                        <span class="clock-number number-4">٤</span>
+                        <span class="clock-number number-5">٥</span>
+                        <span class="clock-number number-6">٦</span>
+                        <span class="clock-number number-7">٧</span>
+                        <span class="clock-number number-8">٨</span>
+                        <span class="clock-number number-9">٩</span>
+                        <span class="clock-number number-10">١٠</span>
+                        <span class="clock-number number-11">١١</span>
                         <span id="analog-hour" class="hand hour-hand"></span>
                         <span id="analog-minute" class="hand minute-hand"></span>
                         <span id="analog-second" class="hand second-hand"></span>
@@ -90,7 +105,7 @@
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
                     <h3>الطقس بالدوحة</h3>
-                    <span id="current-weather-temp" class="badge-glass">☀️ ٢٩°م</span>
+                    <span id="current-weather-temp" class="badge-glass">جاري التحديث...</span>
                 </div>
                 <div id="weather-details-row" class="weather-meta-row">
                     <span id="weather-feels">المحسوسة: --</span>
@@ -102,23 +117,26 @@
                 </div>
             </section>
 
-            <section class="glass-card card-ayah tv-nav-card" tabindex="0">
+            <section class="glass-card card-faith tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">📖</span>
-                    <h3>آية اليوم</h3>
+                    <h3>زاد المؤمن (آية وحديث وذكر اليوم)</h3>
+                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
                 </div>
-                <div class="card-body">
-                    <blockquote id="daily-ayah">جاري التحميل...</blockquote>
-                </div>
-            </section>
-
-            <section class="glass-card card-hadith tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">📜</span>
-                    <h3>حديث اليوم (صحيح)</h3>
-                </div>
-                <div class="card-body">
-                    <blockquote id="daily-hadith">جاري التحميل...</blockquote>
+                <div class="faith-content-list">
+                    <article class="faith-content-item faith-ayah">
+                        <span class="faith-item-label">✨ آية كريمة</span>
+                        <blockquote id="daily-ayah">جاري التحميل...</blockquote>
+                    </article>
+                    <article class="faith-content-item faith-hadith">
+                        <span class="faith-item-label">📜 حديث شريف</span>
+                        <blockquote id="daily-hadith">جاري التحميل...</blockquote>
+                    </article>
+                    <article class="faith-content-item faith-dhikr">
+                        <span class="faith-item-label">🤲 ذكر اليوم</span>
+                        <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
+                        <p id="time-based-adhkar" class="sub-adhkar"></p>
+                    </article>
                 </div>
             </section>
 
@@ -126,36 +144,48 @@
                 <div class="card-header">
                     <span class="card-icon">💵</span>
                     <h3>الدولار والذهب</h3>
-                    <span class="badge-glass">محدث حي</span>
+                    <span class="badge-glass">تحديث دوري</span>
                 </div>
                 <div class="finance-grid" id="finance-rates-container">
                     <div class="finance-box">
-                        <div class="finance-label">USD / EGP</div>
-                        <div class="finance-value" id="rate-usd-egp">٥٦.٠٩ ج.م</div>
+                        <div class="finance-label">سعر الدولار بالجنيه المصري</div>
+                        <div class="finance-value" id="rate-usd-egp" aria-live="polite">—</div>
                     </div>
                     <div class="finance-box">
-                        <div class="finance-label">ذهب ٢٤ ق</div>
-                        <div class="finance-value" id="gold-qar-24">٤٧٣ ر.ق</div>
+                        <div class="finance-label">أونصة الذهب بالجنيه المصري</div>
+                        <div class="finance-value" id="gold-egp-ounce" aria-live="polite">—</div>
                     </div>
                 </div>
+                <div id="finance-status" class="finance-status" aria-live="polite">جارٍ جلب الأسعار...</div>
             </section>
 
-            <section class="glass-card card-dhikr tv-nav-card" tabindex="0">
+            <section class="glass-card card-products tv-nav-card" tabindex="0">
                 <div class="card-header">
-                    <span class="card-icon">🤲</span>
-                    <h3>ذكر دائم (يتغير كل دقيقة)</h3>
-                    <span id="dhikr-timer" class="dhikr-timer-badge">٦٠ ثانية</span>
+                    <span class="card-icon">✨</span>
+                    <h3>منتجات مميزة</h3>
+                    <span class="badge-glass">معرض الصور</span>
                 </div>
-                <div class="card-body">
-                    <p id="rotating-dhikr" class="dhikr-text">جاري التحميل...</p>
-                    <p id="time-based-adhkar" class="sub-adhkar"></p>
+                <div class="products-gallery" id="products-gallery">
+                    <img id="product-showcase-image" class="product-showcase-image" src="assets/products/keto-coffee-box.jpg" alt="قهوة كيتو من Naturadiet">
+                    <button class="product-gallery-control product-gallery-prev tv-nav" type="button" aria-label="عرض صورة المنتج السابقة">‹</button>
+                    <span id="product-gallery-count" class="product-gallery-count" aria-live="polite">١ / ١١</span>
+                    <button class="product-gallery-control product-gallery-next tv-nav" type="button" aria-label="عرض صورة المنتج التالية">›</button>
+                    <div class="products-empty-state" id="products-empty-state" hidden>
+                        <span class="products-empty-icon" aria-hidden="true">▧</span>
+                        <strong>تعذر تحميل صورة المنتج</strong>
+                        <span>تحقق من ملفات معرض المنتجات</span>
+                    </div>
+                </div>
+                <div class="products-caption" aria-live="polite">
+                    <strong id="product-gallery-name">قهوة كيتو — Naturadiet</strong>
+                    <span id="product-gallery-details">مزيج ٥ في ١؛ تذكر العبوة MCT وجذر الماكا والقهوة الخضراء والألياف وشاي الماتشا.</span>
                 </div>
             </section>
 
-            <section class="glass-card card-ramadan tv-nav-card" tabindex="0">
+            <section class="glass-card card-ramadan tv-nav-card" tabindex="0" aria-label="العد التنازلي لرمضان">
                 <div class="card-header">
                     <span class="card-icon">🌙</span>
-                    <h3>رمضان المبارك</h3>
+                    <h3>رمضان</h3>
                 </div>
                 <div class="ramadan-days-only" id="ramadan-countdown-days">
                     <span class="days-count" id="ramadan-days-value">١١٤</span>

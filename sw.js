@@ -1,5 +1,13 @@
-const CACHE = 'dohatv-static-v5';
-const SHELL = ['./', './index.html', './styles.css', './app.js?v=4', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg'];
+const CACHE = 'dohatv-static-v6';
+const SHELL = [
+  './', './index.html', './styles.css', './app.js?v=4', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg',
+  './assets/products/keto-coffee-box.jpg', './assets/products/matcha-tea.jpg',
+  './assets/products/dnpr-chocolate-boxes.jpg', './assets/products/dnpr-lite-chocolate.jpg',
+  './assets/products/coffee-and-chocolate.jpg', './assets/products/perfect-plus.jpg',
+  './assets/products/laperwa-coffee.jpg', './assets/products/perfect-weight-range.jpg',
+  './assets/products/perfect-plus-front.jpg', './assets/products/keto-coffee-sachets.jpg',
+  './assets/products/perfect-plus-benefits.jpg'
+];
 self.addEventListener('install', (event) => { event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener('activate', (event) => { event.waitUntil(caches.keys().then((keys) => Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (event) => {

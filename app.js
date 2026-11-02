@@ -7,6 +7,39 @@ let dhikrIndex = 0;
 let prayerTimings = null;
 let idleTimer = null;
 const IDLE_LIMIT = 15 * 60 * 1000;
+const FINANCE_REFRESH_MS = 15 * 60 * 1000;
+const ADHAN_REPOSITORY_URL = 'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/';
+const ADHAN_SOURCES = Object.freeze({
+    egypt: {
+        label: 'مصر — عبد الباسط عبد الصمد',
+        file: 'Abdulbasit_Abdusamad_1_-_Egypt_(عبد_الباسط_عبد_الصمد_-_مصر).mp3'
+    },
+    makkah: {
+        label: 'مكة المكرمة — أذان الفجر',
+        file: 'Adhan_Fajr_Al_Haram_Al_Maki_(أذان_الفجر_الحرم_المكي).mp3'
+    },
+    madinah: {
+        label: 'المدينة المنورة — أذان الحرم',
+        file: 'Adhan_Al_Haram_Al_Madani_-_Al_Madinah_1_(أذان_الحرم_المدني_-_المدينة_المنورة).mp3'
+    },
+    qatar: {
+        label: 'قطر — أحمد العمادي',
+        file: 'Ahmad_Al_Amade_1_-_Qatar_(أحمد_العمادي_-_قطر).mp3'
+    }
+});
+const PRODUCT_SLIDES = Object.freeze([
+    { src: 'assets/products/keto-coffee-box.jpg', alt: 'علبة قهوة كيتو من Naturadiet', name: 'قهوة كيتو — Naturadiet', details: 'مزيج ٥ في ١؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.' },
+    { src: 'assets/products/matcha-tea.jpg', alt: 'علبة شاي ماتشا من Naturadiet', name: 'شاي ماتشا — Naturadiet', details: 'شاي ماتشا في أكياس فردية؛ الوزن الظاهر على العبوة ١٫٥ جم.' },
+    { src: 'assets/products/dnpr-chocolate-boxes.jpg', alt: 'علبتا شوكولاتة DNPR داكنة ولايت', name: 'شوكولاتة DNPR — داكنة ولايت', details: 'تظهر الصورة نوعَي Dark وLite؛ وزن العبوة الظاهر ٨٤ جم.' },
+    { src: 'assets/products/dnpr-lite-chocolate.jpg', alt: 'علبة شوكولاتة DNPR لايت', name: 'شوكولاتة DNPR — Lite', details: 'شوكولاتة بنوع Lite؛ العبوة تعرض ٨٤ جم.' },
+    { src: 'assets/products/coffee-and-chocolate.jpg', alt: 'قهوة كيتو وشوكولاتة DNPR', name: 'قهوة كيتو وشوكولاتة DNPR', details: 'صورة تجمع علبة قهوة كيتو مع شوكولاتة DNPR.' },
+    { src: 'assets/products/perfect-plus.jpg', alt: 'علبة Perfect Plus بنكهة الأناناس', name: 'Perfect Plus — أناناس', details: 'نكهة الأناناس؛ العبوة تعرض ٤٠ كيسًا بوزن إجمالي ٢٤٠ جم.' },
+    { src: 'assets/products/laperwa-coffee.jpg', alt: 'علبة قهوة Laperwa 2 في 1', name: 'قهوة Laperwa — ٢ في ١', details: 'قهوة مع مبيّض (Coffee & Creamer)؛ العبوة تعرض ٣٠ كيسًا.' },
+    { src: 'assets/products/perfect-weight-range.jpg', alt: 'مجموعة منتجات Perfect Weight', name: 'مجموعة Perfect Weight', details: 'صورة تعريفية تضم مجموعة من منتجات Perfect Weight.' },
+    { src: 'assets/products/perfect-plus-front.jpg', alt: 'علبة Perfect Plus من الأمام', name: 'Perfect Plus — صورة أمامية', details: 'صورة أمامية للعبوة بنكهة الأناناس، ٤٠ كيسًا و٢٤٠ جم حسب الملصق.' },
+    { src: 'assets/products/keto-coffee-sachets.jpg', alt: 'أظرف قهوة كيتو وحبوب القهوة', name: 'أظرف قهوة كيتو', details: 'تذكر الأظرف: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.' },
+    { src: 'assets/products/perfect-plus-benefits.jpg', alt: 'صورة تعريفية بمنتج Perfect Plus', name: 'معلومات العبوة — Perfect Plus', details: 'يذكر الملصق: ٤ جم ألياف، خالٍ من الجلوتين، مُحلّى بالستيفيا، وبدون دهون أو سكريات.' }
+]);
 
 function toArabicDigits(str) {
     if (str === null || str === undefined) return '';
@@ -18,6 +51,46 @@ function toMinutesFromTime(timeStr) {
     if (!timeStr || typeof timeStr !== 'string') return 0;
     const [h, m] = timeStr.split(':').map(Number);
     return (Number.isFinite(h) ? h : 0) * 60 + (Number.isFinite(m) ? m : 0);
+}
+
+function getWeatherIcon(code) {
+    if (!Number.isFinite(code)) return '🌤️';
+    if (code === 0) return '☀️';
+    if (code <= 2) return '🌤️';
+    if (code === 3) return '☁️';
+    if (code <= 48) return '🌫️';
+    if (code <= 67 || (code >= 80 && code <= 82)) return '🌧️';
+    if (code <= 77 || code === 85 || code === 86) return '🌨️';
+    if (code >= 95) return '⛈️';
+    return '🌤️';
+}
+
+function normalizeHttpsUrl(value) {
+    try {
+        const url = new URL(value);
+        return url.protocol === 'https:' ? url.href : null;
+    } catch {
+        return null;
+    }
+}
+
+function getAdhanSourceUrl(sourceId) {
+    const source = ADHAN_SOURCES[sourceId];
+    return source ? normalizeHttpsUrl(ADHAN_REPOSITORY_URL + encodeURIComponent(source.file)) : null;
+}
+
+function getSelectedAdhanUrl() {
+    const sourceSelect = document.getElementById('adhan-source-select');
+    if (!sourceSelect) {
+        const legacyInput = document.getElementById('adhan-source-input');
+        return normalizeHttpsUrl(legacyInput?.value?.trim() || '');
+    }
+
+    if (sourceSelect.value === 'custom') {
+        const customInput = document.getElementById('adhan-custom-source-input');
+        return normalizeHttpsUrl(customInput?.value?.trim() || '');
+    }
+    return getAdhanSourceUrl(sourceSelect.value);
 }
 
 const rotatingDhikrList = [
@@ -56,6 +129,7 @@ function syncAnalogClock(now) {
 function initDashboard() {
     setupThemeAndAudioControls();
     setupMosqueAndRadioControls();
+    setupProductGallery();
     setupRemoteNavigation();
     setupIdleScreensaver();
     startClockAndTimers();
@@ -64,7 +138,40 @@ function initDashboard() {
     fetchWeatherForecast();
     fetchFinancialRatesAndGold();
     setInterval(updateDhikrRotation, 1000);
-    setInterval(fetchFinancialRatesAndGold, 60000);
+    setInterval(fetchFinancialRatesAndGold, FINANCE_REFRESH_MS);
+}
+
+function setupProductGallery() {
+    const image = document.getElementById('product-showcase-image');
+    const name = document.getElementById('product-gallery-name');
+    const details = document.getElementById('product-gallery-details');
+    const counter = document.getElementById('product-gallery-count');
+    const emptyState = document.getElementById('products-empty-state');
+    if (!image || PRODUCT_SLIDES.length === 0) return;
+
+    let activeSlide = 0;
+    const showSlide = index => {
+        activeSlide = (index + PRODUCT_SLIDES.length) % PRODUCT_SLIDES.length;
+        const slide = PRODUCT_SLIDES[activeSlide];
+        image.src = slide.src;
+        image.alt = slide.alt;
+        if (name) name.innerText = slide.name;
+        if (details) details.innerText = slide.details;
+        if (counter) counter.innerText = `${toArabicDigits(activeSlide + 1)} / ${toArabicDigits(PRODUCT_SLIDES.length)}`;
+        if (emptyState) emptyState.hidden = true;
+        image.hidden = false;
+    };
+
+    image.addEventListener('error', () => {
+        image.hidden = true;
+        if (emptyState) emptyState.hidden = false;
+        if (name) name.innerText = 'تعذر تحميل صورة المنتج';
+        if (details) details.innerText = 'تحقق من ملفات معرض المنتجات.';
+    });
+    document.getElementById('product-gallery-prev')?.addEventListener('click', () => showSlide(activeSlide - 1));
+    document.getElementById('product-gallery-next')?.addEventListener('click', () => showSlide(activeSlide + 1));
+    showSlide(0);
+    setInterval(() => showSlide(activeSlide + 1), 5000);
 }
 
 function startClockAndTimers() {
@@ -210,30 +317,72 @@ function updateDhikrRotation() {
 
 async function fetchFinancialRatesAndGold() {
     const usdEgpEl = document.getElementById('rate-usd-egp');
-    const goldQar24El = document.getElementById('gold-qar-24');
+    const goldEgpEl = document.getElementById('gold-egp-ounce');
+    const statusEl = document.getElementById('finance-status');
+    const rateRequest = fetch('https://api.frankfurter.dev/v2/rate/usd/egp')
+        .then(async response => {
+            if (!response.ok) throw new Error(`Exchange-rate request failed (${response.status})`);
+            const data = await response.json();
+            const rate = data?.rate;
+            if (data?.base !== 'USD' || data?.quote !== 'EGP' || !Number.isFinite(rate) || rate <= 0) {
+                throw new Error('Exchange-rate response did not contain a valid EGP rate');
+            }
+            return rate;
+        });
+    const goldRequest = fetch('https://api.gold-api.com/price/XAU')
+        .then(async response => {
+            if (!response.ok) throw new Error(`Gold-price request failed (${response.status})`);
+            const data = await response.json();
+            if (!Number.isFinite(data?.price) || data.price <= 0) {
+                throw new Error('Gold-price response did not contain a valid ounce price');
+            }
+            return data.price;
+        });
 
-    if (usdEgpEl) usdEgpEl.innerText = `${toArabicDigits('56.09')} ج.م`;
-    if (goldQar24El) goldQar24El.innerText = `${toArabicDigits('473')} ج.م`;
+    const [rateResult, goldResult] = await Promise.allSettled([rateRequest, goldRequest]);
+    const rate = rateResult.status === 'fulfilled' ? rateResult.value : null;
+    const goldUsd = goldResult.status === 'fulfilled' ? goldResult.value : null;
+
+    if (usdEgpEl) {
+        usdEgpEl.innerText = rate === null ? 'غير متاح' : `${toArabicDigits(rate.toFixed(2))} ج.م`;
+    }
+    if (goldEgpEl) {
+        goldEgpEl.innerText = rate === null || goldUsd === null
+            ? 'غير متاح'
+            : `${toArabicDigits((goldUsd * rate).toFixed(2))} ج.م`;
+    }
+
+    if (statusEl) {
+        const failures = [];
+        if (rateResult.status === 'rejected') failures.push('سعر الصرف');
+        if (goldResult.status === 'rejected') failures.push('الذهب');
+        statusEl.innerText = failures.length
+            ? `تعذر تحديث: ${failures.join(' و')}`
+            : 'المصدر: Frankfurter لسعر الصرف وGold API للذهب';
+    }
 }
 
 async function fetchPrayerTimes() {
     try {
-        const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=4');
+        const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=10');
+        if (!response.ok) throw new Error(`Prayer-times request failed (${response.status})`);
         const data = await response.json();
 
-        if (data && data.data) {
-            prayerTimings = data.data.timings;
-            const hijri = data.data.date.hijri;
-
-            const hijriMonthAr = hijri.month.ar;
-            const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
-            const hijriEl = document.getElementById('hijri-date-arabic');
-            if (hijriEl) hijriEl.innerText = hijriStr;
-
-            renderPrayerTimes();
-            checkCurrentAndNextPrayer(new Date());
+        if (data?.code !== 200 || !data.data?.timings || !data.data?.date?.hijri) {
+            throw new Error('Prayer-times response did not contain valid Qatar timings');
         }
+        prayerTimings = data.data.timings;
+        const hijri = data.data.date.hijri;
+
+        const hijriMonthAr = hijri.month.ar;
+        const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
+        const hijriEl = document.getElementById('hijri-date-arabic');
+        if (hijriEl) hijriEl.innerText = hijriStr;
+
+        renderPrayerTimes();
+        checkCurrentAndNextPrayer(new Date());
     } catch (e) {
+        console.error('Unable to load Doha prayer times:', e);
         const container = document.getElementById('prayer-times-container');
         if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب أوقات الصلاة</span>";
     }
@@ -346,12 +495,19 @@ function triggerPrayerAlert(prayerName) {
     if (azanEnabled) {
         const audio = document.getElementById('azan-audio');
         if (audio) {
-            const muazzinSelect = document.getElementById('muazzin-select');
-            if (muazzinSelect && muazzinSelect.value) {
-                audio.src = muazzinSelect.value;
+            const source = getSelectedAdhanUrl();
+            const status = document.getElementById('azan-status');
+            if (!source) {
+                if (status) status.innerText = 'اختر تسجيلًا للأذان أو أدخل رابط HTTPS صالحًا قبل موعد الصلاة.';
+                return;
             }
+            audio.src = source;
             audio.load();
-            audio.play().catch(() => {});
+            audio.play().then(() => {
+                if (status) status.innerText = `يعمل تنبيه الأذان لصلاة ${prayerName}.`;
+            }).catch(() => {
+                if (status) status.innerText = 'تعذر تشغيل ملف الأذان. تحقق من توفر المصدر والسماح بتشغيل الصوت.';
+            });
         }
     }
 
@@ -363,37 +519,46 @@ function triggerPrayerAlert(prayerName) {
 async function fetchWeatherForecast() {
     try {
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&hourly=apparent_temperature,uv_index&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
+        if (!response.ok) throw new Error(`Weather request failed (${response.status})`);
         const data = await response.json();
+        if (!data?.current_weather || !Number.isFinite(data.current_weather.temperature)) {
+            throw new Error('Weather response did not contain valid current conditions');
+        }
 
-        if (data && data.current_weather) {
-            const tempStr = `${toArabicDigits(Math.round(data.current_weather.temperature))}°م ☀️`;
-            const weatherTempEl = document.getElementById('current-weather-temp');
-            if (weatherTempEl) weatherTempEl.innerText = tempStr;
+        const tempStr = `${getWeatherIcon(data.current_weather.weathercode)} ${toArabicDigits(Math.round(data.current_weather.temperature))}°م`;
+        const weatherTempEl = document.getElementById('current-weather-temp');
+        if (weatherTempEl) weatherTempEl.innerText = tempStr;
 
+        if (Number.isFinite(data.current_weather.windspeed)) {
             const windStr = `الرياح: ${toArabicDigits(Math.round(data.current_weather.windspeed))} كم/س`;
             const windEl = document.getElementById('weather-wind');
             if (windEl) windEl.innerText = windStr;
         }
 
-        if (data && data.hourly) {
-            const feels = data.hourly.apparent_temperature[0];
-            const uv = data.hourly.uv_index[0];
+        if (data.hourly?.time?.length) {
+            const currentHour = data.hourly.time.indexOf(data.current_weather.time);
+            const hourIndex = Math.max(0, currentHour);
+            const feels = data.hourly.apparent_temperature?.[hourIndex];
+            const uv = data.hourly.uv_index?.[hourIndex];
             const feelsEl = document.getElementById('weather-feels');
-            if (feels !== undefined && feelsEl) feelsEl.innerText = `المحسوسة: ${toArabicDigits(Math.round(feels))}°م`;
+            if (Number.isFinite(feels) && feelsEl) feelsEl.innerText = `المحسوسة: ${toArabicDigits(Math.round(feels))}°م`;
             const uvEl = document.getElementById('weather-uv');
-            if (uv !== undefined && uvEl) uvEl.innerText = `الأشعة UV: ${toArabicDigits(Math.round(uv))}`;
+            if (Number.isFinite(uv) && uvEl) uvEl.innerText = `الأشعة UV: ${toArabicDigits(Math.round(uv))}`;
         }
 
-        if (data && data.daily) {
+        if (data.daily?.time?.length && data.daily.temperature_2m_max?.length && data.daily.temperature_2m_min?.length) {
             let forecastHTML = '';
-            const days = ['اليوم', 'الغد', 'بعد الغد', 'الخميس', 'الجمعة'];
+            const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
             for (let i = 0; i < Math.min(5, data.daily.time.length); i++) {
                 const maxTemp = toArabicDigits(Math.round(data.daily.temperature_2m_max[i]));
                 const minTemp = toArabicDigits(Math.round(data.daily.temperature_2m_min[i]));
+                const [year, month, day] = data.daily.time[i].split('-').map(Number);
+                const forecastDate = new Date(year, month - 1, day, 12);
+                const dayLabel = i === 0 ? 'اليوم' : i === 1 ? 'الغد' : dayNames[forecastDate.getDay()];
                 forecastHTML += `
                     <div class="weather-day-box">
-                        <div class="weather-day-title">${days[i] || 'اليوم'}</div>
+                        <div class="weather-day-title">${dayLabel}</div>
                         <div class="weather-temp">${maxTemp}° / ${minTemp}°</div>
                     </div>
                 `;
@@ -402,34 +567,55 @@ async function fetchWeatherForecast() {
             if (forecastEl) forecastEl.innerHTML = forecastHTML;
         }
     } catch (e) {
+        console.error('Unable to load Doha weather:', e);
+        const currentTempEl = document.getElementById('current-weather-temp');
+        const feelsEl = document.getElementById('weather-feels');
+        const windEl = document.getElementById('weather-wind');
+        const uvEl = document.getElementById('weather-uv');
+        if (currentTempEl) currentTempEl.innerText = 'غير متاح';
+        if (feelsEl) feelsEl.innerText = 'المحسوسة: غير متاح';
+        if (windEl) windEl.innerText = 'الرياح: غير متاحة';
+        if (uvEl) uvEl.innerText = 'الأشعة UV: غير متاحة';
         const forecastEl = document.getElementById('weather-forecast');
-        if (forecastEl) forecastEl.innerHTML = "<span class='loading-text'>تعذر جلب بيانات الطقس</span>";
+        if (forecastEl) forecastEl.innerHTML = "<span class='loading-text'>تعذر جلب بيانات الطقس حاليًا</span>";
     }
 }
 
 function setupMosqueAndRadioControls() {
     const quranBtn = document.getElementById('quran-radio-btn');
     const quranAudio = document.getElementById('quran-radio-audio');
+    const quranStatus = document.getElementById('quran-radio-status');
 
     if (quranBtn && quranAudio) {
         quranAudio.volume = 1;
-        quranAudio.src = 'https://server8.mp3quran.net/afs/128.mp3';
+        quranAudio.addEventListener('error', () => {
+            quranRadioPlaying = false;
+            const span = quranBtn.querySelector('span');
+            if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
+            if (quranStatus) quranStatus.innerText = 'تعذر الاتصال بالبث الرسمي لإذاعة قطر.';
+            quranBtn.classList.remove('active');
+        });
         quranBtn.addEventListener('click', () => {
             quranRadioPlaying = !quranRadioPlaying;
             const span = quranBtn.querySelector('span');
             if (quranRadioPlaying) {
+                if (quranStatus) quranStatus.innerText = 'جارٍ الاتصال بالبث الرسمي لإذاعة قطر...';
                 quranAudio.load();
                 quranAudio.play().then(() => {
-                    if (span) span.innerText = 'إذاعة القرآن: تعمل';
+                    if (span) span.innerText = 'إذاعة قطر: تعمل';
+                    if (quranStatus) quranStatus.innerText = 'إذاعة قطر الرسمية تعمل.';
                     quranBtn.classList.add('active');
                 }).catch(() => {
-                    if (span) span.innerText = 'إذاعة القرآن: متعذرة';
+                    quranRadioPlaying = false;
+                    if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
+                    if (quranStatus) quranStatus.innerText = 'تعذر تشغيل البث الرسمي لإذاعة قطر.';
                     quranBtn.classList.remove('active');
                 });
             } else {
                 quranAudio.pause();
                 quranAudio.currentTime = 0;
-                if (span) span.innerText = 'إذاعة القرآن الكريم';
+                if (span) span.innerText = 'إذاعة قطر الرسمية';
+                if (quranStatus) quranStatus.innerText = 'تم إيقاف إذاعة قطر.';
                 quranBtn.classList.remove('active');
             }
         });
@@ -457,7 +643,8 @@ function setupThemeAndAudioControls() {
     const themeBtns = document.querySelectorAll('.theme-btn');
     const savedTheme = localStorage.getItem('dohatv_theme') || 'theme-glass';
 
-    document.body.className = savedTheme;
+    document.body.classList.remove('theme-glass', 'theme-dark', 'theme-islamic');
+    document.body.classList.add(savedTheme);
     themeBtns.forEach(btn => {
         if (btn.getAttribute('data-theme') === savedTheme) {
             btn.classList.add('active');
@@ -467,7 +654,8 @@ function setupThemeAndAudioControls() {
 
         btn.addEventListener('click', () => {
             const selectedTheme = btn.getAttribute('data-theme');
-            document.body.className = selectedTheme;
+            document.body.classList.remove('theme-glass', 'theme-dark', 'theme-islamic');
+            document.body.classList.add(selectedTheme);
             themeBtns.forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             localStorage.setItem('dohatv_theme', selectedTheme);
@@ -490,25 +678,105 @@ function setupThemeAndAudioControls() {
                     audio.pause();
                     audio.currentTime = 0;
                 }
+                const status = document.getElementById('azan-status');
+                if (status) status.innerText = 'تم كتم الأذان.';
             }
         });
     }
 
-    const muazzinSelect = document.getElementById('muazzin-select');
-    const savedMuazzin = localStorage.getItem('dohatv_muazzin');
-    if (savedMuazzin && muazzinSelect) {
-        muazzinSelect.value = savedMuazzin;
+    const azanAudio = document.getElementById('azan-audio');
+    const azanStatus = document.getElementById('azan-status');
+    const adhanSourceSelect = document.getElementById('adhan-source-select');
+    const customAdhanInput = document.getElementById('adhan-custom-source-input');
+    const savedSourceId = localStorage.getItem('dohatv_adhan_source');
+    const savedCustomUrl = normalizeHttpsUrl(
+        localStorage.getItem('dohatv_adhan_custom_url') || localStorage.getItem('dohatv_adhan_url') || ''
+    );
+    const selectedSourceId = savedSourceId === 'custom' || ADHAN_SOURCES[savedSourceId]
+        ? savedSourceId
+        : savedCustomUrl ? 'custom' : 'qatar';
+
+    if (adhanSourceSelect) adhanSourceSelect.value = selectedSourceId;
+    if (customAdhanInput) {
+        customAdhanInput.hidden = selectedSourceId !== 'custom';
+        customAdhanInput.value = savedCustomUrl || '';
     }
-    if (muazzinSelect) {
-        muazzinSelect.addEventListener('change', (e) => {
-            localStorage.setItem('dohatv_muazzin', e.target.value);
+    const initialAdhanUrl = getSelectedAdhanUrl();
+    if (initialAdhanUrl && azanAudio) azanAudio.src = initialAdhanUrl;
+    if (savedSourceId && savedSourceId !== 'custom' && !ADHAN_SOURCES[savedSourceId]) {
+        localStorage.removeItem('dohatv_adhan_source');
+        if (azanStatus) azanStatus.innerText = 'تم تجاهل اختيار أذان محفوظ غير صالح.';
+    }
+
+    if (adhanSourceSelect) {
+        adhanSourceSelect.addEventListener('change', () => {
+            const sourceId = ADHAN_SOURCES[adhanSourceSelect.value] ? adhanSourceSelect.value : 'custom';
+            adhanSourceSelect.value = sourceId;
+            localStorage.setItem('dohatv_adhan_source', sourceId);
+            if (customAdhanInput) customAdhanInput.hidden = sourceId !== 'custom';
+
+            const source = getSelectedAdhanUrl();
+            if (source) {
+                if (azanAudio) azanAudio.src = source;
+                if (azanStatus) {
+                    azanStatus.innerText = sourceId === 'custom'
+                        ? 'تم حفظ مصدر الأذان المخصص.'
+                        : `تم اختيار ${ADHAN_SOURCES[sourceId].label}.`;
+                }
+            } else {
+                if (azanAudio) azanAudio.removeAttribute('src');
+                if (azanStatus) azanStatus.innerText = 'أدخل رابط HTTPS مباشرًا لملف الأذان المخصص.';
+                customAdhanInput?.focus();
+            }
+        });
+    }
+    if (customAdhanInput) {
+        customAdhanInput.addEventListener('change', () => {
+            const value = customAdhanInput.value.trim();
+            const normalizedSource = normalizeHttpsUrl(value);
+            if (!normalizedSource) {
+                if (azanAudio) azanAudio.removeAttribute('src');
+                if (azanStatus) azanStatus.innerText = 'استخدم رابط HTTPS صالحًا ومباشرًا لملف صوت الأذان.';
+                return;
+            }
+
+            customAdhanInput.value = normalizedSource;
+            localStorage.setItem('dohatv_adhan_source', 'custom');
+            localStorage.setItem('dohatv_adhan_custom_url', normalizedSource);
+            localStorage.setItem('dohatv_adhan_url', normalizedSource);
+            if (adhanSourceSelect) adhanSourceSelect.value = 'custom';
+            if (azanAudio) azanAudio.src = normalizedSource;
+            if (azanStatus) azanStatus.innerText = 'تم حفظ مصدر الأذان. اضغط تجربة الأذان للتحقق من تشغيله.';
+        });
+    }
+    if (azanAudio) {
+        azanAudio.addEventListener('error', () => {
+            if (azanStatus) azanStatus.innerText = 'تعذر تحميل ملف الأذان المحدد. تحقق من الرابط واتصال الإنترنت.';
+        });
+    }
+    const previewAzanBtn = document.getElementById('adhan-preview-btn');
+    if (previewAzanBtn) {
+        previewAzanBtn.addEventListener('click', () => {
+            const source = getSelectedAdhanUrl();
+            if (!source || !azanAudio) {
+                if (azanStatus) azanStatus.innerText = 'اختر مصدرًا أو أدخل رابط HTTPS صالحًا لملف صوت الأذان أولًا.';
+                if (adhanSourceSelect?.value === 'custom') customAdhanInput?.focus();
+                return;
+            }
+            azanAudio.src = source;
+            azanAudio.load();
+            azanAudio.play().then(() => {
+                if (azanStatus) azanStatus.innerText = 'يعمل مصدر الأذان.';
+            }).catch(() => {
+                if (azanStatus) azanStatus.innerText = 'تعذر تشغيل مصدر الأذان. تحقق من صلاحية الرابط والسماح بتشغيل الصوت.';
+            });
         });
     }
 }
 
 function setupRemoteNavigation() {
     function getFocusableElements() {
-        return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, .glass-control-item, button, select, [tabindex="0"]'))
+        return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, button, select, [tabindex="0"]'))
             .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== 'hidden');
     }
 
