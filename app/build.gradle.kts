@@ -13,8 +13,8 @@ android {
         applicationId = "qa.dohatv.app"
         minSdk = 23
         targetSdk = 28
-        versionCode = 4
-        versionName = "1.2.1"
+        versionCode = 5
+        versionName = "1.2.2"
     }
 
     compileOptions {
