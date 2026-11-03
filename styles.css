@@ -1534,3 +1534,153 @@ blockquote {
         min-height: 200px;
     }
 }
+
+@media (min-width: 901px) and (min-aspect-ratio: 4/3) {
+    .tv-grid-glass {
+        grid-template-rows: minmax(0, 0.72fr) minmax(0, 1.28fr);
+        overflow: hidden;
+    }
+
+    .card-prayer,
+    .card-weather {
+        padding: clamp(8px, 0.8vw, 14px);
+    }
+
+    .card-prayer .card-header,
+    .card-weather .card-header {
+        margin-bottom: clamp(3px, 0.4vh, 6px);
+    }
+
+    .card-prayer .badge-glass,
+    .card-weather .weather-meta-row {
+        font-size: clamp(9px, 0.68vw, 11px);
+    }
+
+    .card-prayer .prayer-grid,
+    .card-weather .weather-grid {
+        margin-top: 2px;
+    }
+
+    .card-prayer .loading-text,
+    .card-weather .loading-text {
+        width: 100%;
+        padding: 6px;
+        overflow-wrap: anywhere;
+        line-height: 1.5;
+    }
+
+    .card-products {
+        gap: 4px;
+        padding: clamp(8px, 0.9vw, 15px);
+    }
+
+    .products-gallery {
+        border-color: rgba(90, 214, 255, 0.12);
+        border-radius: 12px;
+        background: rgba(5, 12, 22, 0.38);
+    }
+
+    .products-gallery::before,
+    .products-gallery::after {
+        display: none;
+    }
+
+    .products-caption {
+        max-height: 42px;
+    }
+
+    .products-caption strong {
+        font-size: clamp(16px, 1.25vw, 22px);
+        line-height: 1.25;
+    }
+
+    .finance-box {
+        padding: 8px;
+    }
+
+    .finance-label {
+        font-size: clamp(12px, 0.86vw, 15px);
+    }
+
+    .finance-value {
+        font-size: clamp(20px, 1.7vw, 29px);
+    }
+}
+
+.card-action-menu[hidden] {
+    display: none;
+}
+
+.card-action-menu:not([hidden]) {
+    position: absolute;
+    z-index: 4;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid rgba(139, 231, 255, 0.5);
+    border-radius: 14px;
+    background: rgba(5, 12, 22, 0.94);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.5);
+}
+
+.card-action-menu .glass-btn {
+    min-height: 40px;
+    padding-inline: 12px;
+    font-size: clamp(12px, 0.9vw, 15px);
+}
+
+.loading-text {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.card-prayer .loading-text,
+.card-weather .loading-text {
+    grid-column: 1 / -1;
+}
+
+.finance-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.finance-box {
+    min-width: 0;
+}
+
+.finance-value {
+    white-space: nowrap;
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .tv-header-glass {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-brand,
+    .glass-controls {
+        justify-content: center;
+    }
+
+    .app-title {
+        font-size: clamp(16px, 5vw, 24px);
+        text-align: center;
+    }
+
+    .adhan-source-control {
+        flex: 1 1 180px;
+        min-width: 0;
+    }
+
+    .control-status {
+        max-width: 100%;
+        text-align: center;
+    }
+}

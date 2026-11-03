@@ -1,14 +1,18 @@
 // Global State
 let azanEnabled = true;
 let quranRadioPlaying = false;
+let quranRadioStarting = false;
 let dhikrIndex = 0;
 let faithContentIndex = 0;
+let productSlideIndex = 0;
+let productRotationPaused = false;
+let financeIndex = 0;
+let financeValues = { usdEgp: null, goldEgp: null, goldUsd: null };
 let prayerTimings = null;
 let idleTimer = null;
 const IDLE_LIMIT = 10 * 60 * 1000;
 const FINANCE_REFRESH_MS = 15 * 60 * 1000;
 const QATAR_PRAYER_TIMES_API = 'https://meiaservicesext.islam.gov.qa/ServicesBrokerGatewayAPI/api/PrayerTimes';
-const ADHAN_REPOSITORY_URL = 'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/';
 const ADHAN_SOURCES = Object.freeze({
     egypt: {
         label: 'مصر — عبد الباسط عبد الصمد',
@@ -21,10 +25,6 @@ const ADHAN_SOURCES = Object.freeze({
     madinah: {
         label: 'المدينة المنورة — أذان الحرم',
         file: 'Adhan_Al_Haram_Al_Madani_-_Al_Madinah_1_(أذان_الحرم_المدني_-_المدينة_المنورة).mp3'
-    },
-    qatar: {
-        label: 'قطر — أحمد العمادي',
-        file: 'Ahmad_Al_Amade_1_-_Qatar_(أحمد_العمادي_-_قطر).mp3'
     }
 });
 const PRODUCT_SLIDES = Object.freeze([
@@ -76,21 +76,14 @@ function normalizeHttpsUrl(value) {
 
 function getAdhanSourceUrl(sourceId) {
     const source = ADHAN_SOURCES[sourceId];
-    return source ? normalizeHttpsUrl(ADHAN_REPOSITORY_URL + encodeURIComponent(source.file)) : null;
+    return source
+        ? normalizeHttpsUrl(`https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/${encodeURIComponent(source.file)}`)
+        : null;
 }
 
 function getSelectedAdhanUrl() {
     const sourceSelect = document.getElementById('adhan-source-select');
-    if (!sourceSelect) {
-        const legacyInput = document.getElementById('adhan-source-input');
-        return normalizeHttpsUrl(legacyInput?.value?.trim() || '');
-    }
-
-    if (sourceSelect.value === 'custom') {
-        const customInput = document.getElementById('adhan-custom-source-input');
-        return normalizeHttpsUrl(customInput?.value?.trim() || '');
-    }
-    return getAdhanSourceUrl(sourceSelect.value);
+    return getAdhanSourceUrl(sourceSelect?.value || 'makkah');
 }
 
 const rotatingDhikrList = [
@@ -130,6 +123,7 @@ function initDashboard() {
     setupThemeAndAudioControls();
     setupRadioControls();
     setupProductGallery();
+    setupCardActions();
     setupRemoteNavigation();
     setupIdleScreensaver();
     startClockAndTimers();
@@ -139,40 +133,40 @@ function initDashboard() {
     fetchWeatherForecast();
     fetchFinancialRatesAndGold();
     setInterval(rotateFaithContent, 5000);
+    setInterval(rotateFinanceCard, 5000);
     setInterval(fetchFinancialRatesAndGold, FINANCE_REFRESH_MS);
 }
 
 function setupProductGallery() {
     const image = document.getElementById('product-showcase-image');
-    const name = document.getElementById('product-gallery-name');
-    const details = document.getElementById('product-gallery-details');
-    const counter = document.getElementById('product-gallery-count');
-    const emptyState = document.getElementById('products-empty-state');
     if (!image || PRODUCT_SLIDES.length === 0) return;
-
-    let activeSlide = 0;
-    const showSlide = index => {
-        activeSlide = (index + PRODUCT_SLIDES.length) % PRODUCT_SLIDES.length;
-        const slide = PRODUCT_SLIDES[activeSlide];
-        image.src = slide.src;
-        image.alt = slide.alt;
-        if (name) name.innerText = slide.name;
-        if (details) details.innerText = slide.details;
-        if (counter) counter.innerText = `${toArabicDigits(activeSlide + 1)} / ${toArabicDigits(PRODUCT_SLIDES.length)}`;
-        if (emptyState) emptyState.hidden = true;
-        image.hidden = false;
-    };
 
     image.addEventListener('error', () => {
         image.hidden = true;
+        const emptyState = document.getElementById('products-empty-state');
         if (emptyState) emptyState.hidden = false;
+        const name = document.getElementById('product-gallery-name');
         if (name) name.innerText = 'تعذر تحميل صورة المنتج';
-        if (details) details.innerText = 'تحقق من ملفات معرض المنتجات.';
     });
-    document.getElementById('product-gallery-prev')?.addEventListener('click', () => showSlide(activeSlide - 1));
-    document.getElementById('product-gallery-next')?.addEventListener('click', () => showSlide(activeSlide + 1));
-    showSlide(0);
-    setInterval(() => showSlide(activeSlide + 1), 5000);
+    showProductSlide(0);
+    setInterval(() => {
+        if (!productRotationPaused) showProductSlide(productSlideIndex + 1);
+    }, 5000);
+}
+
+function showProductSlide(index) {
+    productSlideIndex = (index + PRODUCT_SLIDES.length) % PRODUCT_SLIDES.length;
+    const slide = PRODUCT_SLIDES[productSlideIndex];
+    const image = document.getElementById('product-showcase-image');
+    const name = document.getElementById('product-gallery-name');
+    const emptyState = document.getElementById('products-empty-state');
+    if (image) {
+        image.src = slide.src;
+        image.alt = slide.alt;
+        image.hidden = false;
+    }
+    if (name) name.innerText = slide.name;
+    if (emptyState) emptyState.hidden = true;
 }
 
 function startClockAndTimers() {
@@ -335,8 +329,6 @@ function rotateFaithContent() {
 }
 
 async function fetchFinancialRatesAndGold() {
-    const usdEgpEl = document.getElementById('rate-usd-egp');
-    const goldEgpEl = document.getElementById('gold-egp-ounce');
     const statusEl = document.getElementById('finance-status');
     const rateRequest = fetch('https://api.frankfurter.dev/v2/rate/usd/egp')
         .then(async response => {
@@ -361,15 +353,13 @@ async function fetchFinancialRatesAndGold() {
     const [rateResult, goldResult] = await Promise.allSettled([rateRequest, goldRequest]);
     const rate = rateResult.status === 'fulfilled' ? rateResult.value : null;
     const goldUsd = goldResult.status === 'fulfilled' ? goldResult.value : null;
-
-    if (usdEgpEl) {
-        usdEgpEl.innerText = rate === null ? 'غير متاح' : `${toArabicDigits(rate.toFixed(2))} ج.م`;
-    }
-    if (goldEgpEl) {
-        goldEgpEl.innerText = rate === null || goldUsd === null
-            ? 'غير متاح'
-            : `${toArabicDigits((goldUsd * rate).toFixed(2))} ج.م`;
-    }
+    financeValues = {
+        usdEgp: rate === null ? null : `${toArabicDigits(rate.toFixed(2))} ج.م`,
+        goldEgp: rate === null || goldUsd === null
+            ? null
+            : `${toArabicDigits((goldUsd * rate).toFixed(2))} ج.م`,
+        goldUsd: goldUsd === null ? null : `${toArabicDigits(goldUsd.toFixed(2))} $`
+    };
 
     if (statusEl) {
         const failures = [];
@@ -377,6 +367,25 @@ async function fetchFinancialRatesAndGold() {
         if (goldResult.status === 'rejected') failures.push('الذهب');
         statusEl.innerText = failures.length ? `تعذر تحديث: ${failures.join(' و')}` : '';
     }
+    renderFinanceCard();
+}
+
+function renderFinanceCard() {
+    const items = [
+        { label: 'سعر الدولار بالجنيه المصري', value: financeValues.usdEgp },
+        { label: 'سعر أونصة الذهب بالجنيه المصري', value: financeValues.goldEgp },
+        { label: 'سعر أونصة الذهب بالدولار', value: financeValues.goldUsd }
+    ];
+    const item = items[financeIndex];
+    const labelEl = document.getElementById('finance-label');
+    const valueEl = document.getElementById('finance-value');
+    if (labelEl) labelEl.innerText = item.label;
+    if (valueEl) valueEl.innerText = item.value || 'غير متاح';
+}
+
+function rotateFinanceCard() {
+    financeIndex = (financeIndex + 1) % 3;
+    renderFinanceCard();
 }
 
 async function fetchPrayerTimes() {
@@ -643,44 +652,72 @@ function setupRadioControls() {
     const quranBtn = document.getElementById('quran-radio-btn');
     const quranAudio = document.getElementById('quran-radio-audio');
     const quranStatus = document.getElementById('quran-radio-status');
+    const nativeRadio = window.AndroidTV;
 
     if (quranBtn && quranAudio) {
         quranAudio.volume = 1;
-        quranAudio.addEventListener('error', () => {
-            quranRadioPlaying = false;
+        window.updateQuranRadioState = (isPlaying, message, isStarting = false) => {
+            quranRadioPlaying = isPlaying;
+            quranRadioStarting = isStarting;
             const span = quranBtn.querySelector('span');
-            if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
-            if (quranStatus) quranStatus.innerText = 'تعذر الاتصال ببث إذاعة قطر.';
-            quranBtn.classList.remove('active');
+            if (span) span.innerText = isPlaying || isStarting ? 'إيقاف إذاعة القرآن' : 'إذاعة القرآن الكريم';
+            quranBtn.setAttribute('aria-pressed', String(isPlaying || isStarting));
+            if (quranStatus) quranStatus.innerText = message;
+            if (isPlaying || isStarting) quranBtn.classList.add('active');
+            else quranBtn.classList.remove('active');
+        };
+        quranAudio.addEventListener('error', () => {
+            if (nativeRadio) return;
+            window.updateQuranRadioState(false, 'تعذر تشغيل بث إذاعة القرآن الكريم في قطر. تحقق من اتصال الإنترنت.');
         });
         quranBtn.addEventListener('click', () => {
-            quranRadioPlaying = !quranRadioPlaying;
-            const span = quranBtn.querySelector('span');
-            if (quranRadioPlaying) {
-                if (span) span.innerText = 'إذاعة قطر: جارٍ الاتصال';
-                if (quranStatus) quranStatus.innerText = 'جارٍ الاتصال ببث إذاعة قطر...';
-                quranAudio.load();
-                quranAudio.play().then(() => {
-                    if (!quranRadioPlaying) return;
-                    if (span) span.innerText = 'إذاعة قطر: تعمل';
-                    if (quranStatus) quranStatus.innerText = 'إذاعة قطر تعمل.';
-                    quranBtn.classList.add('active');
-                }).catch(() => {
-                    if (!quranRadioPlaying) return;
-                    quranRadioPlaying = false;
-                    if (span) span.innerText = 'إذاعة قطر: تعذر الاتصال';
-                    if (quranStatus) quranStatus.innerText = 'تعذر تشغيل بث إذاعة قطر.';
-                    quranBtn.classList.remove('active');
-                });
-            } else {
-                quranAudio.pause();
-                if (span) span.innerText = 'إذاعة قطر';
-                if (quranStatus) quranStatus.innerText = 'تم إيقاف إذاعة قطر.';
-                quranBtn.classList.remove('active');
+            if (quranRadioPlaying || quranRadioStarting) {
+                if (nativeRadio?.stopQuranRadio) {
+                    nativeRadio.stopQuranRadio();
+                } else {
+                    quranAudio.pause();
+                }
+                window.updateQuranRadioState(false, 'تم إيقاف إذاعة القرآن الكريم.');
+                return;
             }
-        });
-    }
 
+            window.updateQuranRadioState(false, 'جارٍ الاتصال بإذاعة القرآن الكريم في قطر...', true);
+            if (nativeRadio?.playQuranRadio) {
+                nativeRadio.playQuranRadio();
+                return;
+            }
+            quranAudio.load();
+            quranAudio.play().then(() => {
+                window.updateQuranRadioState(true, 'إذاعة القرآن الكريم في قطر تعمل.');
+            }).catch(() => {
+                window.updateQuranRadioState(false, 'تعذر تشغيل بث إذاعة القرآن الكريم في قطر. تحقق من اتصال الإنترنت.');
+            });
+        });
+
+        if (nativeRadio?.playQuranRadio) {
+            window.updateQuranRadioState(false, 'جارٍ الاتصال بإذاعة القرآن الكريم في قطر...', true);
+            nativeRadio.playQuranRadio();
+        }
+    }
+}
+
+function setupCardActions() {
+    document.getElementById('action-refresh-prayer')?.addEventListener('click', fetchPrayerTimes);
+    document.getElementById('action-refresh-weather')?.addEventListener('click', fetchWeatherForecast);
+    document.getElementById('action-next-faith')?.addEventListener('click', rotateFaithContent);
+    document.getElementById('action-next-finance')?.addEventListener('click', rotateFinanceCard);
+    document.getElementById('action-previous-product')?.addEventListener('click', () => {
+        productSlideIndex = (productSlideIndex - 1 + PRODUCT_SLIDES.length) % PRODUCT_SLIDES.length;
+        showProductSlide(productSlideIndex);
+    });
+    document.getElementById('action-next-product')?.addEventListener('click', () => {
+        productSlideIndex = (productSlideIndex + 1) % PRODUCT_SLIDES.length;
+        showProductSlide(productSlideIndex);
+    });
+    document.getElementById('action-toggle-products')?.addEventListener('click', event => {
+        productRotationPaused = !productRotationPaused;
+        event.currentTarget.innerText = productRotationPaused ? 'تشغيل التبديل' : 'إيقاف التبديل';
+    });
 }
 
 function setupThemeAndAudioControls() {
@@ -731,71 +768,32 @@ function setupThemeAndAudioControls() {
     const azanAudio = document.getElementById('azan-audio');
     const azanStatus = document.getElementById('azan-status');
     const adhanSourceSelect = document.getElementById('adhan-source-select');
-    const customAdhanInput = document.getElementById('adhan-custom-source-input');
     const savedSourceId = localStorage.getItem('dohatv_adhan_source');
-    const savedCustomUrl = normalizeHttpsUrl(
-        localStorage.getItem('dohatv_adhan_custom_url') || localStorage.getItem('dohatv_adhan_url') || ''
-    );
-    const selectedSourceId = savedSourceId === 'custom' || ADHAN_SOURCES[savedSourceId]
-        ? savedSourceId
-        : savedCustomUrl ? 'custom' : 'qatar';
+    const selectedSourceId = ADHAN_SOURCES[savedSourceId] ? savedSourceId : 'makkah';
 
     if (adhanSourceSelect) adhanSourceSelect.value = selectedSourceId;
-    if (customAdhanInput) {
-        customAdhanInput.hidden = selectedSourceId !== 'custom';
-        customAdhanInput.value = savedCustomUrl || '';
-    }
     const initialAdhanUrl = getSelectedAdhanUrl();
     if (initialAdhanUrl && azanAudio) azanAudio.src = initialAdhanUrl;
-    if (savedSourceId && savedSourceId !== 'custom' && !ADHAN_SOURCES[savedSourceId]) {
+    if (savedSourceId && !ADHAN_SOURCES[savedSourceId]) {
         localStorage.removeItem('dohatv_adhan_source');
         if (azanStatus) azanStatus.innerText = 'تم تجاهل اختيار أذان محفوظ غير صالح.';
     }
 
     if (adhanSourceSelect) {
         adhanSourceSelect.addEventListener('change', () => {
-            const sourceId = ADHAN_SOURCES[adhanSourceSelect.value] ? adhanSourceSelect.value : 'custom';
+            const sourceId = ADHAN_SOURCES[adhanSourceSelect.value] ? adhanSourceSelect.value : 'makkah';
             adhanSourceSelect.value = sourceId;
             localStorage.setItem('dohatv_adhan_source', sourceId);
-            if (customAdhanInput) customAdhanInput.hidden = sourceId !== 'custom';
-
             const source = getSelectedAdhanUrl();
             if (source) {
                 if (azanAudio) azanAudio.src = source;
-                if (azanStatus) {
-                    azanStatus.innerText = sourceId === 'custom'
-                        ? 'تم حفظ مصدر الأذان المخصص.'
-                        : `تم اختيار ${ADHAN_SOURCES[sourceId].label}.`;
-                }
-            } else {
-                if (azanAudio) azanAudio.removeAttribute('src');
-                if (azanStatus) azanStatus.innerText = 'أدخل رابط HTTPS مباشرًا لملف الأذان المخصص.';
-                customAdhanInput?.focus();
+                if (azanStatus) azanStatus.innerText = `تم اختيار ${ADHAN_SOURCES[sourceId].label}. يتطلب التشغيل اتصالًا بالإنترنت.`;
             }
-        });
-    }
-    if (customAdhanInput) {
-        customAdhanInput.addEventListener('change', () => {
-            const value = customAdhanInput.value.trim();
-            const normalizedSource = normalizeHttpsUrl(value);
-            if (!normalizedSource) {
-                if (azanAudio) azanAudio.removeAttribute('src');
-                if (azanStatus) azanStatus.innerText = 'استخدم رابط HTTPS صالحًا ومباشرًا لملف صوت الأذان.';
-                return;
-            }
-
-            customAdhanInput.value = normalizedSource;
-            localStorage.setItem('dohatv_adhan_source', 'custom');
-            localStorage.setItem('dohatv_adhan_custom_url', normalizedSource);
-            localStorage.setItem('dohatv_adhan_url', normalizedSource);
-            if (adhanSourceSelect) adhanSourceSelect.value = 'custom';
-            if (azanAudio) azanAudio.src = normalizedSource;
-            if (azanStatus) azanStatus.innerText = 'تم حفظ مصدر الأذان. اضغط زر التشغيل للتحقق من الصوت.';
         });
     }
     if (azanAudio) {
         azanAudio.addEventListener('error', () => {
-            if (azanStatus) azanStatus.innerText = 'تعذر تحميل ملف الأذان المحدد. تحقق من الرابط واتصال الإنترنت.';
+            if (azanStatus) azanStatus.innerText = 'تعذر تحميل تسجيل الأذان. تحقق من اتصال الإنترنت.';
         });
     }
     const previewAzanBtn = document.getElementById('adhan-preview-btn');
@@ -803,16 +801,15 @@ function setupThemeAndAudioControls() {
         previewAzanBtn.addEventListener('click', () => {
             const source = getSelectedAdhanUrl();
             if (!source || !azanAudio) {
-                if (azanStatus) azanStatus.innerText = 'اختر مصدرًا أو أدخل رابط HTTPS صالحًا لملف صوت الأذان أولًا.';
-                if (adhanSourceSelect?.value === 'custom') customAdhanInput?.focus();
+                if (azanStatus) azanStatus.innerText = 'اختر أحد تسجيلات الأذان الثلاثة أولًا.';
                 return;
             }
             azanAudio.src = source;
             azanAudio.load();
             azanAudio.play().then(() => {
-                if (azanStatus) azanStatus.innerText = 'يعمل مصدر الأذان.';
+                if (azanStatus) azanStatus.innerText = 'يعمل تسجيل الأذان. يتطلب التشغيل اتصالًا بالإنترنت.';
             }).catch(() => {
-                if (azanStatus) azanStatus.innerText = 'تعذر تشغيل مصدر الأذان. تحقق من صلاحية الرابط والسماح بتشغيل الصوت.';
+                if (azanStatus) azanStatus.innerText = 'تعذر تشغيل تسجيل الأذان. تحقق من اتصال الإنترنت ومستوى الصوت.';
             });
         });
     }
@@ -821,16 +818,17 @@ function setupThemeAndAudioControls() {
 function setupRemoteNavigation() {
     function getFocusableElements() {
         return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, button, select, [tabindex="0"]'))
-            .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== 'hidden');
+            .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 &&
+                getComputedStyle(el).visibility !== 'hidden');
     }
 
     let navItems = getFocusableElements();
-    if (navItems.length > 0) {
+    if (navItems.length > 0 && !document.activeElement) {
         navItems[0].focus();
     }
 
     document.addEventListener('keydown', (e) => {
-        resetIdleTimer();
+        window.resetIdleTimer?.();
 
         const screensaver = document.getElementById('screensaver-overlay');
         if (screensaver && screensaver.style.display !== 'none') {
@@ -840,37 +838,61 @@ function setupRemoteNavigation() {
 
         navItems = getFocusableElements();
         const activeElement = document.activeElement;
-        let currentIndex = navItems.indexOf(activeElement);
-        if (currentIndex === -1) currentIndex = 0;
-
         const key = e.key;
 
-        if (key === 'ArrowRight' || key === 'Right') {
-            const nextIndex = (currentIndex + 1) % navItems.length;
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'ArrowLeft' || key === 'Left') {
-            const nextIndex = (currentIndex - 1 + navItems.length) % navItems.length;
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'ArrowDown' || key === 'Down') {
-            const nextIndex = Math.min(navItems.length - 1, currentIndex + 3);
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'ArrowUp' || key === 'Up') {
-            const nextIndex = Math.max(0, currentIndex - 3);
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'Enter' || key === 'Select' || e.keyCode === 13) {
-            if (activeElement) {
-                if (activeElement.tagName === 'SELECT') {
-                    const select = activeElement;
-                    const nextOpt = (select.selectedIndex + 1) % select.options.length;
-                    select.selectedIndex = nextOpt;
-                    select.dispatchEvent(new Event('change'));
-                } else {
-                    activeElement.click();
+        if (key === 'Escape' || key === 'Back') {
+            const menu = activeElement?.closest?.('.card-action-menu');
+            if (menu) {
+                menu.hidden = true;
+                menu.closest('.tv-nav-card')?.focus();
+                e.preventDefault();
+            }
+            return;
+        }
+
+        if (key === 'ArrowRight' || key === 'Right' ||
+            key === 'ArrowLeft' || key === 'Left' ||
+            key === 'ArrowDown' || key === 'Down' ||
+            key === 'ArrowUp' || key === 'Up') {
+            if (!activeElement || activeElement.tagName === 'SELECT') return;
+            const direction = key.endsWith('Right') || key === 'Right' ? 'right'
+                : key.endsWith('Left') || key === 'Left' ? 'left'
+                    : key.endsWith('Down') || key === 'Down' ? 'down' : 'up';
+            const currentRect = activeElement.getBoundingClientRect();
+            const currentX = currentRect.left + currentRect.width / 2;
+            const currentY = currentRect.top + currentRect.height / 2;
+            const isHorizontal = direction === 'left' || direction === 'right';
+            const sign = direction === 'right' || direction === 'down' ? 1 : -1;
+            let nearest = null;
+            let nearestScore = Infinity;
+
+            navItems.forEach(candidate => {
+                if (candidate === activeElement) return;
+                const rect = candidate.getBoundingClientRect();
+                const dx = rect.left + rect.width / 2 - currentX;
+                const dy = rect.top + rect.height / 2 - currentY;
+                const forward = (isHorizontal ? dx : dy) * sign;
+                if (forward <= 1) return;
+                const cross = Math.abs(isHorizontal ? dy : dx);
+                const score = forward + cross * 1.5;
+                if (score < nearestScore) {
+                    nearest = candidate;
+                    nearestScore = score;
                 }
+            });
+            if (nearest) {
+                nearest.focus();
+                e.preventDefault();
+            }
+        } else if (key === 'Enter' || key === 'Select' || e.keyCode === 13) {
+            if (activeElement?.classList?.contains('tv-nav-card')) {
+                const menu = activeElement.querySelector('.card-action-menu');
+                if (menu) {
+                    menu.hidden = false;
+                    menu.querySelector('button')?.focus();
+                }
+            } else if (activeElement) {
+                activeElement.click();
             }
             e.preventDefault();
         }
@@ -901,4 +923,5 @@ document.addEventListener('DOMContentLoaded', initDashboard);
 window.addEventListener('beforeunload', () => {
     const quranAudio = document.getElementById('quran-radio-audio');
     if (quranAudio) quranAudio.pause();
+    window.AndroidTV?.stopQuranRadio?.();
 });

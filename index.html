@@ -17,17 +17,13 @@
             </div>
 
             <div class="glass-controls">
-                <label class="glass-control-item adhan-source-control" title="اختر تسجيل الأذان المناسب">
+                <label class="glass-control-item adhan-source-control" title="اختر تسجيل الأذان">
                     <span class="control-icon">🕌</span>
-                    <select id="adhan-source-select" class="tv-glass-input tv-nav" aria-label="اختيار مصدر الأذان">
-                        <option value="qatar">قطر — أحمد العمادي</option>
+                    <select id="adhan-source-select" class="tv-glass-input tv-nav" aria-label="اختيار تسجيل الأذان">
                         <option value="egypt">مصر — عبد الباسط عبد الصمد</option>
                         <option value="makkah">مكة المكرمة — أذان الفجر</option>
                         <option value="madinah">المدينة المنورة — أذان الحرم</option>
-                        <option value="custom">رابط صوت مخصص…</option>
                     </select>
-                    <input id="adhan-custom-source-input" class="tv-glass-input tv-nav" type="url" inputmode="url"
-                           placeholder="رابط HTTPS مباشر للأذان" aria-label="رابط HTTPS مخصص لملف الأذان" hidden>
                 </label>
                 <button id="adhan-preview-btn" class="glass-control-item glass-btn tv-nav" tabindex="0"
                         title="تشغيل الأذان للتجربة" aria-label="تشغيل الأذان للتجربة">
@@ -41,10 +37,11 @@
                     <button class="glass-btn theme-btn tv-nav" data-theme="theme-islamic" tabindex="0">إسلامي</button>
                 </div>
 
-                <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="البث المباشر الرسمي لإذاعة قطر">
-                    📻 <span>إذاعة قطر</span>
+                <button id="quran-radio-btn" class="glass-control-item glass-btn tv-nav" tabindex="0"
+                        title="إذاعة القرآن الكريم في قطر" aria-label="تشغيل إذاعة القرآن الكريم في قطر" aria-pressed="false">
+                    📻 <span>إذاعة القرآن الكريم</span>
                 </button>
-                <audio id="quran-radio-audio" src="https://live.kwikmotion.com/qmcqatarradiolive/qatarradio/playlist.m3u8" preload="none"></audio>
+                <audio id="quran-radio-audio" src="https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8" preload="none"></audio>
                 <span id="quran-radio-status" class="sr-only" aria-live="polite"></span>
 
                 <button id="azan-toggle-btn" class="glass-control-item glass-btn tv-nav" tabindex="0" title="تفعيل/إيقاف الأذان">
@@ -102,6 +99,9 @@
                     <span>جاري حساب الأوقات...</span>
                 </div>
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
+                <div class="card-action-menu" hidden>
+                    <button id="action-refresh-prayer" class="glass-btn tv-nav" type="button">تحديث المواقيت</button>
+                </div>
             </section>
 
             <section class="glass-card card-weather tv-nav-card" tabindex="0">
@@ -117,6 +117,9 @@
                 </div>
                 <div id="weather-forecast" class="weather-grid">
                     <span>جاري جلب الطقس...</span>
+                </div>
+                <div class="card-action-menu" hidden>
+                    <button id="action-refresh-weather" class="glass-btn tv-nav" type="button">تحديث الطقس</button>
                 </div>
             </section>
 
@@ -141,38 +144,31 @@
                         <p id="time-based-adhkar" class="sub-adhkar"></p>
                     </article>
                 </div>
+                <div class="card-action-menu" hidden>
+                    <button id="action-next-faith" class="glass-btn tv-nav" type="button">المحتوى التالي</button>
+                </div>
             </section>
 
             <section class="glass-card card-finance tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">💵</span>
-                    <h3>الدولار والذهب</h3>
-                    <span class="badge-glass">تحديث دوري</span>
+                    <h3>الأسعار</h3>
                 </div>
                 <div class="finance-grid" id="finance-rates-container">
                     <div class="finance-box">
-                        <div class="finance-label">سعر الدولار بالجنيه المصري</div>
-                        <div class="finance-value" id="rate-usd-egp" aria-live="polite">—</div>
-                    </div>
-                    <div class="finance-box">
-                        <div class="finance-label">أونصة الذهب بالجنيه المصري</div>
-                        <div class="finance-value" id="gold-egp-ounce" aria-live="polite">—</div>
+                        <div class="finance-label" id="finance-label">سعر الدولار بالجنيه المصري</div>
+                        <div class="finance-value" id="finance-value" aria-live="polite">—</div>
                     </div>
                 </div>
                 <div id="finance-status" class="finance-status" aria-live="polite"></div>
+                <div class="card-action-menu" hidden>
+                    <button id="action-next-finance" class="glass-btn tv-nav" type="button">السعر التالي</button>
+                </div>
             </section>
 
             <section class="glass-card card-products tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">✨</span>
-                    <h3>منتجات مميزة</h3>
-                    <span class="badge-glass">معرض الصور</span>
-                </div>
                 <div class="products-gallery" id="products-gallery">
                     <img id="product-showcase-image" class="product-showcase-image" src="assets/products/keto-coffee-box.jpg" alt="قهوة كيتو من Naturadiet">
-                    <button class="product-gallery-control product-gallery-prev tv-nav" type="button" aria-label="عرض صورة المنتج السابقة">‹</button>
-                    <span id="product-gallery-count" class="product-gallery-count" aria-live="polite">١ / ١١</span>
-                    <button class="product-gallery-control product-gallery-next tv-nav" type="button" aria-label="عرض صورة المنتج التالية">›</button>
                     <div class="products-empty-state" id="products-empty-state" hidden>
                         <span class="products-empty-icon" aria-hidden="true">▧</span>
                         <strong>تعذر تحميل صورة المنتج</strong>
@@ -181,7 +177,11 @@
                 </div>
                 <div class="products-caption" aria-live="polite">
                     <strong id="product-gallery-name">قهوة كيتو — Naturadiet</strong>
-                    <span id="product-gallery-details">مزيج ٥ في ١؛ تذكر العبوة MCT وجذر الماكا والقهوة الخضراء والألياف وشاي الماتشا.</span>
+                </div>
+                <div class="card-action-menu product-action-menu" hidden>
+                    <button id="action-previous-product" class="glass-btn tv-nav" type="button">المنتج السابق</button>
+                    <button id="action-next-product" class="glass-btn tv-nav" type="button">المنتج التالي</button>
+                    <button id="action-toggle-products" class="glass-btn tv-nav" type="button">إيقاف التبديل</button>
                 </div>
             </section>
 

@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 const appSource = fs.readFileSync(path.join(__dirname, '..', 'app.js'), 'utf8');
 
-function createDashboard(fetchImpl) {
+function createDashboard(fetchImpl, options = {}) {
     const elements = new Map();
     const storedValues = new Map();
     const requestedUrls = [];
@@ -14,26 +14,59 @@ function createDashboard(fetchImpl) {
     const timeoutCalls = [];
     const clearedTimeouts = [];
     const windowListeners = {};
-    const document = {
+    const documentListeners = {};
+    let document;
+    const navElements = (options.navItems || []).map(({ id, rect, tagName = 'SECTION', card = false }) => {
+        const element = {
+            id,
+            tagName,
+            offsetWidth: rect.width,
+            offsetHeight: rect.height,
+            classList: {
+                add() {},
+                remove() {},
+                contains(name) { return card && name === 'tv-nav-card'; }
+            },
+            listeners: {},
+            attributes: {},
+            getBoundingClientRect() { return rect; },
+            focus() { document.activeElement = element; },
+            click() {
+                element.clicked = true;
+                element.listeners.click?.({ currentTarget: element });
+            },
+            addEventListener(name, callback) { this.listeners[name] = callback; },
+            setAttribute(name, value) { this.attributes[name] = value; },
+            querySelector() { return null; },
+            closest() { return null; }
+        };
+        return element;
+    });
+    document = {
         body: { classList: { add() {}, remove() {} } },
-        addEventListener() {},
-        querySelectorAll() { return []; },
+        activeElement: null,
+        addEventListener(name, callback) { documentListeners[name] = callback; },
+        querySelectorAll(selector = '') { return selector.includes('.tv-nav') ? navElements : []; },
         getElementById(id) {
             if (!elements.has(id)) {
                 elements.set(id, {
-                    classList: { add() {}, remove() {} },
-                    style: {},
+                    classList: { add() {}, remove() {}, contains() { return false; } },
+                    style: { display: id === 'screensaver-overlay' ? 'none' : '' },
                     innerText: '',
                     innerHTML: '',
                     hidden: false,
                     listeners: {},
                     attributes: {},
+                    offsetWidth: 1,
+                    offsetHeight: 1,
+                    tagName: 'BUTTON',
                     src: '',
                     alt: '',
                     addEventListener(name, callback) { this.listeners[name] = callback; },
                     setAttribute(name, value) { this.attributes[name] = value; },
                     removeAttribute(name) { delete this[name]; },
                     querySelector() { return null; },
+                    getBoundingClientRect() { return { left: 0, top: 0, width: 1, height: 1 }; },
                     focus() {},
                     load() {},
                     play() { return Promise.resolve(); },
@@ -46,6 +79,7 @@ function createDashboard(fetchImpl) {
     const context = vm.createContext({
         document,
         window: {
+            AndroidTV: options.androidTV,
             addEventListener(name, callback) {
                 windowListeners[name] = callback;
             }
@@ -56,6 +90,7 @@ function createDashboard(fetchImpl) {
             removeItem(key) { storedValues.delete(key); }
         },
         URL,
+        getComputedStyle() { return { visibility: 'visible' }; },
         fetch: url => {
             requestedUrls.push(url);
             return fetchImpl(url);
@@ -71,10 +106,21 @@ function createDashboard(fetchImpl) {
     });
 
     vm.runInContext(appSource, context);
-    return { context, elements, storedValues, requestedUrls, intervalCalls, timeoutCalls, clearedTimeouts, windowListeners };
+    return {
+        context,
+        elements,
+        storedValues,
+        requestedUrls,
+        intervalCalls,
+        timeoutCalls,
+        clearedTimeouts,
+        windowListeners,
+        documentListeners,
+        navElements
+    };
 }
 
-test('renders the USD rate and XAU ounce in Egyptian pounds from live source responses', async () => {
+test('cycles the USD and gold prices in EGP and USD from live source responses', async () => {
     const dashboard = createDashboard(async url => ({
         ok: true,
         json: async () => url.includes('frankfurter.dev')
@@ -85,9 +131,16 @@ test('renders the USD rate and XAU ounce in Egyptian pounds from live source res
     await vm.runInContext('fetchFinancialRatesAndGold()', dashboard.context);
 
     assert.equal(dashboard.requestedUrls[0], 'https://api.frankfurter.dev/v2/rate/usd/egp');
-    assert.equal(dashboard.elements.get('rate-usd-egp').innerText, '٥٠.٠٠ ج.م');
-    assert.equal(dashboard.elements.get('gold-egp-ounce').innerText, '١٢٥٠٠٠.٠٠ ج.م');
+    assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر الدولار بالجنيه المصري');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '٥٠.٠٠ ج.م');
     assert.equal(dashboard.elements.get('finance-status').innerText, '');
+
+    vm.runInContext('rotateFinanceCard()', dashboard.context);
+    assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر أونصة الذهب بالجنيه المصري');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '١٢٥٠٠٠.٠٠ ج.م');
+    vm.runInContext('rotateFinanceCard()', dashboard.context);
+    assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر أونصة الذهب بالدولار');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '٢٥٠٠.٠٠ $');
 });
 
 test('keeps a valid exchange rate visible when the gold source is unavailable', async () => {
@@ -98,8 +151,9 @@ test('keeps a valid exchange rate visible when the gold source is unavailable', 
 
     await vm.runInContext('fetchFinancialRatesAndGold()', dashboard.context);
 
-    assert.equal(dashboard.elements.get('rate-usd-egp').innerText, '٥١.٢٥ ج.م');
-    assert.equal(dashboard.elements.get('gold-egp-ounce').innerText, 'غير متاح');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '٥١.٢٥ ج.م');
+    vm.runInContext('rotateFinanceCard()', dashboard.context);
+    assert.equal(dashboard.elements.get('finance-value').innerText, 'غير متاح');
     assert.match(dashboard.elements.get('finance-status').innerText, /الذهب/);
 });
 
@@ -134,6 +188,75 @@ test('shows the in-app screensaver after ten minutes without activity', () => {
     dashboard.windowListeners.keydown();
     assert.ok(dashboard.clearedTimeouts.length > 0);
     assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
+});
+
+test('starts Quran Radio Qatar on Android TV and toggles the native player', () => {
+    const calls = [];
+    const dashboard = createDashboard(async () => { throw new Error('not used'); }, {
+        androidTV: {
+            playQuranRadio() { calls.push('play'); },
+            stopQuranRadio() { calls.push('stop'); }
+        }
+    });
+
+    vm.runInContext('setupRadioControls()', dashboard.context);
+    assert.deepEqual(calls, ['play']);
+    assert.equal(dashboard.elements.get('quran-radio-audio').src, '');
+
+    dashboard.elements.get('quran-radio-btn').listeners.click();
+    assert.deepEqual(calls, ['play', 'stop']);
+    assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'false');
+
+    dashboard.elements.get('quran-radio-btn').listeners.click();
+    assert.deepEqual(calls, ['play', 'stop', 'play']);
+    vm.runInContext("window.updateQuranRadioState(true, 'playing')", dashboard.context);
+    dashboard.elements.get('quran-radio-btn').listeners.click();
+    assert.deepEqual(calls, ['play', 'stop', 'play', 'stop']);
+    assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'false');
+    assert.equal(dashboard.elements.get('quran-radio-status').innerText, 'تم إيقاف إذاعة القرآن الكريم.');
+});
+
+test('uses the Qatar Quran Radio stream on web and reports playback status', async () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    vm.runInContext('setupRadioControls()', dashboard.context);
+    const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+    assert.match(html, /qmcquranradiolive\/quranradio\/playlist\.m3u8/);
+    dashboard.elements.get('quran-radio-btn').listeners.click();
+    await Promise.resolve();
+    assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'true');
+    assert.match(dashboard.elements.get('quran-radio-status').innerText, /في قطر تعمل/);
+});
+
+test('moves remote focus to the nearest visible element in the physical arrow direction', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); }, {
+        navItems: [
+            { id: 'start', rect: { left: 40, top: 40, width: 20, height: 20 } },
+            { id: 'above', rect: { left: 40, top: 0, width: 20, height: 20 } },
+            { id: 'right', rect: { left: 140, top: 40, width: 20, height: 20 } },
+            { id: 'below-right', rect: { left: 140, top: 140, width: 20, height: 20 } }
+        ]
+    });
+
+    vm.runInContext('setupRemoteNavigation()', dashboard.context);
+    assert.equal(dashboard.context.document.activeElement.id, 'start');
+    dashboard.documentListeners.keydown({ key: 'ArrowRight', preventDefault() {} });
+    assert.equal(dashboard.context.document.activeElement.id, 'right');
+    dashboard.documentListeners.keydown({ key: 'ArrowDown', preventDefault() {} });
+    assert.equal(dashboard.context.document.activeElement.id, 'below-right');
+});
+
+test('OK activates a focused select rather than silently cycling its value', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); }, {
+        navItems: [
+            { id: 'source', rect: { left: 40, top: 40, width: 100, height: 30 }, tagName: 'SELECT' }
+        ]
+    });
+
+    vm.runInContext('setupRemoteNavigation()', dashboard.context);
+    dashboard.documentListeners.keydown({ key: 'Enter', keyCode: 13, preventDefault() {} });
+    assert.equal(dashboard.context.document.activeElement.clicked, true);
+    assert.equal(dashboard.context.document.activeElement.selectedIndex, undefined);
 });
 
 test('requests official Qatar Awqaf prayer times for the current local date', async () => {
@@ -187,30 +310,33 @@ test('accepts only HTTPS audio URLs for the adhan source', () => {
     assert.equal(vm.runInContext("normalizeHttpsUrl('not a URL')", dashboard.context), null);
 });
 
-test('provides verified Qatar, Egypt, Mecca, and Medina adhan recordings', () => {
+test('offers only the three selected adhan recordings and no external custom source', () => {
     const dashboard = createDashboard(async () => { throw new Error('not used'); });
     const sources = vm.runInContext(`({
         egypt: getAdhanSourceUrl('egypt'),
         makkah: getAdhanSourceUrl('makkah'),
         madinah: getAdhanSourceUrl('madinah'),
         qatar: getAdhanSourceUrl('qatar'),
+        custom: getAdhanSourceUrl('custom'),
         invalid: getAdhanSourceUrl('unknown')
     })`, dashboard.context);
     const repositoryCommit = 'b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b';
 
-    for (const sourceId of ['egypt', 'makkah', 'madinah', 'qatar']) {
+    for (const sourceId of ['egypt', 'makkah', 'madinah']) {
         assert.match(sources[sourceId], new RegExp(`^https://raw\\.githubusercontent\\.com/Kiwifu/adhan-mp3/${repositoryCommit}/`));
     }
     assert.match(decodeURIComponent(new URL(sources.egypt).pathname), /عبد_الباسط_عبد_الصمد/);
     assert.match(decodeURIComponent(new URL(sources.makkah).pathname), /الحرم_المكي/);
     assert.match(decodeURIComponent(new URL(sources.madinah).pathname), /المدينة_المنورة/);
-    assert.match(decodeURIComponent(new URL(sources.qatar).pathname), /أحمد_العمادي/);
+    assert.equal(sources.qatar, null);
+    assert.equal(sources.custom, null);
     assert.equal(sources.invalid, null);
 
     const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-    for (const sourceId of ['egypt', 'makkah', 'madinah', 'qatar']) {
+    for (const sourceId of ['egypt', 'makkah', 'madinah']) {
         assert.match(html, new RegExp(`<option value="${sourceId}">`));
     }
+    assert.doesNotMatch(html, /adhan-custom-source-input|value="qatar"|value="custom"/);
 });
 
 test('selecting an adhan preset saves and plays the matching recording', () => {
@@ -220,8 +346,8 @@ test('selecting an adhan preset saves and plays the matching recording', () => {
     const sourceSelect = dashboard.elements.get('adhan-source-select');
     const audio = dashboard.elements.get('azan-audio');
 
-    assert.equal(sourceSelect.value, 'qatar');
-    assert.equal(audio.src, vm.runInContext("getAdhanSourceUrl('qatar')", dashboard.context));
+    assert.equal(sourceSelect.value, 'makkah');
+    assert.equal(audio.src, vm.runInContext("getAdhanSourceUrl('makkah')", dashboard.context));
 
     sourceSelect.value = 'madinah';
     sourceSelect.listeners.change();
@@ -230,7 +356,7 @@ test('selecting an adhan preset saves and plays the matching recording', () => {
     assert.equal(dashboard.storedValues.get('dohatv_adhan_source'), 'madinah');
 });
 
-test('cycles through all uploaded product photos without cropping and supports manual navigation', () => {
+test('cycles through all uploaded product photos without cropping or permanent gallery controls', () => {
     const dashboard = createDashboard(async () => { throw new Error('not used'); });
     const slides = vm.runInContext('PRODUCT_SLIDES', dashboard.context);
 
@@ -251,17 +377,19 @@ test('cycles through all uploaded product photos without cropping and supports m
     const counter = dashboard.elements.get('product-gallery-count');
 
     assert.equal(image.src, slides[0].src);
-    assert.equal(counter.innerText, '١ / ١١');
     assert.equal(dashboard.elements.get('product-gallery-name').innerText, slides[0].name);
-    assert.equal(dashboard.elements.get('product-gallery-details').innerText, slides[0].details);
     assert.equal(dashboard.intervalCalls.at(-1).delay, 5000);
-    dashboard.elements.get('product-gallery-next').listeners.click();
+    vm.runInContext('setupCardActions()', dashboard.context);
+    dashboard.elements.get('action-next-product').listeners.click();
     assert.equal(image.src, slides[1].src);
-    assert.equal(counter.innerText, '٢ / ١١');
     assert.equal(dashboard.elements.get('product-gallery-name').innerText, slides[1].name);
-    assert.equal(dashboard.elements.get('product-gallery-details').innerText, slides[1].details);
-    dashboard.elements.get('product-gallery-prev').listeners.click();
+    dashboard.elements.get('action-previous-product').listeners.click();
     assert.equal(image.src, slides[0].src);
+
+    const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+    const productCard = html.match(/<section class="glass-card card-products[\s\S]*?<\/section>/)?.[0] || '';
+    assert.doesNotMatch(productCard, /card-header|product-gallery-count|product-gallery-control|product-gallery-details/);
+    assert.match(productCard, /id="product-gallery-name"/);
 });
 
 test('shows an explicit unavailable state when the weather provider is down', async () => {
@@ -310,11 +438,13 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(styles, /\.products-gallery\s*\{/);
     assert.match(styles, /\.card-products\s*\{\s*grid-column:\s*span 6/s);
     assert.match(styles, /\.product-showcase-image\s*\{[^}]*object-fit:\s*contain/s);
-    assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.9fr\)\s+minmax\(0,\s*1\.1fr\)/);
+    assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.72fr\)\s+minmax\(0,\s*1\.28fr\)/);
+    assert.match(styles, /\.card-action-menu\[hidden\]\s*\{\s*display:\s*none;/);
+    assert.match(styles, /\.card-action-menu:not\(\[hidden\]\)/);
     assert.match(html, /id="products-gallery"/);
     assert.match(html, /id="product-showcase-image"/);
     assert.match(html, /id="product-gallery-name"/);
-    assert.match(html, /id="product-gallery-details"/);
+    assert.doesNotMatch(html, /id="product-gallery-details"|id="product-gallery-count"|product-gallery-control/);
     assert.match(html, /card-faith/);
     assert.match(html, /id="ramadan-countdown-days"/);
     assert.doesNotMatch(html, /class="glass-card card-ramadan/);
@@ -326,4 +456,12 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
 
     const activity = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'java', 'qa', 'dohatv', 'app', 'MainActivity.kt'), 'utf8');
     assert.match(activity, /mediaPlaybackRequiresUserGesture = false/);
+    assert.match(activity, /qmcquranradiolive\/quranradio\/playlist\.m3u8/);
+    assert.match(activity, /MediaPlayer\(\)/);
+    assert.match(activity, /fun onStop\(\)/);
+    assert.match(activity, /window\.updateQuranRadioState/);
+
+    const manifest = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8');
+    assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
+    assert.match(manifest, /android\.intent\.action\.BOOT_COMPLETED/);
 });

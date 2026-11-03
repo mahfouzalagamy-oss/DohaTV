@@ -2,11 +2,18 @@ package qa.dohatv.app
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.media.AudioAttributes
+import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
+import android.webkit.JavascriptInterface
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -17,11 +24,15 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import org.json.JSONObject
 
 class MainActivity : Activity() {
     private lateinit var webView: WebView
+    private var quranRadioPlayer: MediaPlayer? = null
     private val qatarPrayerApiHost = "meiaservicesext.islam.gov.qa"
     private val qatarPrayerApiPath = "/ServicesBrokerGatewayAPI/api/PrayerTimes"
+    private val qatarQuranRadioUrl =
+        "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8"
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +51,15 @@ class MainActivity : Activity() {
             settings.loadsImagesAutomatically = true
             settings.mediaPlaybackRequiresUserGesture = false
             webViewClient = object : WebViewClient() {
+                override fun onPageStarted(view: WebView?, url: String?, favicon: android.graphics.Bitmap?) {
+                    super.onPageStarted(view, url, favicon)
+                    if (url?.let { Uri.parse(it).host } == "appassets.androidplatform.net") {
+                        view?.addJavascriptInterface(TvBridge(), "AndroidTV")
+                    } else {
+                        view?.removeJavascriptInterface("AndroidTV")
+                    }
+                }
+
                 override fun shouldInterceptRequest(view: WebView?, request: WebResourceRequest?): WebResourceResponse? {
                     val uri = request?.url ?: return null
                     if (uri.host == qatarPrayerApiHost && uri.path == qatarPrayerApiPath &&
@@ -50,12 +70,16 @@ class MainActivity : Activity() {
                 }
                 override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
                     val host = request?.url?.host ?: return true
-                    return host != "appassets.androidplatform.net" &&
-                        host != "www.aljazeera.net" && host != "aljazeera.net" &&
+                    if (host == "appassets.androidplatform.net") {
+                        return false
+                    }
+                    view?.removeJavascriptInterface("AndroidTV")
+                    return host != "www.aljazeera.net" && host != "aljazeera.net" &&
                         host != "pixabay.com" && host != "www.pixabay.com"
                 }
             }
             webChromeClient = WebChromeClient()
+            addJavascriptInterface(TvBridge(), "AndroidTV")
         }
         setContentView(webView)
         webView.loadUrl("https://appassets.androidplatform.net/assets/index.html")
@@ -136,7 +160,101 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        releaseQuranRadioPlayer()
         webView.destroy()
         super.onDestroy()
+    }
+
+    override fun onStop() {
+        if (!isChangingConfigurations && !isFinishing) {
+            releaseQuranRadioPlayer()
+            finish()
+        }
+        super.onStop()
+    }
+
+    private fun playQuranRadio() {
+        runOnUiThread {
+            releaseQuranRadioPlayer()
+            val player = MediaPlayer()
+            quranRadioPlayer = player
+            player.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            player.setOnPreparedListener { preparedPlayer ->
+                if (quranRadioPlayer === preparedPlayer) {
+                    preparedPlayer.start()
+                    notifyQuranRadioState(true, "إذاعة القرآن الكريم في قطر تعمل.")
+                }
+            }
+            player.setOnErrorListener { failedPlayer, _, _ ->
+                if (quranRadioPlayer === failedPlayer) quranRadioPlayer = null
+                failedPlayer.release()
+                notifyQuranRadioState(false, "تعذر الاتصال ببث إذاعة القرآن الكريم في قطر.")
+                true
+            }
+            try {
+                player.setDataSource(qatarQuranRadioUrl)
+                player.prepareAsync()
+            } catch (error: IOException) {
+                releaseQuranRadioPlayer()
+                notifyQuranRadioState(false, "تعذر تحميل بث إذاعة القرآن الكريم في قطر.")
+            } catch (error: IllegalStateException) {
+                releaseQuranRadioPlayer()
+                notifyQuranRadioState(false, "تعذر بدء بث إذاعة القرآن الكريم في قطر.")
+            }
+        }
+    }
+
+    private fun stopQuranRadio() {
+        runOnUiThread {
+            releaseQuranRadioPlayer()
+            notifyQuranRadioState(false, "تم إيقاف إذاعة القرآن الكريم.")
+        }
+    }
+
+    private fun releaseQuranRadioPlayer() {
+        quranRadioPlayer?.release()
+        quranRadioPlayer = null
+    }
+
+    private fun notifyQuranRadioState(isPlaying: Boolean, message: String) {
+        if (!::webView.isInitialized) return
+        val state = if (isPlaying) "true" else "false"
+        val safeMessage = JSONObject.quote(message)
+        webView.post {
+            webView.evaluateJavascript(
+                "window.updateQuranRadioState?.($state, $safeMessage)",
+                null
+            )
+        }
+    }
+
+    private inner class TvBridge {
+        @JavascriptInterface
+        fun playQuranRadio() {
+            this@MainActivity.playQuranRadio()
+        }
+
+        @JavascriptInterface
+        fun stopQuranRadio() {
+            this@MainActivity.stopQuranRadio()
+        }
+    }
+}
+
+class BootReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED) return
+        val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return
+        launchIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        try {
+            context.startActivity(launchIntent)
+        } catch (error: SecurityException) {
+            Log.w("DohaTV", "Android TV blocked automatic launch after boot", error)
+        }
     }
 }
