@@ -17,14 +17,18 @@
             </div>
 
             <div class="glass-controls">
-                <label class="glass-control-item adhan-source-control" title="اختر تسجيل الأذان">
+                <div class="glass-control-item adhan-source-control">
                     <span class="control-icon">🕌</span>
-                    <select id="adhan-source-select" class="tv-glass-input tv-nav" aria-label="اختيار تسجيل الأذان">
-                        <option value="egypt">مصر — عبد الباسط عبد الصمد</option>
-                        <option value="makkah">مكة المكرمة — أذان الفجر</option>
-                        <option value="madinah">المدينة المنورة — أذان الحرم</option>
-                    </select>
-                </label>
+                    <button id="adhan-source-btn" class="glass-btn tv-nav adhan-source-button" type="button"
+                            aria-label="اختيار قارئ الأذان" aria-expanded="false" aria-controls="adhan-source-menu">
+                        مكة المكرمة — أذان الفجر ▾
+                    </button>
+                    <div id="adhan-source-menu" class="adhan-source-menu" role="group" aria-label="اختيار قارئ الأذان" hidden>
+                        <button class="glass-btn tv-nav adhan-source-option" type="button" data-adhan-source="egypt">مصر — عبد الباسط عبد الصمد</button>
+                        <button class="glass-btn tv-nav adhan-source-option" type="button" data-adhan-source="makkah">مكة المكرمة — أذان الفجر</button>
+                        <button class="glass-btn tv-nav adhan-source-option" type="button" data-adhan-source="madinah">المدينة المنورة — أذان الحرم</button>
+                    </div>
+                </div>
                 <button id="adhan-preview-btn" class="glass-control-item glass-btn tv-nav" tabindex="0"
                         title="تشغيل الأذان للتجربة" aria-label="تشغيل الأذان للتجربة">
                     ▶
@@ -74,15 +78,17 @@
                         <span class="clock-center"></span>
                     </div>
                 </div>
-                <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
-                <div class="date-details-arabic">
-                    <div id="arabic-day-name" class="day-text">الأربعاء</div>
-                    <div id="hijri-date-arabic" class="date-text hijri">١٧ جمادى الأولى ١٤٤٨ هـ</div>
-                    <div id="gregorian-date-arabic" class="date-text">٢٨ أكتوبر ٢٠٢٦ م</div>
-                    <div class="date-ramadan" id="ramadan-countdown-days">
-                        <span class="date-ramadan-icon" aria-hidden="true">🌙</span>
-                        <span class="days-count" id="ramadan-days-value">١١٤</span>
-                        <span class="days-label">يوماً لرمضان</span>
+                <div class="clock-date-content">
+                    <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
+                    <div class="date-details-arabic">
+                        <div id="arabic-day-name" class="day-text">الأربعاء</div>
+                        <div id="hijri-date-arabic" class="date-text hijri">١٧ جمادى الأولى ١٤٤٨ هـ</div>
+                        <div id="gregorian-date-arabic" class="date-text">٢٨ أكتوبر ٢٠٢٦ م</div>
+                        <div class="date-ramadan" id="ramadan-countdown-days">
+                            <span class="date-ramadan-icon" aria-hidden="true">🌙</span>
+                            <span class="days-count" id="ramadan-days-value">١١٤</span>
+                            <span class="days-label">يوماً لرمضان</span>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -107,7 +113,7 @@
             <section class="glass-card card-weather tv-nav-card" tabindex="0">
                 <div class="card-header">
                     <span class="card-icon">☀️</span>
-                    <h3>الطقس بالدوحة</h3>
+                    <h3>الطقس والأسعار</h3>
                     <span id="current-weather-temp" class="badge-glass">جاري التحديث...</span>
                 </div>
                 <div id="weather-details-row" class="weather-meta-row">
@@ -118,8 +124,16 @@
                 <div id="weather-forecast" class="weather-grid">
                     <span>جاري جلب الطقس...</span>
                 </div>
+                <div class="finance-section">
+                    <div class="finance-header">
+                        <span id="finance-label">سعر الدولار بالجنيه المصري</span>
+                        <span class="finance-value" id="finance-value" aria-live="polite">—</span>
+                    </div>
+                    <div class="finance-status" id="finance-status" aria-live="polite"></div>
+                </div>
                 <div class="card-action-menu" hidden>
                     <button id="action-refresh-weather" class="glass-btn tv-nav" type="button">تحديث الطقس</button>
+                    <button id="action-next-finance" class="glass-btn tv-nav" type="button">السعر التالي</button>
                 </div>
             </section>
 
@@ -149,23 +163,6 @@
                 </div>
             </section>
 
-            <section class="glass-card card-finance tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">💵</span>
-                    <h3>الأسعار</h3>
-                </div>
-                <div class="finance-grid" id="finance-rates-container">
-                    <div class="finance-box">
-                        <div class="finance-label" id="finance-label">سعر الدولار بالجنيه المصري</div>
-                        <div class="finance-value" id="finance-value" aria-live="polite">—</div>
-                    </div>
-                </div>
-                <div id="finance-status" class="finance-status" aria-live="polite"></div>
-                <div class="card-action-menu" hidden>
-                    <button id="action-next-finance" class="glass-btn tv-nav" type="button">السعر التالي</button>
-                </div>
-            </section>
-
             <section class="glass-card card-products tv-nav-card" tabindex="0">
                 <div class="products-gallery" id="products-gallery">
                     <img id="product-showcase-image" class="product-showcase-image" src="assets/products/keto-coffee-box.jpg" alt="قهوة كيتو من Naturadiet">
@@ -177,6 +174,7 @@
                 </div>
                 <div class="products-caption" aria-live="polite">
                     <strong id="product-gallery-name">قهوة كيتو — Naturadiet</strong>
+                    <span id="product-gallery-details">مزيج ٥ في ١؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.</span>
                 </div>
                 <div class="card-action-menu product-action-menu" hidden>
                     <button id="action-previous-product" class="glass-btn tv-nav" type="button">المنتج السابق</button>
@@ -186,14 +184,6 @@
             </section>
 
         </main>
-    </div>
-
-    <div id="screensaver-overlay" class="screensaver-mode" style="display: none;">
-        <div class="screensaver-content">
-            <div class="screensaver-clock" id="screensaver-clock">٠٠:٠٠</div>
-            <div class="screensaver-date" id="screensaver-date">--</div>
-            <div class="screensaver-msg">اضغط أي زر في ريموت التلفزيون للعودة إلى اللوحة</div>
-        </div>
     </div>
 
     <script src="app.js"></script>

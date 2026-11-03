@@ -9,10 +9,10 @@ let productRotationPaused = false;
 let financeIndex = 0;
 let financeValues = { usdEgp: null, goldEgp: null, goldUsd: null };
 let prayerTimings = null;
-let idleTimer = null;
-const IDLE_LIMIT = 10 * 60 * 1000;
 const FINANCE_REFRESH_MS = 15 * 60 * 1000;
 const QATAR_PRAYER_TIMES_API = 'https://meiaservicesext.islam.gov.qa/ServicesBrokerGatewayAPI/api/PrayerTimes';
+const ALADHAN_QATAR_PRAYER_API = 'https://api.aladhan.com/v1/timingsByCity';
+const PRAYER_KEYS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
 const ADHAN_SOURCES = Object.freeze({
     egypt: {
         label: 'مصر — عبد الباسط عبد الصمد',
@@ -82,8 +82,8 @@ function getAdhanSourceUrl(sourceId) {
 }
 
 function getSelectedAdhanUrl() {
-    const sourceSelect = document.getElementById('adhan-source-select');
-    return getAdhanSourceUrl(sourceSelect?.value || 'makkah');
+    const savedSourceId = localStorage.getItem('dohatv_adhan_source');
+    return getAdhanSourceUrl(ADHAN_SOURCES[savedSourceId] ? savedSourceId : 'makkah');
 }
 
 const rotatingDhikrList = [
@@ -125,7 +125,6 @@ function initDashboard() {
     setupProductGallery();
     setupCardActions();
     setupRemoteNavigation();
-    setupIdleScreensaver();
     startClockAndTimers();
     updateDailyContent();
     showFaithContent(0);
@@ -166,6 +165,8 @@ function showProductSlide(index) {
         image.hidden = false;
     }
     if (name) name.innerText = slide.name;
+    const details = document.getElementById('product-gallery-details');
+    if (details) details.innerText = slide.details;
     if (emptyState) emptyState.hidden = true;
 }
 
@@ -186,9 +187,6 @@ function startClockAndTimers() {
             clockEl.innerText = toArabicDigits(timeFormatted);
         }
 
-        const screensaverClock = document.getElementById('screensaver-clock');
-        if (screensaverClock) screensaverClock.innerText = toArabicDigits(`${hrsStr}:${mins} ${ampm}`);
-
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
         const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -203,9 +201,6 @@ function startClockAndTimers() {
 
         const gregEl = document.getElementById('gregorian-date-arabic');
         if (gregEl) gregEl.innerText = toArabicDigits(`${dayNum} ${monthName} ${yearNum} م`);
-
-        const screensaverDate = document.getElementById('screensaver-date');
-        if (screensaverDate) screensaverDate.innerText = toArabicDigits(`${dayName}، ${dayNum} ${monthName} ${yearNum} م`);
 
         const fridayBanner = document.getElementById('friday-banner');
         if (fridayBanner) {
@@ -365,7 +360,7 @@ async function fetchFinancialRatesAndGold() {
         const failures = [];
         if (rateResult.status === 'rejected') failures.push('سعر الصرف');
         if (goldResult.status === 'rejected') failures.push('الذهب');
-        statusEl.innerText = failures.length ? `تعذر تحديث: ${failures.join(' و')}` : '';
+        statusEl.innerText = failures.length ? `تعذر تحديث السعر: ${failures.join(' و')}` : '';
     }
     renderFinanceCard();
 }
@@ -389,58 +384,86 @@ function rotateFinanceCard() {
 }
 
 async function fetchPrayerTimes() {
+    const now = new Date();
+    const date = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+    let officialError;
     try {
-        const now = new Date();
-        const date = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
         const response = await fetch(`${QATAR_PRAYER_TIMES_API}?date=${date}`);
-        if (!response.ok) throw new Error(`Prayer-times request failed (${response.status})`);
+        if (!response.ok) throw new Error(`Qatar Awqaf prayer request failed (${response.status})`);
         const data = await response.json();
-
-        const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
         if (data?.gregorianDate?.date !== date.replaceAll('-', '/') ||
             !Array.isArray(data?.times) || !data?.hijriDate) {
-            throw new Error('Qatar Awqaf response did not contain prayer times');
+            throw new Error('Qatar Awqaf response did not contain prayer times for today');
         }
         const officialTimings = Object.fromEntries(data.times.map(prayer => [
             prayer.prayerTimeName,
             prayer.time
         ]));
-        const timings = Object.fromEntries(prayerKeys.map(key => [
+        const timings = Object.fromEntries(PRAYER_KEYS.map(key => [
             key,
             normalizeQatarPrayerTime(officialTimings[key])
         ]));
-        if (prayerKeys.some(key => !timings[key])) {
+        if (PRAYER_KEYS.some(key => !timings[key])) {
             throw new Error('Qatar Awqaf response did not contain valid prayer times');
         }
-        prayerTimings = timings;
-        const hijri = data.hijriDate;
+        const hijri = {
+            day: data.hijriDate.day,
+            month: data.hijriDate.month,
+            year: data.hijriDate.year
+        };
+        applyPrayerTimes(timings, hijri, 'وزارة الأوقاف القطرية', date);
+        return;
+    } catch (error) {
+        officialError = error;
+        console.error('Unable to load Qatar Awqaf prayer times:', error);
+    }
 
-        const hijriMonthNames = [
-            'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة',
-            'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
-        ];
-        const hijriMonth = hijriMonthNames[Number(hijri.month) - 1];
-        if (!hijri.day || !hijriMonth || !hijri.year) {
-            throw new Error('Qatar Awqaf response did not contain a valid Hijri date');
+    try {
+        const fallbackUrl = `${ALADHAN_QATAR_PRAYER_API}/${date}?city=Doha&country=Qatar&method=10`;
+        const response = await fetch(fallbackUrl);
+        if (!response.ok) throw new Error(`Aladhan Qatar prayer request failed (${response.status})`);
+        const result = await response.json();
+        const data = result?.data;
+        if (result?.code !== 200 || data?.meta?.timezone !== 'Asia/Qatar' ||
+            data?.meta?.method?.id !== 10 || data?.date?.gregorian?.date !== date) {
+            throw new Error('Aladhan response did not match Doha, Qatar prayer data for today');
         }
-        const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonth} ${toArabicDigits(hijri.year)} هـ`;
-        const hijriEl = document.getElementById('hijri-date-arabic');
-        if (hijriEl) hijriEl.innerText = hijriStr;
-
-        const sourceEl = document.getElementById('prayer-source-status');
-        if (sourceEl) sourceEl.innerText = 'وزارة الأوقاف القطرية';
-        renderPrayerTimes();
-        checkCurrentAndNextPrayer(new Date());
-    } catch (e) {
-        console.error('Unable to load Qatar Awqaf prayer times:', e);
+        const timings = Object.fromEntries(PRAYER_KEYS.map(key => [
+            key,
+            normalizeQatarPrayerTime(data.timings[key])
+        ]));
+        if (PRAYER_KEYS.some(key => !timings[key])) {
+            throw new Error('Aladhan response did not contain valid prayer times');
+        }
+        applyPrayerTimes(timings, data.date.hijri, 'Aladhan — الدوحة، طريقة قطر', date);
+    } catch (fallbackError) {
+        console.error('Unable to load Aladhan Qatar prayer times:', fallbackError);
+        try {
+            const cached = JSON.parse(localStorage.getItem('dohatv_prayer_cache') || 'null');
+            if (cached?.date === date && PRAYER_KEYS.every(key => normalizeQatarPrayerTime(cached.timings?.[key]))) {
+                applyPrayerTimes(cached.timings, cached.hijri, `${cached.source} — محفوظ لليوم`, date, false);
+                return;
+            }
+        } catch (cacheError) {
+            console.error('Unable to read cached Doha prayer times:', cacheError);
+        }
         const container = document.getElementById('prayer-times-container');
-        if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب مواقيت وزارة الأوقاف القطرية</span>";
+        if (container) container.innerHTML = "<span class='loading-text'>تعذر الاتصال بمصدري مواقيت قطر والدوحة</span>";
         const sourceEl = document.getElementById('prayer-source-status');
-        if (sourceEl) sourceEl.innerText = 'تعذر الاتصال';
+        if (sourceEl) sourceEl.innerText = `${officialError?.message || 'وزارة الأوقاف غير متاحة'}؛ ${fallbackError.message}`;
     }
 }
 
 function normalizeQatarPrayerTime(time) {
+    if (typeof time === 'string') {
+        const match = time.match(/^(\d{1,2}):(\d{2})/);
+        if (!match) return null;
+        const hour = Number(match[1]);
+        const minute = Number(match[2]);
+        return hour <= 23 && minute <= 59
+            ? `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`
+            : null;
+    }
     const hour = Number(time?.hour);
     const minute = Number(time?.minutes);
     if (Number.isInteger(hour) && hour >= 0 && hour <= 23 &&
@@ -453,6 +476,40 @@ function normalizeQatarPrayerTime(time) {
     let parsedHour = Number(match[1]) % 12;
     if (match[3].toUpperCase() === 'PM') parsedHour += 12;
     return `${String(parsedHour).padStart(2, '0')}:${match[2]}`;
+}
+
+function applyPrayerTimes(timings, hijri, source, date, save = true) {
+    const hijriMonthNames = [
+        'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة',
+        'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+    ];
+    const monthIndex = Number(hijri?.month?.number ?? hijri?.month) - 1;
+    const hijriMonth = hijriMonthNames[monthIndex] || hijri?.month?.ar;
+    const hijriDay = hijri?.day;
+    const hijriYear = hijri?.year;
+    if (!hijriDay || !hijriMonth || !hijriYear) {
+        throw new Error('Prayer service did not return a valid Hijri date');
+    }
+
+    prayerTimings = timings;
+    const hijriEl = document.getElementById('hijri-date-arabic');
+    if (hijriEl) hijriEl.innerText = `${toArabicDigits(hijriDay)} ${hijriMonth} ${toArabicDigits(hijriYear)} هـ`;
+    const sourceEl = document.getElementById('prayer-source-status');
+    if (sourceEl) sourceEl.innerText = source;
+    renderPrayerTimes();
+    checkCurrentAndNextPrayer(new Date());
+    if (save) {
+        try {
+            localStorage.setItem('dohatv_prayer_cache', JSON.stringify({
+                date,
+                timings,
+                hijri: { day: hijriDay, month: Number(hijri?.month?.number ?? hijri?.month), year: hijriYear },
+                source
+            }));
+        } catch (error) {
+            console.error('Unable to save Doha prayer times:', error);
+        }
+    }
 }
 
 function renderPrayerTimes() {
@@ -767,11 +824,26 @@ function setupThemeAndAudioControls() {
 
     const azanAudio = document.getElementById('azan-audio');
     const azanStatus = document.getElementById('azan-status');
-    const adhanSourceSelect = document.getElementById('adhan-source-select');
+    const adhanSourceButton = document.getElementById('adhan-source-btn');
+    const adhanSourceMenu = document.getElementById('adhan-source-menu');
+    const adhanSourceOptions = Array.from(document.querySelectorAll('.adhan-source-option'));
     const savedSourceId = localStorage.getItem('dohatv_adhan_source');
-    const selectedSourceId = ADHAN_SOURCES[savedSourceId] ? savedSourceId : 'makkah';
-
-    if (adhanSourceSelect) adhanSourceSelect.value = selectedSourceId;
+    let selectedSourceId = ADHAN_SOURCES[savedSourceId] ? savedSourceId : 'makkah';
+    const setSelectedAdhanSource = sourceId => {
+        const source = ADHAN_SOURCES[sourceId];
+        if (!source) return;
+        if (adhanSourceButton) adhanSourceButton.innerText = `${source.label} ▾`;
+        adhanSourceOptions.forEach(option => {
+            const selected = option.getAttribute('data-adhan-source') === sourceId;
+            option.classList.toggle('active', selected);
+            option.setAttribute('aria-pressed', String(selected));
+        });
+    };
+    const closeAdhanMenu = () => {
+        if (adhanSourceMenu) adhanSourceMenu.hidden = true;
+        adhanSourceButton?.setAttribute('aria-expanded', 'false');
+    };
+    setSelectedAdhanSource(selectedSourceId);
     const initialAdhanUrl = getSelectedAdhanUrl();
     if (initialAdhanUrl && azanAudio) azanAudio.src = initialAdhanUrl;
     if (savedSourceId && !ADHAN_SOURCES[savedSourceId]) {
@@ -779,18 +851,31 @@ function setupThemeAndAudioControls() {
         if (azanStatus) azanStatus.innerText = 'تم تجاهل اختيار أذان محفوظ غير صالح.';
     }
 
-    if (adhanSourceSelect) {
-        adhanSourceSelect.addEventListener('change', () => {
-            const sourceId = ADHAN_SOURCES[adhanSourceSelect.value] ? adhanSourceSelect.value : 'makkah';
-            adhanSourceSelect.value = sourceId;
+    adhanSourceButton?.addEventListener('click', () => {
+        const opening = adhanSourceMenu?.hidden ?? true;
+        if (adhanSourceMenu) adhanSourceMenu.hidden = !opening;
+        adhanSourceButton.setAttribute('aria-expanded', String(opening));
+        if (opening) {
+            const selectedOption = adhanSourceOptions.find(option =>
+                option.getAttribute('data-adhan-source') === selectedSourceId
+            );
+            (selectedOption || adhanSourceOptions[0])?.focus();
+        }
+    });
+    adhanSourceOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            const sourceId = option.getAttribute('data-adhan-source');
+            if (!ADHAN_SOURCES[sourceId]) return;
+            selectedSourceId = sourceId;
             localStorage.setItem('dohatv_adhan_source', sourceId);
-            const source = getSelectedAdhanUrl();
-            if (source) {
-                if (azanAudio) azanAudio.src = source;
-                if (azanStatus) azanStatus.innerText = `تم اختيار ${ADHAN_SOURCES[sourceId].label}. يتطلب التشغيل اتصالًا بالإنترنت.`;
-            }
+            setSelectedAdhanSource(sourceId);
+            const source = getAdhanSourceUrl(sourceId);
+            if (azanAudio) azanAudio.src = source || '';
+            if (azanStatus) azanStatus.innerText = `تم اختيار ${ADHAN_SOURCES[sourceId].label}. يتطلب التشغيل اتصالًا بالإنترنت.`;
+            closeAdhanMenu();
+            adhanSourceButton?.focus();
         });
-    }
+    });
     if (azanAudio) {
         azanAudio.addEventListener('error', () => {
             if (azanStatus) azanStatus.innerText = 'تعذر تحميل تسجيل الأذان. تحقق من اتصال الإنترنت.';
@@ -828,23 +913,19 @@ function setupRemoteNavigation() {
     }
 
     document.addEventListener('keydown', (e) => {
-        window.resetIdleTimer?.();
-
-        const screensaver = document.getElementById('screensaver-overlay');
-        if (screensaver && screensaver.style.display !== 'none') {
-            screensaver.style.display = 'none';
-            return;
-        }
-
         navItems = getFocusableElements();
         const activeElement = document.activeElement;
         const key = e.key;
 
         if (key === 'Escape' || key === 'Back') {
-            const menu = activeElement?.closest?.('.card-action-menu');
+            const menu = activeElement?.closest?.('.card-action-menu, .adhan-source-menu');
             if (menu) {
                 menu.hidden = true;
-                menu.closest('.tv-nav-card')?.focus();
+                if (menu.id === 'adhan-source-menu') {
+                    document.getElementById('adhan-source-btn')?.focus();
+                } else {
+                    menu.closest('.tv-nav-card')?.focus();
+                }
                 e.preventDefault();
             }
             return;
@@ -897,25 +978,6 @@ function setupRemoteNavigation() {
             e.preventDefault();
         }
     });
-}
-
-function setupIdleScreensaver() {
-    function showScreensaver() {
-        const screensaver = document.getElementById('screensaver-overlay');
-        if (screensaver) screensaver.style.display = 'flex';
-    }
-
-    window.resetIdleTimer = function() {
-        clearTimeout(idleTimer);
-        idleTimer = setTimeout(showScreensaver, IDLE_LIMIT);
-    };
-    const resetIdleTimer = window.resetIdleTimer;
-
-    ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'].forEach(evt => {
-        window.addEventListener(evt, resetIdleTimer, true);
-    });
-
-    resetIdleTimer();
 }
 
 document.addEventListener('DOMContentLoaded', initDashboard);

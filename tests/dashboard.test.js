@@ -177,17 +177,12 @@ test('cycles the faith card through ayah, hadith, and dhikr every five seconds',
     assert.match(appSource, /setInterval\(rotateFaithContent,\s*5000\)/);
 });
 
-test('shows the in-app screensaver after ten minutes without activity', () => {
+test('keeps the dashboard visible without starting an idle screensaver timer', () => {
     const dashboard = createDashboard(async () => { throw new Error('not used'); });
 
-    vm.runInContext('setupIdleScreensaver()', dashboard.context);
-    assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
-    dashboard.timeoutCalls.at(-1).callback();
-    assert.equal(dashboard.elements.get('screensaver-overlay').style.display, 'flex');
-
-    dashboard.windowListeners.keydown();
-    assert.ok(dashboard.clearedTimeouts.length > 0);
-    assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
+    vm.runInContext('setupRemoteNavigation()', dashboard.context);
+    assert.equal(dashboard.timeoutCalls.length, 0);
+    assert.doesNotMatch(appSource, /setupIdleScreensaver|screensaver-overlay/);
 });
 
 test('starts Quran Radio Qatar on Android TV and toggles the native player', () => {
@@ -297,6 +292,57 @@ test('normalizes Qatar Awqaf prayer times and rejects malformed values', () => {
     assert.equal(vm.runInContext("normalizeQatarPrayerTime({hour: 14, minutes: 5})", dashboard.context), '14:05');
     assert.equal(vm.runInContext("normalizeQatarPrayerTime({timeFormat: '06:24 PM'})", dashboard.context), '18:24');
     assert.equal(vm.runInContext("normalizeQatarPrayerTime({hour: 27, minutes: 90})", dashboard.context), null);
+    assert.equal(vm.runInContext("normalizeQatarPrayerTime('04:25 (+03)')", dashboard.context), '04:25');
+    assert.equal(vm.runInContext("normalizeQatarPrayerTime('25:80')", dashboard.context), null);
+});
+
+test('falls back to verified Doha prayer times from Aladhan and caches today only', async () => {
+    const now = new Date();
+    const date = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+    const urls = [];
+    const dashboard = createDashboard(async url => {
+        urls.push(url);
+        if (url.includes('meiaservicesext')) throw new Error('CORS unavailable');
+        return {
+            ok: true,
+            json: async () => ({
+                code: 200,
+                data: {
+                    meta: { timezone: 'Asia/Qatar', method: { id: 10 } },
+                    date: { gregorian: { date } , hijri: { day: '12', month: { number: 8 }, year: '1448' } },
+                    timings: {
+                        Fajr: '04:25 (+03)', Dhuhr: '11:17 (+03)', Asr: '14:29 (+03)',
+                        Maghrib: '16:52 (+03)', Isha: '18:22 (+03)'
+                    }
+                }
+            })
+        };
+    });
+
+    await vm.runInContext('fetchPrayerTimes()', dashboard.context);
+
+    assert.match(urls[0], /meiaservicesext\.islam\.gov\.qa/);
+    assert.match(urls[1], new RegExp(`^https://api\\.aladhan\\.com/v1/timingsByCity/${date}\\?city=Doha&country=Qatar&method=10$`));
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /٠٤:٢٥/);
+    assert.equal(dashboard.elements.get('prayer-source-status').innerText, 'Aladhan — الدوحة، طريقة قطر');
+    assert.ok(dashboard.storedValues.has('dohatv_prayer_cache'));
+});
+
+test('rejects fallback prayer data for the wrong timezone, method, or date', async () => {
+    const dashboard = createDashboard(async url => ({
+        ok: true,
+        json: async () => url.includes('meiaservicesext')
+            ? {}
+            : { code: 200, data: {
+                meta: { timezone: 'Asia/Kuwait', method: { id: 10 } },
+                date: { gregorian: { date: '01 Jan 2000' }, hijri: { day: '1', month: { number: 1 }, year: '1420' } },
+                timings: { Fajr: '04:00', Dhuhr: '11:00', Asr: '14:00', Maghrib: '17:00', Isha: '18:00' }
+            } }
+    }));
+
+    await vm.runInContext('fetchPrayerTimes()', dashboard.context);
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /تعذر الاتصال/);
+    assert.equal(dashboard.storedValues.has('dohatv_prayer_cache'), false);
 });
 
 test('accepts only HTTPS audio URLs for the adhan source', () => {
@@ -334,26 +380,45 @@ test('offers only the three selected adhan recordings and no external custom sou
 
     const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
     for (const sourceId of ['egypt', 'makkah', 'madinah']) {
-        assert.match(html, new RegExp(`<option value="${sourceId}">`));
+        assert.match(html, new RegExp(`class="glass-btn tv-nav adhan-source-option" type="button" data-adhan-source="${sourceId}"`));
     }
     assert.doesNotMatch(html, /adhan-custom-source-input|value="qatar"|value="custom"/);
 });
 
 test('selecting an adhan preset saves and plays the matching recording', () => {
     const dashboard = createDashboard(async () => { throw new Error('not used'); });
+    const createOption = sourceId => ({
+        sourceId,
+        listeners: {},
+        attributes: {},
+        classList: { toggle() {} },
+        getAttribute(name) { return name === 'data-adhan-source' ? sourceId : null; },
+        addEventListener(name, callback) { this.listeners[name] = callback; },
+        setAttribute(name, value) { this.attributes[name] = value; },
+        focus() {},
+        click() { this.listeners.click?.(); }
+    });
+    const sourceOptions = ['egypt', 'makkah', 'madinah'].map(createOption);
+    dashboard.context.document.querySelectorAll = selector =>
+        selector === '.adhan-source-option' ? sourceOptions : [];
+    const sourceButton = dashboard.context.document.getElementById('adhan-source-btn');
+    const sourceMenu = dashboard.context.document.getElementById('adhan-source-menu');
+    sourceMenu.hidden = true;
 
     vm.runInContext('setupThemeAndAudioControls()', dashboard.context);
-    const sourceSelect = dashboard.elements.get('adhan-source-select');
     const audio = dashboard.elements.get('azan-audio');
 
-    assert.equal(sourceSelect.value, 'makkah');
+    assert.match(sourceButton.innerText, /مكة المكرمة/);
     assert.equal(audio.src, vm.runInContext("getAdhanSourceUrl('makkah')", dashboard.context));
 
-    sourceSelect.value = 'madinah';
-    sourceSelect.listeners.change();
+    sourceButton.listeners.click();
+    assert.equal(sourceMenu.hidden, false);
+    sourceOptions[2].click();
 
     assert.equal(audio.src, vm.runInContext("getAdhanSourceUrl('madinah')", dashboard.context));
     assert.equal(dashboard.storedValues.get('dohatv_adhan_source'), 'madinah');
+    assert.equal(sourceMenu.hidden, true);
+    assert.match(sourceButton.innerText, /المدينة المنورة/);
 });
 
 test('cycles through all uploaded product photos without cropping or permanent gallery controls', () => {
@@ -388,7 +453,7 @@ test('cycles through all uploaded product photos without cropping or permanent g
 
     const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
     const productCard = html.match(/<section class="glass-card card-products[\s\S]*?<\/section>/)?.[0] || '';
-    assert.doesNotMatch(productCard, /card-header|product-gallery-count|product-gallery-control|product-gallery-details/);
+    assert.doesNotMatch(productCard, /card-header|product-gallery-count|product-gallery-control/);
     assert.match(productCard, /id="product-gallery-name"/);
 });
 
@@ -438,19 +503,23 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(styles, /\.products-gallery\s*\{/);
     assert.match(styles, /\.card-products\s*\{\s*grid-column:\s*span 6/s);
     assert.match(styles, /\.product-showcase-image\s*\{[^}]*object-fit:\s*contain/s);
-    assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.72fr\)\s+minmax\(0,\s*1\.28fr\)/);
-    assert.match(styles, /\.card-action-menu\[hidden\]\s*\{\s*display:\s*none;/);
+    assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.78fr\)\s+minmax\(0,\s*1\.22fr\)/);
+    assert.match(styles, /\.card-action-menu\[hidden\]\s*\{[^}]*display:\s*none !important;/);
     assert.match(styles, /\.card-action-menu:not\(\[hidden\]\)/);
     assert.match(html, /id="products-gallery"/);
     assert.match(html, /id="product-showcase-image"/);
     assert.match(html, /id="product-gallery-name"/);
-    assert.doesNotMatch(html, /id="product-gallery-details"|id="product-gallery-count"|product-gallery-control/);
+    assert.match(html, /id="product-gallery-details"/);
+    assert.match(html, /id="product-gallery-details"/);
     assert.match(html, /card-faith/);
     assert.match(html, /id="ramadan-countdown-days"/);
     assert.doesNotMatch(html, /class="glass-card card-ramadan/);
     assert.doesNotMatch(html, /id="mosque-mode-btn"/);
     assert.match(html, /id="faith-carousel-indicator"/);
-    assert.match(html, /id="finance-status" class="finance-status" aria-live="polite"><\/div>/);
+    assert.match(html, /class="finance-status" id="finance-status" aria-live="polite"><\/div>/);
+    assert.match(html, /class="glass-card card-weather tv-nav-card"[\s\S]*?class="finance-section"/);
+    assert.doesNotMatch(html, /class="glass-card card-finance/);
+    assert.doesNotMatch(html, /screensaver-overlay/);
     assert.match(html, /id="adhan-preview-btn"[^>]*aria-label="تشغيل الأذان للتجربة"/);
     assert.doesNotMatch(html.match(/<button id="adhan-preview-btn"[\s\S]*?<\/button>/)?.[0] || '', /تجربة الأذان/);
 
