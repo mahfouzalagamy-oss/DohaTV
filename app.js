@@ -7,6 +7,7 @@ let prayerTimings = null;
 let idleTimer = null;
 const IDLE_LIMIT = 10 * 60 * 1000;
 const FINANCE_REFRESH_MS = 15 * 60 * 1000;
+const QATAR_PRAYER_TIMES_API = 'https://meiaservicesext.islam.gov.qa/ServicesBrokerGatewayAPI/api/PrayerTimes';
 const ADHAN_REPOSITORY_URL = 'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/';
 const ADHAN_SOURCES = Object.freeze({
     egypt: {
@@ -380,28 +381,69 @@ async function fetchFinancialRatesAndGold() {
 
 async function fetchPrayerTimes() {
     try {
-        const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=10');
+        const now = new Date();
+        const date = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`;
+        const response = await fetch(`${QATAR_PRAYER_TIMES_API}?date=${date}`);
         if (!response.ok) throw new Error(`Prayer-times request failed (${response.status})`);
         const data = await response.json();
 
-        if (data?.code !== 200 || !data.data?.timings || !data.data?.date?.hijri) {
-            throw new Error('Prayer-times response did not contain valid Qatar timings');
+        const prayerKeys = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+        if (data?.gregorianDate?.date !== date.replaceAll('-', '/') ||
+            !Array.isArray(data?.times) || !data?.hijriDate) {
+            throw new Error('Qatar Awqaf response did not contain prayer times');
         }
-        prayerTimings = data.data.timings;
-        const hijri = data.data.date.hijri;
+        const officialTimings = Object.fromEntries(data.times.map(prayer => [
+            prayer.prayerTimeName,
+            prayer.time
+        ]));
+        const timings = Object.fromEntries(prayerKeys.map(key => [
+            key,
+            normalizeQatarPrayerTime(officialTimings[key])
+        ]));
+        if (prayerKeys.some(key => !timings[key])) {
+            throw new Error('Qatar Awqaf response did not contain valid prayer times');
+        }
+        prayerTimings = timings;
+        const hijri = data.hijriDate;
 
-        const hijriMonthAr = hijri.month.ar;
-        const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
+        const hijriMonthNames = [
+            'محرم', 'صفر', 'ربيع الأول', 'ربيع الآخر', 'جمادى الأولى', 'جمادى الآخرة',
+            'رجب', 'شعبان', 'رمضان', 'شوال', 'ذو القعدة', 'ذو الحجة'
+        ];
+        const hijriMonth = hijriMonthNames[Number(hijri.month) - 1];
+        if (!hijri.day || !hijriMonth || !hijri.year) {
+            throw new Error('Qatar Awqaf response did not contain a valid Hijri date');
+        }
+        const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonth} ${toArabicDigits(hijri.year)} هـ`;
         const hijriEl = document.getElementById('hijri-date-arabic');
         if (hijriEl) hijriEl.innerText = hijriStr;
 
+        const sourceEl = document.getElementById('prayer-source-status');
+        if (sourceEl) sourceEl.innerText = 'وزارة الأوقاف القطرية';
         renderPrayerTimes();
         checkCurrentAndNextPrayer(new Date());
     } catch (e) {
-        console.error('Unable to load Doha prayer times:', e);
+        console.error('Unable to load Qatar Awqaf prayer times:', e);
         const container = document.getElementById('prayer-times-container');
-        if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب أوقات الصلاة</span>";
+        if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب مواقيت وزارة الأوقاف القطرية</span>";
+        const sourceEl = document.getElementById('prayer-source-status');
+        if (sourceEl) sourceEl.innerText = 'تعذر الاتصال';
     }
+}
+
+function normalizeQatarPrayerTime(time) {
+    const hour = Number(time?.hour);
+    const minute = Number(time?.minutes);
+    if (Number.isInteger(hour) && hour >= 0 && hour <= 23 &&
+        Number.isInteger(minute) && minute >= 0 && minute <= 59) {
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+    }
+
+    const match = time?.timeFormat?.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (!match) return null;
+    let parsedHour = Number(match[1]) % 12;
+    if (match[3].toUpperCase() === 'PM') parsedHour += 12;
+    return `${String(parsedHour).padStart(2, '0')}:${match[2]}`;
 }
 
 function renderPrayerTimes() {

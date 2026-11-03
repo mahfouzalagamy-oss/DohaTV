@@ -136,27 +136,44 @@ test('shows the in-app screensaver after ten minutes without activity', () => {
     assert.equal(dashboard.timeoutCalls.at(-1).delay, 10 * 60 * 1000);
 });
 
-test('requests Doha prayer times with the verified Qatar calculation method', async () => {
+test('requests official Qatar Awqaf prayer times for the current local date', async () => {
     let requestedUrl = '';
     const dashboard = createDashboard(async url => {
         requestedUrl = url;
+        const now = new Date();
         return {
             ok: true,
             json: async () => ({
-                code: 200,
-                data: {
-                    timings: { Fajr: '04:20', Dhuhr: '11:30', Asr: '14:45', Maghrib: '16:50', Isha: '18:20' },
-                    date: { hijri: { day: '22', year: '1448', month: { ar: 'جمادى الأولى' } } }
-                }
+                gregorianDate: {
+                    date: `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
+                },
+                hijriDate: { day: 22, year: 1448, month: 5 },
+                times: [
+                    { prayerTimeName: 'Fajr', time: { hour: 4, minutes: 20, timeFormat: '04:20 AM' } },
+                    { prayerTimeName: 'Dhuhr', time: { hour: 11, minutes: 30, timeFormat: '11:30 AM' } },
+                    { prayerTimeName: 'Asr', time: { hour: 14, minutes: 45, timeFormat: '02:45 PM' } },
+                    { prayerTimeName: 'Maghrib', time: { hour: 16, minutes: 50, timeFormat: '04:50 PM' } },
+                    { prayerTimeName: 'Isha', time: { hour: 18, minutes: 20, timeFormat: '06:20 PM' } }
+                ]
             })
         };
     });
 
     await vm.runInContext('fetchPrayerTimes()', dashboard.context);
 
-    assert.match(requestedUrl, /city=Doha&country=Qatar&method=10/);
+    assert.match(requestedUrl, /^https:\/\/meiaservicesext\.islam\.gov\.qa\/ServicesBrokerGatewayAPI\/api\/PrayerTimes\?date=\d{2}-\d{2}-\d{4}$/);
     assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /٠٤:٢٠/);
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /١٤:٤٥/);
     assert.match(dashboard.elements.get('hijri-date-arabic').innerText, /١٤٤٨/);
+    assert.equal(dashboard.elements.get('prayer-source-status').innerText, 'وزارة الأوقاف القطرية');
+});
+
+test('normalizes Qatar Awqaf prayer times and rejects malformed values', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    assert.equal(vm.runInContext("normalizeQatarPrayerTime({hour: 14, minutes: 5})", dashboard.context), '14:05');
+    assert.equal(vm.runInContext("normalizeQatarPrayerTime({timeFormat: '06:24 PM'})", dashboard.context), '18:24');
+    assert.equal(vm.runInContext("normalizeQatarPrayerTime({hour: 27, minutes: 90})", dashboard.context), null);
 });
 
 test('accepts only HTTPS audio URLs for the adhan source', () => {
