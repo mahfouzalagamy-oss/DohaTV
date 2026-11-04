@@ -1683,6 +1683,28 @@ blockquote {
     letter-spacing: 0.3px;
 }
 
+.app-contact {
+    flex: 0 0 auto;
+    color: var(--accent-gold);
+    font-size: clamp(11px, 0.95vw, 16px);
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    direction: ltr;
+    text-shadow: 0 0 12px rgba(247, 199, 103, 0.28);
+}
+
+.background-cycle-btn {
+    min-width: clamp(92px, 9vw, 132px);
+    max-width: clamp(82px, 10vw, 150px);
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.background-cycle-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .glass-controls {
     flex: 1 1 auto;
     flex-wrap: nowrap;
@@ -1907,9 +1929,11 @@ blockquote {
     height: 100%;
     max-width: 100%;
     max-height: 100%;
-    object-fit: contain;
-    object-position: center;
-    padding: clamp(4px, 0.6vw, 10px);
+    object-fit: cover;
+    object-position: center 48%;
+    padding: 0;
+    image-rendering: auto;
+    filter: saturate(1.08) contrast(1.06);
 }
 
 .products-caption {
@@ -1948,12 +1972,41 @@ blockquote {
 .faith-content-item blockquote,
 .faith-content-item .dhikr-text {
     margin: 0;
-    font-size: clamp(17px, 1.45vw, 27px);
-    line-height: 1.55;
+    font-size: clamp(22px, 2.2vw, 40px);
+    line-height: 1.42;
+    overflow-wrap: anywhere;
 }
 
 .faith-content-item .sub-adhkar {
-    font-size: clamp(12px, 0.9vw, 16px);
+    font-size: clamp(15px, 1.15vw, 21px);
+    line-height: 1.4;
+}
+
+.faith-item-label {
+    font-size: clamp(14px, 1.05vw, 19px);
+}
+
+.doha-bg-overlay {
+    background-size: cover;
+    background-position: center center;
+}
+
+body[data-background="doha-night"] .doha-bg-overlay {
+    background-image:
+        linear-gradient(180deg, rgba(5, 12, 27, 0.44), rgba(4, 9, 20, 0.78)),
+        url("assets/backgrounds/doha-night.svg");
+}
+
+body[data-background="lusail"] .doha-bg-overlay {
+    background-image:
+        linear-gradient(180deg, rgba(5, 12, 27, 0.48), rgba(4, 9, 20, 0.78)),
+        url("assets/backgrounds/lusail.svg");
+}
+
+body[data-background="katara"] .doha-bg-overlay {
+    background-image:
+        linear-gradient(180deg, rgba(5, 12, 27, 0.42), rgba(4, 9, 20, 0.78)),
+        url("assets/backgrounds/katara.svg");
 }
 
 .card-action-menu[hidden] {

@@ -13,6 +13,11 @@ const FINANCE_REFRESH_MS = 15 * 60 * 1000;
 const QATAR_PRAYER_TIMES_API = 'https://meiaservicesext.islam.gov.qa/ServicesBrokerGatewayAPI/api/PrayerTimes';
 const ALADHAN_QATAR_PRAYER_API = 'https://api.aladhan.com/v1/timingsByCity';
 const PRAYER_KEYS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+const DASHBOARD_BACKGROUNDS = Object.freeze([
+    { id: 'doha-night', label: 'الدوحة ليلاً' },
+    { id: 'lusail', label: 'لوسيل' },
+    { id: 'katara', label: 'كتارا' }
+]);
 const ADHAN_SOURCES = Object.freeze({
     egypt: {
         label: 'مصر — عبد الباسط عبد الصمد',
@@ -121,6 +126,7 @@ function syncAnalogClock(now) {
 
 function initDashboard() {
     setupThemeAndAudioControls();
+    setupBackgroundSelector();
     setupRadioControls();
     setupProductGallery();
     setupCardActions();
@@ -168,6 +174,30 @@ function showProductSlide(index) {
     const details = document.getElementById('product-gallery-details');
     if (details) details.innerText = slide.details;
     if (emptyState) emptyState.hidden = true;
+}
+
+function setupBackgroundSelector() {
+    const button = document.getElementById('background-cycle-btn');
+    const name = document.getElementById('background-name');
+    if (!button) return;
+
+    const savedBackground = localStorage.getItem('dohatv_background');
+    let backgroundIndex = DASHBOARD_BACKGROUNDS.findIndex(background => background.id === savedBackground);
+    if (backgroundIndex < 0) backgroundIndex = 0;
+
+    const applyBackground = () => {
+        const background = DASHBOARD_BACKGROUNDS[backgroundIndex];
+        document.body.dataset.background = background.id;
+        if (name) name.innerText = background.label;
+        button.setAttribute('aria-label', `تغيير خلفية التطبيق؛ الحالية ${background.label}`);
+        localStorage.setItem('dohatv_background', background.id);
+    };
+
+    applyBackground();
+    button.addEventListener('click', () => {
+        backgroundIndex = (backgroundIndex + 1) % DASHBOARD_BACKGROUNDS.length;
+        applyBackground();
+    });
 }
 
 function startClockAndTimers() {

@@ -13,8 +13,8 @@ android {
         applicationId = "qa.dohatv.app"
         minSdk = 23
         targetSdk = 28
-        versionCode = 8
-        versionName = "1.2.5"
+        versionCode = 9
+        versionName = "1.2.6"
     }
 
     compileOptions {
@@ -30,7 +30,7 @@ dependencies {
 
 val syncWebAssets by tasks.registering(Copy::class) {
     from(rootProject.projectDir) {
-        include("index.html", "styles.css", "app.js", "manifest.webmanifest", "favicon.svg", "sw.js", "doha-skyline.svg", "assets/products/**")
+        include("index.html", "styles.css", "app.js", "manifest.webmanifest", "favicon.svg", "sw.js", "doha-skyline.svg", "assets/products/**", "assets/backgrounds/**")
     }
     into(layout.projectDirectory.dir("src/main/assets"))
 }

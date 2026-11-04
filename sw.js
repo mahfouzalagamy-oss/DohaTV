@@ -1,6 +1,7 @@
-const CACHE = 'dohatv-static-v7';
+const CACHE = 'dohatv-static-v8';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg',
+  './assets/backgrounds/doha-night.svg', './assets/backgrounds/lusail.svg', './assets/backgrounds/katara.svg',
   './assets/products/keto-coffee-box.jpg', './assets/products/matcha-tea.jpg',
   './assets/products/dnpr-chocolate-boxes.jpg', './assets/products/dnpr-lite-chocolate.jpg',
   './assets/products/coffee-and-chocolate.jpg', './assets/products/perfect-plus.jpg',

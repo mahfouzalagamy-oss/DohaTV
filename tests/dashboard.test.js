@@ -43,7 +43,7 @@ function createDashboard(fetchImpl, options = {}) {
         return element;
     });
     document = {
-        body: { classList: { add() {}, remove() {} } },
+        body: { classList: { add() {}, remove() {} }, dataset: {} },
         activeElement: null,
         addEventListener(name, callback) { documentListeners[name] = callback; },
         querySelectorAll(selector = '') { return selector.includes('.tv-nav') ? navElements : []; },
@@ -141,6 +141,24 @@ test('cycles the USD and gold prices in EGP and USD from live source responses',
     vm.runInContext('rotateFinanceCard()', dashboard.context);
     assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر أونصة الذهب بالدولار');
     assert.equal(dashboard.elements.get('finance-value').innerText, '٢٥٠٠.٠٠ $');
+});
+
+test('cycles and saves the bundled Qatar location backgrounds', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+    const button = dashboard.context.document.getElementById('background-cycle-btn');
+    const name = dashboard.context.document.getElementById('background-name');
+
+    vm.runInContext('setupBackgroundSelector()', dashboard.context);
+    assert.equal(dashboard.context.document.body.dataset.background, 'doha-night');
+    assert.equal(name.innerText, 'الدوحة ليلاً');
+
+    button.listeners.click();
+    assert.equal(dashboard.context.document.body.dataset.background, 'lusail');
+    assert.equal(dashboard.storedValues.get('dohatv_background'), 'lusail');
+    button.listeners.click();
+    assert.equal(dashboard.context.document.body.dataset.background, 'katara');
+    button.listeners.click();
+    assert.equal(dashboard.context.document.body.dataset.background, 'doha-night');
 });
 
 test('keeps a valid exchange rate visible when the gold source is unavailable', async () => {
@@ -502,7 +520,7 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(styles, /@media \(max-aspect-ratio: 1\/1\)/);
     assert.match(styles, /\.products-gallery\s*\{/);
     assert.match(styles, /\.card-products\s*\{\s*grid-column:\s*span 6/s);
-    assert.match(styles, /\.product-showcase-image\s*\{[^}]*object-fit:\s*contain/s);
+    assert.match(styles, /\.product-showcase-image\s*\{[^}]*object-fit:\s*cover/s);
     assert.match(styles, /grid-template-rows:\s*minmax\(0,\s*0\.78fr\)\s+minmax\(0,\s*1\.22fr\)/);
     assert.match(styles, /\.card-action-menu\[hidden\]\s*\{[^}]*display:\s*none !important;/);
     assert.match(styles, /\.card-action-menu:not\(\[hidden\]\)/);
@@ -511,11 +529,18 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(html, /id="product-gallery-name"/);
     assert.match(html, /id="product-gallery-details"/);
     assert.match(html, /id="product-gallery-details"/);
+    assert.match(html, /class="app-contact"[^>]*>71002141<\/span>/);
+    assert.match(html, /id="background-cycle-btn"/);
     assert.match(html, /card-faith/);
     assert.match(html, /id="ramadan-countdown-days"/);
     assert.doesNotMatch(html, /class="glass-card card-ramadan/);
     assert.doesNotMatch(html, /id="mosque-mode-btn"/);
     assert.match(html, /id="faith-carousel-indicator"/);
+    assert.match(styles, /\.faith-content-item blockquote,\s*\.faith-content-item \.dhikr-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*2\.2vw,\s*40px\)/s);
+    for (const background of ['doha-night', 'lusail', 'katara']) {
+        assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'backgrounds', `${background}.svg`)));
+        assert.ok(fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8').includes(`./assets/backgrounds/${background}.svg`));
+    }
     assert.match(html, /class="finance-status" id="finance-status" aria-live="polite"><\/div>/);
     assert.match(html, /class="glass-card card-weather tv-nav-card"[\s\S]*?class="finance-section"/);
     assert.doesNotMatch(html, /class="glass-card card-finance/);
