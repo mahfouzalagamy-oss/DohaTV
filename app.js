@@ -2,6 +2,7 @@
 let azanEnabled = true;
 let quranRadioPlaying = false;
 let quranRadioStarting = false;
+let selectedQuranRadioStation = localStorage.getItem('quranRadioStation') === 'egypt' ? 'egypt' : 'qatar';
 let dhikrIndex = 0;
 let faithContentIndex = 0;
 let productSlideIndex = 0;
@@ -13,6 +14,16 @@ const FINANCE_REFRESH_MS = 15 * 60 * 1000;
 const QATAR_PRAYER_TIMES_API = 'https://meiaservicesext.islam.gov.qa/ServicesBrokerGatewayAPI/api/PrayerTimes';
 const ALADHAN_QATAR_PRAYER_API = 'https://api.aladhan.com/v1/timingsByCity';
 const PRAYER_KEYS = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+const QURAN_RADIO_STATIONS = Object.freeze({
+    qatar: {
+        name: 'قطر',
+        url: 'https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8'
+    },
+    egypt: {
+        name: 'مصر',
+        url: 'https://stream.radiojar.com/8s5u5tpdtwzuv'
+    }
+});
 const DASHBOARD_BACKGROUNDS = Object.freeze([
     { id: 'doha-night', label: 'الدوحة ليلاً' },
     { id: 'lusail', label: 'لوسيل' },
@@ -743,11 +754,46 @@ function setupRadioControls() {
 
     if (quranBtn && quranAudio) {
         quranAudio.volume = 1;
+        const station = () => QURAN_RADIO_STATIONS[selectedQuranRadioStation];
+        const setStationPresentation = () => {
+            const currentStation = station();
+            quranAudio.src = currentStation.url;
+            const label = `إذاعة القرآن الكريم - ${currentStation.name}`;
+            quranBtn.title = `${label} — استخدم السهمين الأيسر والأيمن لتغيير المحطة`;
+            quranBtn.setAttribute('aria-label',
+                `تشغيل ${label}. استخدم السهمين الأيسر والأيمن لتغيير المحطة.`);
+            const span = quranBtn.querySelector('span');
+            if (span) span.innerText = quranRadioPlaying || quranRadioStarting
+                ? `إيقاف ${label}` : label;
+        };
+        const startRadio = () => {
+            const currentStation = station();
+            window.updateQuranRadioState(
+                false,
+                `جارٍ الاتصال بإذاعة القرآن الكريم في ${currentStation.name}...`,
+                true
+            );
+            if (nativeRadio?.playQuranRadio) {
+                nativeRadio.playQuranRadio(selectedQuranRadioStation);
+                return;
+            }
+            quranAudio.load();
+            quranAudio.play().then(() => {
+                window.updateQuranRadioState(
+                    true,
+                    `إذاعة القرآن الكريم في ${currentStation.name} تعمل.`
+                );
+            }).catch(() => {
+                window.updateQuranRadioState(
+                    false,
+                    `تعذر تشغيل إذاعة القرآن الكريم في ${currentStation.name}. تحقق من اتصال الإنترنت.`
+                );
+            });
+        };
         window.updateQuranRadioState = (isPlaying, message, isStarting = false) => {
             quranRadioPlaying = isPlaying;
             quranRadioStarting = isStarting;
-            const span = quranBtn.querySelector('span');
-            if (span) span.innerText = isPlaying || isStarting ? 'إيقاف إذاعة القرآن' : 'إذاعة القرآن الكريم';
+            setStationPresentation();
             quranBtn.setAttribute('aria-pressed', String(isPlaying || isStarting));
             if (quranStatus) quranStatus.innerText = message;
             if (isPlaying || isStarting) quranBtn.classList.add('active');
@@ -755,7 +801,10 @@ function setupRadioControls() {
         };
         quranAudio.addEventListener('error', () => {
             if (nativeRadio) return;
-            window.updateQuranRadioState(false, 'تعذر تشغيل بث إذاعة القرآن الكريم في قطر. تحقق من اتصال الإنترنت.');
+            window.updateQuranRadioState(
+                false,
+                `تعذر تشغيل إذاعة القرآن الكريم في ${station().name}. تحقق من اتصال الإنترنت.`
+            );
         });
         quranBtn.addEventListener('click', () => {
             if (quranRadioPlaying || quranRadioStarting) {
@@ -767,24 +816,38 @@ function setupRadioControls() {
                 window.updateQuranRadioState(false, 'تم إيقاف إذاعة القرآن الكريم.');
                 return;
             }
-
-            window.updateQuranRadioState(false, 'جارٍ الاتصال بإذاعة القرآن الكريم في قطر...', true);
-            if (nativeRadio?.playQuranRadio) {
-                nativeRadio.playQuranRadio();
-                return;
-            }
-            quranAudio.load();
-            quranAudio.play().then(() => {
-                window.updateQuranRadioState(true, 'إذاعة القرآن الكريم في قطر تعمل.');
-            }).catch(() => {
-                window.updateQuranRadioState(false, 'تعذر تشغيل بث إذاعة القرآن الكريم في قطر. تحقق من اتصال الإنترنت.');
-            });
+            startRadio();
         });
 
+        setStationPresentation();
         if (nativeRadio?.playQuranRadio) {
-            window.updateQuranRadioState(false, 'جارٍ الاتصال بإذاعة القرآن الكريم في قطر...', true);
-            nativeRadio.playQuranRadio();
+            startRadio();
         }
+    }
+}
+
+function changeQuranRadioStation(direction) {
+    const stationIds = Object.keys(QURAN_RADIO_STATIONS);
+    const currentIndex = stationIds.indexOf(selectedQuranRadioStation);
+    selectedQuranRadioStation = stationIds[
+        (currentIndex + direction + stationIds.length) % stationIds.length
+    ];
+    localStorage.setItem('quranRadioStation', selectedQuranRadioStation);
+    const wasPlaying = quranRadioPlaying || quranRadioStarting;
+    if (wasPlaying) {
+        if (window.AndroidTV?.stopQuranRadio) {
+            window.AndroidTV.stopQuranRadio();
+        } else {
+            document.getElementById('quran-radio-audio')?.pause();
+        }
+    }
+    const currentStation = QURAN_RADIO_STATIONS[selectedQuranRadioStation];
+    window.updateQuranRadioState?.(
+        false,
+        `تم اختيار إذاعة القرآن الكريم في ${currentStation.name}.`
+    );
+    if (wasPlaying) {
+        document.getElementById('quran-radio-btn')?.click();
     }
 }
 
@@ -966,6 +1029,13 @@ function setupRemoteNavigation() {
             key === 'ArrowDown' || key === 'Down' ||
             key === 'ArrowUp' || key === 'Up') {
             if (!activeElement || activeElement.tagName === 'SELECT') return;
+            if (activeElement.id === 'quran-radio-btn' &&
+                (key === 'ArrowRight' || key === 'Right' ||
+                    key === 'ArrowLeft' || key === 'Left')) {
+                changeQuranRadioStation(key === 'ArrowRight' || key === 'Right' ? 1 : -1);
+                e.preventDefault();
+                return;
+            }
             const direction = key.endsWith('Right') || key === 'Right' ? 'right'
                 : key.endsWith('Left') || key === 'Left' ? 'left'
                     : key.endsWith('Down') || key === 'Down' ? 'down' : 'up';

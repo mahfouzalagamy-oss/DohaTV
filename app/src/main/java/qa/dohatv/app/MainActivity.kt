@@ -31,8 +31,10 @@ class MainActivity : Activity() {
     private var quranRadioPlayer: MediaPlayer? = null
     private val qatarPrayerApiHost = "meiaservicesext.islam.gov.qa"
     private val qatarPrayerApiPath = "/ServicesBrokerGatewayAPI/api/PrayerTimes"
-    private val qatarQuranRadioUrl =
-        "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8"
+    private val quranRadioStations = mapOf(
+        "qatar" to ("قطر" to "https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8"),
+        "egypt" to ("مصر" to "https://stream.radiojar.com/8s5u5tpdtwzuv")
+    )
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,8 +175,13 @@ class MainActivity : Activity() {
         super.onStop()
     }
 
-    private fun playQuranRadio() {
+    private fun playQuranRadio(stationId: String) {
         runOnUiThread {
+            val station = quranRadioStations[stationId]
+            if (station == null) {
+                notifyQuranRadioState(false, "محطة إذاعة القرآن الكريم غير معروفة.")
+                return@runOnUiThread
+            }
             releaseQuranRadioPlayer()
             val player = MediaPlayer()
             quranRadioPlayer = player
@@ -187,24 +194,24 @@ class MainActivity : Activity() {
             player.setOnPreparedListener { preparedPlayer ->
                 if (quranRadioPlayer === preparedPlayer) {
                     preparedPlayer.start()
-                    notifyQuranRadioState(true, "إذاعة القرآن الكريم في قطر تعمل.")
+                    notifyQuranRadioState(true, "إذاعة القرآن الكريم في ${station.first} تعمل.")
                 }
             }
             player.setOnErrorListener { failedPlayer, _, _ ->
                 if (quranRadioPlayer === failedPlayer) quranRadioPlayer = null
                 failedPlayer.release()
-                notifyQuranRadioState(false, "تعذر الاتصال ببث إذاعة القرآن الكريم في قطر.")
+                notifyQuranRadioState(false, "تعذر الاتصال بإذاعة القرآن الكريم في ${station.first}.")
                 true
             }
             try {
-                player.setDataSource(qatarQuranRadioUrl)
+                player.setDataSource(station.second)
                 player.prepareAsync()
             } catch (error: IOException) {
                 releaseQuranRadioPlayer()
-                notifyQuranRadioState(false, "تعذر تحميل بث إذاعة القرآن الكريم في قطر.")
+                notifyQuranRadioState(false, "تعذر تحميل إذاعة القرآن الكريم في ${station.first}.")
             } catch (error: IllegalStateException) {
                 releaseQuranRadioPlayer()
-                notifyQuranRadioState(false, "تعذر بدء بث إذاعة القرآن الكريم في قطر.")
+                notifyQuranRadioState(false, "تعذر بدء إذاعة القرآن الكريم في ${station.first}.")
             }
         }
     }
@@ -235,8 +242,8 @@ class MainActivity : Activity() {
 
     private inner class TvBridge {
         @JavascriptInterface
-        fun playQuranRadio() {
-            this@MainActivity.playQuranRadio()
+        fun playQuranRadio(stationId: String) {
+            this@MainActivity.playQuranRadio(stationId)
         }
 
         @JavascriptInterface

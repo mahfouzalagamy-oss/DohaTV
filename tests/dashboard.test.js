@@ -50,6 +50,7 @@ function createDashboard(fetchImpl, options = {}) {
         getElementById(id) {
             if (!elements.has(id)) {
                 elements.set(id, {
+                    id,
                     classList: { add() {}, remove() {}, contains() { return false; } },
                     style: { display: id === 'screensaver-overlay' ? 'none' : '' },
                     innerText: '',
@@ -63,6 +64,7 @@ function createDashboard(fetchImpl, options = {}) {
                     src: '',
                     alt: '',
                     addEventListener(name, callback) { this.listeners[name] = callback; },
+                    click() { this.listeners.click?.({ currentTarget: this }); },
                     setAttribute(name, value) { this.attributes[name] = value; },
                     removeAttribute(name) { delete this[name]; },
                     querySelector() { return null; },
@@ -203,42 +205,78 @@ test('keeps the dashboard visible without starting an idle screensaver timer', (
     assert.doesNotMatch(appSource, /setupIdleScreensaver|screensaver-overlay/);
 });
 
-test('starts Quran Radio Qatar on Android TV and toggles the native player', () => {
+test('starts the selected Quran Radio station on Android TV and toggles the native player', () => {
     const calls = [];
     const dashboard = createDashboard(async () => { throw new Error('not used'); }, {
         androidTV: {
-            playQuranRadio() { calls.push('play'); },
+            playQuranRadio(station) { calls.push(`play:${station}`); },
             stopQuranRadio() { calls.push('stop'); }
         }
     });
 
     vm.runInContext('setupRadioControls()', dashboard.context);
-    assert.deepEqual(calls, ['play']);
-    assert.equal(dashboard.elements.get('quran-radio-audio').src, '');
+    assert.deepEqual(calls, ['play:qatar']);
+    assert.equal(dashboard.elements.get('quran-radio-audio').src,
+        'https://live.kwikmotion.com/qmcquranradiolive/quranradio/playlist.m3u8');
 
     dashboard.elements.get('quran-radio-btn').listeners.click();
-    assert.deepEqual(calls, ['play', 'stop']);
+    assert.deepEqual(calls, ['play:qatar', 'stop']);
     assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'false');
 
     dashboard.elements.get('quran-radio-btn').listeners.click();
-    assert.deepEqual(calls, ['play', 'stop', 'play']);
+    assert.deepEqual(calls, ['play:qatar', 'stop', 'play:qatar']);
     vm.runInContext("window.updateQuranRadioState(true, 'playing')", dashboard.context);
     dashboard.elements.get('quran-radio-btn').listeners.click();
-    assert.deepEqual(calls, ['play', 'stop', 'play', 'stop']);
+    assert.deepEqual(calls, ['play:qatar', 'stop', 'play:qatar', 'stop']);
     assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'false');
     assert.equal(dashboard.elements.get('quran-radio-status').innerText, 'تم إيقاف إذاعة القرآن الكريم.');
 });
 
-test('uses the Qatar Quran Radio stream on web and reports playback status', async () => {
+test('switches Quran Radio stations with the remote arrows and restarts the selected station', () => {
+    const calls = [];
+    const dashboard = createDashboard(async () => { throw new Error('not used'); }, {
+        androidTV: {
+            playQuranRadio(station) { calls.push(`play:${station}`); },
+            stopQuranRadio() { calls.push('stop'); }
+        },
+        navItems: [{ id: 'quran-radio-btn', rect: { left: 40, top: 40, width: 100, height: 40 } }]
+    });
+
+    vm.runInContext('setupRadioControls(); setupRemoteNavigation()', dashboard.context);
+    vm.runInContext("window.updateQuranRadioState(true, 'playing')", dashboard.context);
+    let prevented = false;
+    dashboard.documentListeners.keydown({
+        key: 'ArrowRight',
+        preventDefault() { prevented = true; }
+    });
+
+    assert.equal(prevented, true);
+    assert.deepEqual(calls, ['play:qatar', 'stop', 'play:egypt']);
+    assert.equal(dashboard.storedValues.get('quranRadioStation'), 'egypt');
+    assert.match(dashboard.elements.get('quran-radio-btn').attributes['aria-label'], /مصر/);
+
+    dashboard.documentListeners.keydown({
+        key: 'ArrowLeft',
+        preventDefault() {}
+    });
+    assert.equal(dashboard.storedValues.get('quranRadioStation'), 'qatar');
+    assert.match(dashboard.elements.get('quran-radio-btn').attributes['aria-label'], /قطر/);
+});
+
+test('uses the configured Qatar and Egypt Quran Radio streams on web', async () => {
     const dashboard = createDashboard(async () => { throw new Error('not used'); });
 
     vm.runInContext('setupRadioControls()', dashboard.context);
     const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
-    assert.match(html, /qmcquranradiolive\/quranradio\/playlist\.m3u8/);
+    assert.match(appSource, /qmcquranradiolive\/quranradio\/playlist\.m3u8/);
+    assert.match(appSource, /https:\/\/stream\.radiojar\.com\/8s5u5tpdtwzuv/);
     dashboard.elements.get('quran-radio-btn').listeners.click();
     await Promise.resolve();
     assert.equal(dashboard.elements.get('quran-radio-btn').attributes['aria-pressed'], 'true');
     assert.match(dashboard.elements.get('quran-radio-status').innerText, /في قطر تعمل/);
+    vm.runInContext('changeQuranRadioStation(1)', dashboard.context);
+    assert.equal(dashboard.elements.get('quran-radio-audio').src, 'https://stream.radiojar.com/8s5u5tpdtwzuv');
+    assert.match(dashboard.elements.get('quran-radio-btn').attributes['aria-label'], /مصر/);
 });
 
 test('moves remote focus to the nearest visible element in the physical arrow direction', () => {
@@ -551,6 +589,8 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     const activity = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'java', 'qa', 'dohatv', 'app', 'MainActivity.kt'), 'utf8');
     assert.match(activity, /mediaPlaybackRequiresUserGesture = false/);
     assert.match(activity, /qmcquranradiolive\/quranradio\/playlist\.m3u8/);
+    assert.match(activity, /https:\/\/stream\.radiojar\.com\/8s5u5tpdtwzuv/);
+    assert.match(activity, /fun playQuranRadio\(stationId: String\)/);
     assert.match(activity, /MediaPlayer\(\)/);
     assert.match(activity, /fun onStop\(\)/);
     assert.match(activity, /window\.updateQuranRadioState/);
@@ -558,4 +598,8 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     const manifest = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'AndroidManifest.xml'), 'utf8');
     assert.match(manifest, /RECEIVE_BOOT_COMPLETED/);
     assert.match(manifest, /android\.intent\.action\.BOOT_COMPLETED/);
+    assert.match(manifest, /android:networkSecurityConfig="@xml\/network_security_config"/);
+    const networkSecurity = fs.readFileSync(path.join(__dirname, '..', 'app', 'src', 'main', 'res', 'xml', 'network_security_config.xml'), 'utf8');
+    assert.match(networkSecurity, /<base-config cleartextTrafficPermitted="false"/);
+    assert.match(networkSecurity, /<domain includeSubdomains="true">radiojar\.com<\/domain>/);
 });
