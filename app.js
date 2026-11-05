@@ -44,23 +44,37 @@ const ADHAN_SOURCES = Object.freeze({
     }
 });
 const PRODUCT_SLIDES = Object.freeze([
-    { src: 'assets/products/keto-coffee-box.jpg', alt: 'علبة قهوة كيتو من Naturadiet', name: 'قهوة كيتو — Naturadiet', details: 'مزيج ٥ في ١؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.' },
-    { src: 'assets/products/matcha-tea.jpg', alt: 'علبة شاي ماتشا من Naturadiet', name: 'شاي ماتشا — Naturadiet', details: 'شاي ماتشا في أكياس فردية؛ الوزن الظاهر على العبوة ١٫٥ جم.' },
-    { src: 'assets/products/dnpr-chocolate-boxes.jpg', alt: 'علبتا شوكولاتة DNPR داكنة ولايت', name: 'شوكولاتة DNPR — داكنة ولايت', details: 'تظهر الصورة نوعَي Dark وLite؛ وزن العبوة الظاهر ٨٤ جم.' },
-    { src: 'assets/products/dnpr-lite-chocolate.jpg', alt: 'علبة شوكولاتة DNPR لايت', name: 'شوكولاتة DNPR — Lite', details: 'شوكولاتة بنوع Lite؛ العبوة تعرض ٨٤ جم.' },
+    { src: 'assets/products/keto-coffee-box.jpg', alt: 'علبة قهوة كيتو من Naturadiet', name: 'قهوة كيتو — Naturadiet', details: 'مزيج 5 في 1؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.' },
+    { src: 'assets/products/matcha-tea.jpg', alt: 'علبة شاي ماتشا من Naturadiet', name: 'شاي ماتشا — Naturadiet', details: 'شاي ماتشا في أكياس فردية؛ الوزن الظاهر على العبوة 1.5 جم.' },
+    { src: 'assets/products/dnpr-chocolate-boxes.jpg', alt: 'علبتا شوكولاتة DNPR داكنة ولايت', name: 'شوكولاتة DNPR — داكنة ولايت', details: 'تظهر الصورة نوعَي Dark وLite؛ وزن العبوة الظاهر 84 جم.' },
+    { src: 'assets/products/dnpr-lite-chocolate.jpg', alt: 'علبة شوكولاتة DNPR لايت', name: 'شوكولاتة DNPR — Lite', details: 'شوكولاتة بنوع Lite؛ العبوة تعرض 84 جم.' },
     { src: 'assets/products/coffee-and-chocolate.jpg', alt: 'قهوة كيتو وشوكولاتة DNPR', name: 'قهوة كيتو وشوكولاتة DNPR', details: 'صورة تجمع علبة قهوة كيتو مع شوكولاتة DNPR.' },
-    { src: 'assets/products/perfect-plus.jpg', alt: 'علبة Perfect Plus بنكهة الأناناس', name: 'Perfect Plus — أناناس', details: 'نكهة الأناناس؛ العبوة تعرض ٤٠ كيسًا بوزن إجمالي ٢٤٠ جم.' },
-    { src: 'assets/products/laperwa-coffee.jpg', alt: 'علبة قهوة Laperwa 2 في 1', name: 'قهوة Laperwa — ٢ في ١', details: 'قهوة مع مبيّض (Coffee & Creamer)؛ العبوة تعرض ٣٠ كيسًا.' },
+    { src: 'assets/products/perfect-plus.jpg', alt: 'علبة Perfect Plus بنكهة الأناناس', name: 'Perfect Plus — أناناس', details: 'نكهة الأناناس؛ العبوة تعرض 40 كيسًا بوزن إجمالي 240 جم.' },
+    { src: 'assets/products/laperwa-coffee.jpg', alt: 'علبة قهوة Laperwa 2 في 1', name: 'قهوة Laperwa — 2 في 1', details: 'قهوة مع مبيّض (Coffee & Creamer)؛ العبوة تعرض 30 كيسًا.' },
     { src: 'assets/products/perfect-weight-range.jpg', alt: 'مجموعة منتجات Perfect Weight', name: 'مجموعة Perfect Weight', details: 'صورة تعريفية تضم مجموعة من منتجات Perfect Weight.' },
-    { src: 'assets/products/perfect-plus-front.jpg', alt: 'علبة Perfect Plus من الأمام', name: 'Perfect Plus — صورة أمامية', details: 'صورة أمامية للعبوة بنكهة الأناناس، ٤٠ كيسًا و٢٤٠ جم حسب الملصق.' },
+    { src: 'assets/products/perfect-plus-front.jpg', alt: 'علبة Perfect Plus من الأمام', name: 'Perfect Plus — صورة أمامية', details: 'صورة أمامية للعبوة بنكهة الأناناس، 40 كيسًا و240 جم حسب الملصق.' },
     { src: 'assets/products/keto-coffee-sachets.jpg', alt: 'أظرف قهوة كيتو وحبوب القهوة', name: 'أظرف قهوة كيتو', details: 'تذكر الأظرف: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.' },
-    { src: 'assets/products/perfect-plus-benefits.jpg', alt: 'صورة تعريفية بمنتج Perfect Plus', name: 'معلومات العبوة — Perfect Plus', details: 'يذكر الملصق: ٤ جم ألياف، خالٍ من الجلوتين، مُحلّى بالستيفيا، وبدون دهون أو سكريات.' }
+    { src: 'assets/products/perfect-plus-benefits.jpg', alt: 'صورة تعريفية بمنتج Perfect Plus', name: 'معلومات العبوة — Perfect Plus', details: 'يذكر الملصق: 4 جم ألياف، خالٍ من الجلوتين، مُحلّى بالستيفيا، وبدون دهون أو سكريات.' }
 ]);
 
-function toArabicDigits(str) {
+function toEnglishDigits(str) {
     if (str === null || str === undefined) return '';
-    const numMap = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩'};
-    return String(str).replace(/[0-9]/g, w => numMap[w]);
+    const digitMap = {
+        '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+        '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+        '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+        '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9'
+    };
+    return String(str).replace(/[٠-٩۰-۹]/g, digit => digitMap[digit]);
+}
+
+function formatClockTime(timeStr) {
+    const match = String(timeStr || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!match) return toEnglishDigits(timeStr);
+    const hour = Number(match[1]);
+    const minute = Number(match[2]);
+    if (hour > 23 || minute > 59) return toEnglishDigits(timeStr);
+    return `${String(hour % 12 || 12).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${hour < 12 ? 'ص' : 'م'}`;
 }
 
 function toMinutesFromTime(timeStr) {
@@ -225,7 +239,7 @@ function startClockAndTimers() {
         const timeFormatted = `${hrsStr}:${mins}:${secs} ${ampm}`;
         const clockEl = document.getElementById('large-clock');
         if (clockEl) {
-            clockEl.innerText = toArabicDigits(timeFormatted);
+            clockEl.innerText = toEnglishDigits(timeFormatted);
         }
 
         const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -241,7 +255,7 @@ function startClockAndTimers() {
         if (dayEl) dayEl.innerText = dayName;
 
         const gregEl = document.getElementById('gregorian-date-arabic');
-        if (gregEl) gregEl.innerText = toArabicDigits(`${dayNum} ${monthName} ${yearNum} م`);
+        if (gregEl) gregEl.innerText = toEnglishDigits(`${dayNum} ${monthName} ${yearNum} م`);
 
         const fridayBanner = document.getElementById('friday-banner');
         if (fridayBanner) {
@@ -283,7 +297,7 @@ function updateRamadanCountdownDays(now) {
     const daysValEl = document.getElementById('ramadan-days-value');
     if (diff > 0) {
         const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-        if (daysValEl) daysValEl.innerText = toArabicDigits(days);
+        if (daysValEl) daysValEl.innerText = toEnglishDigits(days);
     } else {
         const label = document.querySelector('#ramadan-countdown-days .days-label');
         if (label) label.innerText = 'رمضان مبارك';
@@ -352,7 +366,7 @@ function showFaithContent(index) {
         }
     });
     const indicator = document.getElementById('faith-carousel-indicator');
-    if (indicator) indicator.innerText = `${toArabicDigits(faithContentIndex + 1)} / ${toArabicDigits(cards.length)}`;
+    if (indicator) indicator.innerText = `${toEnglishDigits(faithContentIndex + 1)} / ${toEnglishDigits(cards.length)}`;
 }
 
 function rotateFaithContent() {
@@ -390,11 +404,11 @@ async function fetchFinancialRatesAndGold() {
     const rate = rateResult.status === 'fulfilled' ? rateResult.value : null;
     const goldUsd = goldResult.status === 'fulfilled' ? goldResult.value : null;
     financeValues = {
-        usdEgp: rate === null ? null : `${toArabicDigits(rate.toFixed(2))} ج.م`,
+        usdEgp: rate === null ? null : `${toEnglishDigits(rate.toFixed(2))} ج.م`,
         goldEgp: rate === null || goldUsd === null
             ? null
-            : `${toArabicDigits((goldUsd * rate).toFixed(2))} ج.م`,
-        goldUsd: goldUsd === null ? null : `${toArabicDigits(goldUsd.toFixed(2))} $`
+            : `${toEnglishDigits((goldUsd * rate).toFixed(2))} ج.م`,
+        goldUsd: goldUsd === null ? null : `${toEnglishDigits(goldUsd.toFixed(2))} $`
     };
 
     if (statusEl) {
@@ -534,7 +548,7 @@ function applyPrayerTimes(timings, hijri, source, date, save = true) {
 
     prayerTimings = timings;
     const hijriEl = document.getElementById('hijri-date-arabic');
-    if (hijriEl) hijriEl.innerText = `${toArabicDigits(hijriDay)} ${hijriMonth} ${toArabicDigits(hijriYear)} هـ`;
+    if (hijriEl) hijriEl.innerText = `${toEnglishDigits(hijriDay)} ${hijriMonth} ${toEnglishDigits(hijriYear)} هـ`;
     const sourceEl = document.getElementById('prayer-source-status');
     if (sourceEl) sourceEl.innerText = source;
     renderPrayerTimes();
@@ -569,7 +583,7 @@ function renderPrayerTimes() {
         html += `
             <div class="prayer-box" id="prayer-box-${p.key}">
                 <div class="prayer-name">${p.name}</div>
-                <div class="prayer-time">${toArabicDigits(p.time)}</div>
+                <div class="prayer-time">${formatClockTime(p.time)}</div>
             </div>
         `;
     });
@@ -623,10 +637,10 @@ function checkCurrentAndNextPrayer(now) {
         const timerEl = document.getElementById('next-prayer-timer');
         if (timerEl) {
             if (diffMinutes <= 15 && diffMinutes > 0) {
-                timerEl.innerText = `اقتربت صلاة ${nextPrayer.name} (باقي ${toArabicDigits(diffMinutes)} دقيقة)`;
+                timerEl.innerText = `اقتربت صلاة ${nextPrayer.name} (باقي ${toEnglishDigits(diffMinutes)} دقيقة)`;
                 timerEl.style.borderColor = 'var(--accent-gold)';
             } else {
-                timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toArabicDigits(nextPrayer.time)})`;
+                timerEl.innerText = `الصلاة القادمة: ${nextPrayer.name} (${toEnglishDigits(formatClockTime(nextPrayer.time))})`;
                 timerEl.style.borderColor = 'rgba(0, 229, 255, 0.3)';
             }
         }
@@ -690,12 +704,12 @@ async function fetchWeatherForecast() {
             throw new Error('Weather response did not contain valid current conditions');
         }
 
-        const tempStr = `${getWeatherIcon(data.current_weather.weathercode)} ${toArabicDigits(Math.round(data.current_weather.temperature))}°م`;
+        const tempStr = `${getWeatherIcon(data.current_weather.weathercode)} ${toEnglishDigits(Math.round(data.current_weather.temperature))}°م`;
         const weatherTempEl = document.getElementById('current-weather-temp');
         if (weatherTempEl) weatherTempEl.innerText = tempStr;
 
         if (Number.isFinite(data.current_weather.windspeed)) {
-            const windStr = `الرياح: ${toArabicDigits(Math.round(data.current_weather.windspeed))} كم/س`;
+            const windStr = `الرياح: ${toEnglishDigits(Math.round(data.current_weather.windspeed))} كم/س`;
             const windEl = document.getElementById('weather-wind');
             if (windEl) windEl.innerText = windStr;
         }
@@ -706,9 +720,9 @@ async function fetchWeatherForecast() {
             const feels = data.hourly.apparent_temperature?.[hourIndex];
             const uv = data.hourly.uv_index?.[hourIndex];
             const feelsEl = document.getElementById('weather-feels');
-            if (Number.isFinite(feels) && feelsEl) feelsEl.innerText = `المحسوسة: ${toArabicDigits(Math.round(feels))}°م`;
+            if (Number.isFinite(feels) && feelsEl) feelsEl.innerText = `المحسوسة: ${toEnglishDigits(Math.round(feels))}°م`;
             const uvEl = document.getElementById('weather-uv');
-            if (Number.isFinite(uv) && uvEl) uvEl.innerText = `الأشعة UV: ${toArabicDigits(Math.round(uv))}`;
+            if (Number.isFinite(uv) && uvEl) uvEl.innerText = `الأشعة UV: ${toEnglishDigits(Math.round(uv))}`;
         }
 
         if (data.daily?.time?.length && data.daily.temperature_2m_max?.length && data.daily.temperature_2m_min?.length) {
@@ -716,8 +730,8 @@ async function fetchWeatherForecast() {
             const dayNames = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
             for (let i = 0; i < Math.min(5, data.daily.time.length); i++) {
-                const maxTemp = toArabicDigits(Math.round(data.daily.temperature_2m_max[i]));
-                const minTemp = toArabicDigits(Math.round(data.daily.temperature_2m_min[i]));
+                const maxTemp = toEnglishDigits(Math.round(data.daily.temperature_2m_max[i]));
+                const minTemp = toEnglishDigits(Math.round(data.daily.temperature_2m_min[i]));
                 const [year, month, day] = data.daily.time[i].split('-').map(Number);
                 const forecastDate = new Date(year, month - 1, day, 12);
                 const dayLabel = i === 0 ? 'اليوم' : i === 1 ? 'الغد' : dayNames[forecastDate.getDay()];

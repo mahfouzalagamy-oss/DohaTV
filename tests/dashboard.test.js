@@ -134,15 +134,15 @@ test('cycles the USD and gold prices in EGP and USD from live source responses',
 
     assert.equal(dashboard.requestedUrls[0], 'https://api.frankfurter.dev/v2/rate/usd/egp');
     assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر الدولار بالجنيه المصري');
-    assert.equal(dashboard.elements.get('finance-value').innerText, '٥٠.٠٠ ج.م');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '50.00 ج.م');
     assert.equal(dashboard.elements.get('finance-status').innerText, '');
 
     vm.runInContext('rotateFinanceCard()', dashboard.context);
     assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر أونصة الذهب بالجنيه المصري');
-    assert.equal(dashboard.elements.get('finance-value').innerText, '١٢٥٠٠٠.٠٠ ج.م');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '125000.00 ج.م');
     vm.runInContext('rotateFinanceCard()', dashboard.context);
     assert.equal(dashboard.elements.get('finance-label').innerText, 'سعر أونصة الذهب بالدولار');
-    assert.equal(dashboard.elements.get('finance-value').innerText, '٢٥٠٠.٠٠ $');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '2500.00 $');
 });
 
 test('cycles and saves the bundled Qatar location backgrounds', () => {
@@ -171,7 +171,7 @@ test('keeps a valid exchange rate visible when the gold source is unavailable', 
 
     await vm.runInContext('fetchFinancialRatesAndGold()', dashboard.context);
 
-    assert.equal(dashboard.elements.get('finance-value').innerText, '٥١.٢٥ ج.م');
+    assert.equal(dashboard.elements.get('finance-value').innerText, '51.25 ج.م');
     vm.runInContext('rotateFinanceCard()', dashboard.context);
     assert.equal(dashboard.elements.get('finance-value').innerText, 'غير متاح');
     assert.match(dashboard.elements.get('finance-status').innerText, /الذهب/);
@@ -183,16 +183,16 @@ test('cycles the faith card through ayah, hadith, and dhikr every five seconds',
     vm.runInContext('showFaithContent(0)', dashboard.context);
     assert.equal(dashboard.elements.get('faith-ayah-card').hidden, false);
     assert.equal(dashboard.elements.get('faith-hadith-card').hidden, true);
-    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '١ / ٣');
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '1 / 3');
 
     vm.runInContext('rotateFaithContent()', dashboard.context);
     assert.equal(dashboard.elements.get('faith-ayah-card').hidden, true);
     assert.equal(dashboard.elements.get('faith-hadith-card').hidden, false);
-    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٢ / ٣');
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '2 / 3');
 
     vm.runInContext('rotateFaithContent()', dashboard.context);
     assert.equal(dashboard.elements.get('faith-dhikr-card').hidden, false);
-    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '٣ / ٣');
+    assert.equal(dashboard.elements.get('faith-carousel-indicator').innerText, '3 / 3');
 
     assert.match(appSource, /setInterval\(rotateFaithContent,\s*5000\)/);
 });
@@ -203,6 +203,28 @@ test('keeps the dashboard visible without starting an idle screensaver timer', (
     vm.runInContext('setupRemoteNavigation()', dashboard.context);
     assert.equal(dashboard.timeoutCalls.length, 0);
     assert.doesNotMatch(appSource, /setupIdleScreensaver|screensaver-overlay/);
+});
+
+test('formats display digits in English and clock times in 12-hour format', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    assert.equal(
+        vm.runInContext("toEnglishDigits('٠١٢٣٤٥٦٧٨٩ ۰۱۲۳۴۵۶۷۸۹')", dashboard.context),
+        '0123456789 0123456789'
+    );
+    assert.equal(vm.runInContext("formatClockTime('00:05')", dashboard.context), '12:05 ص');
+    assert.equal(vm.runInContext("formatClockTime('12:05')", dashboard.context), '12:05 م');
+    assert.equal(vm.runInContext("formatClockTime('18:20')", dashboard.context), '06:20 م');
+});
+
+test('renders a 12-hour digital clock and date using English digits', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+
+    vm.runInContext('startClockAndTimers()', dashboard.context);
+    assert.match(dashboard.elements.get('large-clock').innerText, /^(0[1-9]|1[0-2]):[0-5]\d:[0-5]\d [صم]$/);
+    assert.doesNotMatch(dashboard.elements.get('large-clock').innerText, /[٠-٩۰-۹]/);
+    assert.doesNotMatch(dashboard.elements.get('gregorian-date-arabic').innerText, /[٠-٩۰-۹]/);
+    assert.doesNotMatch(dashboard.elements.get('ramadan-days-value').innerText, /[٠-٩۰-۹]/);
 });
 
 test('starts the selected Quran Radio station on Android TV and toggles the native player', () => {
@@ -336,9 +358,9 @@ test('requests official Qatar Awqaf prayer times for the current local date', as
     await vm.runInContext('fetchPrayerTimes()', dashboard.context);
 
     assert.match(requestedUrl, /^https:\/\/meiaservicesext\.islam\.gov\.qa\/ServicesBrokerGatewayAPI\/api\/PrayerTimes\?date=\d{2}-\d{2}-\d{4}$/);
-    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /٠٤:٢٠/);
-    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /١٤:٤٥/);
-    assert.match(dashboard.elements.get('hijri-date-arabic').innerText, /١٤٤٨/);
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /04:20 ص/);
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /02:45 م/);
+    assert.match(dashboard.elements.get('hijri-date-arabic').innerText, /1448/);
     assert.equal(dashboard.elements.get('prayer-source-status').innerText, 'وزارة الأوقاف القطرية');
 });
 
@@ -379,7 +401,7 @@ test('falls back to verified Doha prayer times from Aladhan and caches today onl
 
     assert.match(urls[0], /meiaservicesext\.islam\.gov\.qa/);
     assert.match(urls[1], new RegExp(`^https://api\\.aladhan\\.com/v1/timingsByCity/${date}\\?city=Doha&country=Qatar&method=10$`));
-    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /٠٤:٢٥/);
+    assert.match(dashboard.elements.get('prayer-times-container').innerHTML, /04:25 ص/);
     assert.equal(dashboard.elements.get('prayer-source-status').innerText, 'Aladhan — الدوحة، طريقة قطر');
     assert.ok(dashboard.storedValues.has('dohatv_prayer_cache'));
 });
@@ -542,9 +564,9 @@ test('renders current weather, matching hourly readings, and correct forecast we
 
     await vm.runInContext('fetchWeatherForecast()', dashboard.context);
 
-    assert.equal(dashboard.elements.get('current-weather-temp').innerText, '🌧️ ٣٣°م');
-    assert.equal(dashboard.elements.get('weather-feels').innerText, 'المحسوسة: ٣٥°م');
-    assert.equal(dashboard.elements.get('weather-uv').innerText, 'الأشعة UV: ٢');
+    assert.equal(dashboard.elements.get('current-weather-temp').innerText, '🌧️ 33°م');
+    assert.equal(dashboard.elements.get('weather-feels').innerText, 'المحسوسة: 35°م');
+    assert.equal(dashboard.elements.get('weather-uv').innerText, 'الأشعة UV: 2');
     assert.match(dashboard.elements.get('weather-forecast').innerHTML, /الأربعاء/);
 });
 
@@ -566,14 +588,22 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(html, /id="product-showcase-image"/);
     assert.match(html, /id="product-gallery-name"/);
     assert.match(html, /id="product-gallery-details"/);
+    assert.match(html, /class="glass-card card-clock card-prayer tv-nav-card"/);
+    assert.ok(html.indexOf('id="large-clock"') < html.indexOf('class="clock-analog-wrap"'));
+    assert.ok(html.indexOf('class="clock-analog-wrap"') < html.indexOf('id="prayer-times-container"'));
+    assert.doesNotMatch(html, /[٠-٩۰-۹]/);
     assert.match(html, /id="product-gallery-details"/);
     assert.match(html, /class="app-contact"[^>]*>71002141<\/span>/);
     assert.match(html, /id="background-cycle-btn"/);
     assert.match(html, /card-faith/);
     assert.match(html, /id="ramadan-countdown-days"/);
+    assert.match(fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8'), /dohatv-static-v9/);
     assert.doesNotMatch(html, /class="glass-card card-ramadan/);
     assert.doesNotMatch(html, /id="mosque-mode-btn"/);
     assert.match(html, /id="faith-carousel-indicator"/);
+    assert.match(styles, /\.card-clock\.card-prayer\s*\{[^}]*grid-column:\s*span 8/s);
+    assert.match(styles, /\.card-clock\.card-prayer \.clock-display-arabic\s*\{[^}]*font-size:\s*clamp\(36px,\s*3\.8vw,\s*64px\)/s);
+    assert.match(styles, /\.card-clock\.card-prayer \.date-text,[\s\S]*?font-size:\s*clamp\(15px,\s*1\.35vw,\s*22px\)/);
     assert.match(styles, /\.faith-content-item blockquote,\s*\.faith-content-item \.dhikr-text\s*\{[^}]*font-size:\s*clamp\(22px,\s*2\.2vw,\s*40px\)/s);
     for (const background of ['doha-night', 'lusail', 'katara']) {
         assert.ok(fs.existsSync(path.join(__dirname, '..', 'assets', 'backgrounds', `${background}.svg`)));

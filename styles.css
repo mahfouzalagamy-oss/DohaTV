@@ -2084,3 +2084,184 @@ body[data-background="katara"] .doha-bg-overlay {
         min-height: 190px;
     }
 }
+
+/* Combined Doha clock, date, and prayer schedule. */
+.card-clock.card-prayer {
+    display: flex;
+    grid-column: span 8;
+    align-items: stretch;
+    justify-content: flex-start;
+    min-height: 0;
+    padding: clamp(12px, 1.15vw, 20px);
+    text-align: right;
+}
+
+.time-prayer-layout {
+    display: grid;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    align-items: stretch;
+    gap: clamp(12px, 1.4vw, 24px);
+    min-width: 0;
+    min-height: 0;
+}
+
+.clock-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+    gap: clamp(4px, 0.6vh, 9px) clamp(6px, 0.7vw, 12px);
+    min-width: 0;
+    min-height: 0;
+    text-align: center;
+}
+
+.card-clock.card-prayer .clock-display-arabic {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: clamp(36px, 3.8vw, 64px);
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+    font-variant-numeric: lining-nums tabular-nums;
+    white-space: nowrap;
+}
+
+.card-clock.card-prayer .clock-analog-wrap {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.card-clock.card-prayer .analog-clock {
+    width: clamp(100px, 13vh, 156px);
+}
+
+.card-clock.card-prayer .clock-number {
+    font-size: clamp(12px, 1.5vh, 16px);
+}
+
+.card-clock.card-prayer .date-details-arabic {
+    grid-column: 2;
+    grid-row: 2;
+    align-content: center;
+    justify-items: start;
+    gap: clamp(5px, 0.7vh, 10px);
+    min-width: 0;
+    text-align: right;
+}
+
+.card-clock.card-prayer .day-text {
+    font-size: clamp(19px, 1.8vw, 29px);
+    line-height: 1.25;
+}
+
+.card-clock.card-prayer .date-text,
+.card-clock.card-prayer .days-label,
+.card-clock.card-prayer .days-count {
+    font-size: clamp(15px, 1.35vw, 22px);
+    line-height: 1.3;
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.card-clock.card-prayer .date-ramadan {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: 2px;
+    font-size: clamp(14px, 1.15vw, 19px);
+}
+
+.prayer-panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: clamp(6px, 0.8vh, 12px);
+    min-width: 0;
+    min-height: 0;
+}
+
+.prayer-panel .card-header {
+    flex-wrap: wrap;
+    margin: 0;
+}
+
+.prayer-panel .card-header h3 {
+    font-size: clamp(18px, 1.65vw, 28px);
+}
+
+.prayer-panel #next-prayer-timer {
+    max-width: 100%;
+    font-size: clamp(12px, 1vw, 17px);
+    font-variant-numeric: lining-nums tabular-nums;
+}
+
+.prayer-panel .prayer-grid {
+    flex: 0 0 auto;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: clamp(5px, 0.55vw, 10px);
+    margin-top: 0;
+}
+
+.prayer-panel .prayer-box {
+    padding: clamp(9px, 0.85vw, 14px) 3px;
+}
+
+.prayer-panel .prayer-name {
+    font-size: clamp(13px, 1.05vw, 18px);
+}
+
+.prayer-panel .prayer-time {
+    font-size: clamp(15px, 1.4vw, 23px);
+    font-variant-numeric: lining-nums tabular-nums;
+    white-space: nowrap;
+}
+
+.card-clock.card-prayer .friday-special-banner {
+    margin: 0;
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+    .card-clock.card-prayer {
+        grid-column: span 2;
+        min-height: 245px;
+    }
+
+    .card-clock.card-prayer .clock-display-arabic {
+        font-size: clamp(32px, 4.5vw, 46px);
+    }
+
+    .card-clock.card-prayer .analog-clock {
+        width: clamp(88px, 12vh, 112px);
+    }
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .card-clock.card-prayer {
+        grid-column: 1;
+        min-height: 350px;
+    }
+
+    .time-prayer-layout {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(190px, 1fr) auto;
+        gap: 12px;
+    }
+
+    .card-clock.card-prayer .clock-display-arabic {
+        font-size: clamp(36px, 8vw, 54px);
+    }
+
+    .card-clock.card-prayer .analog-clock {
+        width: clamp(96px, 16vw, 128px);
+    }
+
+    .card-clock.card-prayer .date-text,
+    .card-clock.card-prayer .days-label,
+    .card-clock.card-prayer .days-count {
+        font-size: clamp(15px, 3.5vw, 20px);
+    }
+
+    .prayer-panel .prayer-time {
+        font-size: clamp(14px, 3.5vw, 20px);
+    }
+}

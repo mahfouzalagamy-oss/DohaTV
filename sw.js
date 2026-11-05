@@ -1,4 +1,4 @@
-const CACHE = 'dohatv-static-v8';
+const CACHE = 'dohatv-static-v9';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './manifest.webmanifest', './favicon.svg', './doha-skyline.svg',
   './assets/backgrounds/doha-night.svg', './assets/backgrounds/lusail.svg', './assets/backgrounds/katara.svg',

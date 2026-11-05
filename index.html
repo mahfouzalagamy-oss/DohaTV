@@ -64,52 +64,54 @@
         </header>
 
         <main class="tv-grid-glass">
-            <section class="glass-card card-clock tv-nav-card" tabindex="0">
-                <div class="clock-analog-wrap">
-                    <div class="analog-clock" aria-label="الساعة">
-                        <span class="clock-number number-12">١٢</span>
-                        <span class="clock-number number-1">١</span>
-                        <span class="clock-number number-2">٢</span>
-                        <span class="clock-number number-3">٣</span>
-                        <span class="clock-number number-4">٤</span>
-                        <span class="clock-number number-5">٥</span>
-                        <span class="clock-number number-6">٦</span>
-                        <span class="clock-number number-7">٧</span>
-                        <span class="clock-number number-8">٨</span>
-                        <span class="clock-number number-9">٩</span>
-                        <span class="clock-number number-10">١٠</span>
-                        <span class="clock-number number-11">١١</span>
-                        <span id="analog-hour" class="hand hour-hand"></span>
-                        <span id="analog-minute" class="hand minute-hand"></span>
-                        <span id="analog-second" class="hand second-hand"></span>
-                        <span class="clock-center"></span>
-                    </div>
-                </div>
-                <div class="clock-date-content">
-                    <div class="clock-display-arabic" id="large-clock">٠١:٢٥:٢٠ ص</div>
-                    <div class="date-details-arabic">
-                        <div id="arabic-day-name" class="day-text">الأربعاء</div>
-                        <div id="hijri-date-arabic" class="date-text hijri">١٧ جمادى الأولى ١٤٤٨ هـ</div>
-                        <div id="gregorian-date-arabic" class="date-text">٢٨ أكتوبر ٢٠٢٦ م</div>
-                        <div class="date-ramadan" id="ramadan-countdown-days">
-                            <span class="date-ramadan-icon" aria-hidden="true">🌙</span>
-                            <span class="days-count" id="ramadan-days-value">١١٤</span>
-                            <span class="days-label">يوماً لرمضان</span>
+            <section class="glass-card card-clock card-prayer tv-nav-card" tabindex="0">
+                <div class="time-prayer-layout">
+                    <div class="clock-panel">
+                        <div class="clock-display-arabic" id="large-clock">01:25:20 م</div>
+                        <div class="clock-analog-wrap">
+                            <div class="analog-clock" aria-label="الساعة بالعقارب">
+                                <span class="clock-number number-12">12</span>
+                                <span class="clock-number number-1">1</span>
+                                <span class="clock-number number-2">2</span>
+                                <span class="clock-number number-3">3</span>
+                                <span class="clock-number number-4">4</span>
+                                <span class="clock-number number-5">5</span>
+                                <span class="clock-number number-6">6</span>
+                                <span class="clock-number number-7">7</span>
+                                <span class="clock-number number-8">8</span>
+                                <span class="clock-number number-9">9</span>
+                                <span class="clock-number number-10">10</span>
+                                <span class="clock-number number-11">11</span>
+                                <span id="analog-hour" class="hand hour-hand"></span>
+                                <span id="analog-minute" class="hand minute-hand"></span>
+                                <span id="analog-second" class="hand second-hand"></span>
+                                <span class="clock-center"></span>
+                            </div>
+                        </div>
+                        <div class="date-details-arabic">
+                            <div id="arabic-day-name" class="day-text">الأربعاء</div>
+                            <div id="hijri-date-arabic" class="date-text hijri">17 جمادى الأولى 1448 هـ</div>
+                            <div id="gregorian-date-arabic" class="date-text">28 أكتوبر 2026 م</div>
+                            <div class="date-ramadan" id="ramadan-countdown-days">
+                                <span class="date-ramadan-icon" aria-hidden="true">🌙</span>
+                                <span class="days-count" id="ramadan-days-value">114</span>
+                                <span class="days-label">يوماً لرمضان</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <section class="glass-card card-prayer tv-nav-card" tabindex="0">
-                <div class="card-header">
-                    <span class="card-icon">🕌</span>
-                    <h3>أوقات الصلاة (الدوحة)</h3>
-                    <span id="next-prayer-timer" class="badge-glass">الصلاة القادمة: ...</span>
-                </div>
-                <span id="prayer-source-status" class="sr-only" aria-live="polite"></span>
-                <div id="friday-banner" class="friday-special-banner" style="display:none;">✨ الجمعة مباركة: سورة الكهف، كثرة الصلاة على النبي ﷺ</div>
-                <div id="prayer-times-container" class="prayer-grid">
-                    <span>جاري حساب الأوقات...</span>
+                    <div class="prayer-panel">
+                        <div class="card-header">
+                            <span class="card-icon">🕌</span>
+                            <h3>أوقات الصلاة (الدوحة)</h3>
+                            <span id="next-prayer-timer" class="badge-glass">الصلاة القادمة: ...</span>
+                        </div>
+                        <span id="prayer-source-status" class="sr-only" aria-live="polite"></span>
+                        <div id="friday-banner" class="friday-special-banner" style="display:none;">✨ الجمعة مباركة: سورة الكهف، كثرة الصلاة على النبي ﷺ</div>
+                        <div id="prayer-times-container" class="prayer-grid">
+                            <span>جاري حساب الأوقات...</span>
+                        </div>
+                    </div>
                 </div>
                 <div id="prayer-alert-banner" class="prayer-alert" style="display:none;"></div>
                 <div class="card-action-menu" hidden>
@@ -148,7 +150,7 @@
                 <div class="card-header">
                     <span class="card-icon">📖</span>
                     <h3>زاد المؤمن</h3>
-                    <span id="faith-carousel-indicator" class="carousel-indicator" aria-live="polite">١ / ٣</span>
+                    <span id="faith-carousel-indicator" class="carousel-indicator" aria-live="polite">1 / 3</span>
                 </div>
                 <div class="faith-content-list">
                     <article id="faith-ayah-card" class="faith-content-item faith-ayah" aria-hidden="false">
@@ -181,7 +183,7 @@
                 </div>
                 <div class="products-caption" aria-live="polite">
                     <strong id="product-gallery-name">قهوة كيتو — Naturadiet</strong>
-                    <span id="product-gallery-details">مزيج ٥ في ١؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.</span>
+                    <span id="product-gallery-details">مزيج 5 في 1؛ تذكر العبوة: MCT، جذر الماكا، القهوة الخضراء، الألياف، وشاي الماتشا.</span>
                 </div>
                 <div class="card-action-menu product-action-menu" hidden>
                     <button id="action-previous-product" class="glass-btn tv-nav" type="button">المنتج السابق</button>
