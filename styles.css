@@ -1399,3 +1399,6 @@ blockquote {
         grid-auto-rows: minmax(96px, auto);
     }
 }
+
+/* Freshness labels for network-backed TV data. */
+.data-freshness { display: inline-block; color: var(--text-secondary, #b9c8cf); font-size: clamp(10px, 0.7vw, 12px); margin-inline-start: 0.5rem; }
