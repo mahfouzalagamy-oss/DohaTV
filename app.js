@@ -5,9 +5,12 @@ let mosqueModeActive = false;
 let dhikrSecondsLeft = 60;
 let dhikrIndex = 0;
 let prayerTimings = null;
+let lastWeatherData = null;
 let idleTimer = null;
 const IDLE_LIMIT = 15 * 60 * 1000;
 const FINANCE_REFRESH_MS = 15 * 60 * 1000;
+const WEATHER_REFRESH_MS = 30 * 60 * 1000;
+const PRAYER_REFRESH_MS = 6 * 60 * 60 * 1000;
 const ADHAN_REPOSITORY_URL = 'https://raw.githubusercontent.com/Kiwifu/adhan-mp3/b9180a2bb769f74cff8e378ef2cc7aaf8db5cd5b/';
 const ADHAN_SOURCES = Object.freeze({
     egypt: {
@@ -137,8 +140,10 @@ function initDashboard() {
     fetchPrayerTimes();
     fetchWeatherForecast();
     fetchFinancialRatesAndGold();
-    setInterval(updateDhikrRotation, 1000);
-    setInterval(fetchFinancialRatesAndGold, FINANCE_REFRESH_MS);
+    setInterval(() => { if (!isScreensaverVisible()) updateDhikrRotation(); }, 1000);
+    setInterval(() => { if (!isScreensaverVisible()) fetchFinancialRatesAndGold(); }, FINANCE_REFRESH_MS);
+    setInterval(() => { if (!isScreensaverVisible()) fetchWeatherForecast(); }, WEATHER_REFRESH_MS);
+    setInterval(() => { if (!isScreensaverVisible()) fetchPrayerTimes(); }, PRAYER_REFRESH_MS);
 }
 
 function setupProductGallery() {
@@ -171,7 +176,7 @@ function setupProductGallery() {
     document.getElementById('product-gallery-prev')?.addEventListener('click', () => showSlide(activeSlide - 1));
     document.getElementById('product-gallery-next')?.addEventListener('click', () => showSlide(activeSlide + 1));
     showSlide(0);
-    setInterval(() => showSlide(activeSlide + 1), 5000);
+    setInterval(() => { if (!isScreensaverVisible()) showSlide(activeSlide + 1); }, 5000);
 }
 
 function startClockAndTimers() {
@@ -363,6 +368,7 @@ async function fetchFinancialRatesAndGold() {
 }
 
 async function fetchPrayerTimes() {
+    const statusEl = document.getElementById('prayer-data-status');
     try {
         const response = await fetch('https://api.aladhan.com/v1/timingsByCity?city=Doha&country=Qatar&method=10');
         if (!response.ok) throw new Error(`Prayer-times request failed (${response.status})`);
@@ -373,6 +379,7 @@ async function fetchPrayerTimes() {
         }
         prayerTimings = data.data.timings;
         const hijri = data.data.date.hijri;
+        if (statusEl) statusEl.innerText = `آخر تحديث ${toArabicDigits(new Date().toLocaleTimeString('ar-QA', { hour: '2-digit', minute: '2-digit' }))}`;
 
         const hijriMonthAr = hijri.month.ar;
         const hijriStr = `${toArabicDigits(hijri.day)} ${hijriMonthAr} ${toArabicDigits(hijri.year)} هـ`;
@@ -383,8 +390,14 @@ async function fetchPrayerTimes() {
         checkCurrentAndNextPrayer(new Date());
     } catch (e) {
         console.error('Unable to load Doha prayer times:', e);
-        const container = document.getElementById('prayer-times-container');
-        if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب أوقات الصلاة</span>";
+        if (statusEl) statusEl.innerText = prayerTimings ? 'تعذر التحديث؛ المعروض قديم' : 'تعذر جلب الأوقات';
+        if (!prayerTimings) {
+            const container = document.getElementById('prayer-times-container');
+            if (container) container.innerHTML = "<span class='loading-text'>تعذر جلب أوقات الصلاة</span>";
+        } else {
+            renderPrayerTimes();
+            checkCurrentAndNextPrayer(new Date());
+        }
     }
 }
 
@@ -517,6 +530,7 @@ function triggerPrayerAlert(prayerName) {
 }
 
 async function fetchWeatherForecast() {
+    const statusEl = document.getElementById('weather-data-status');
     try {
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.28&longitude=51.53&current_weather=true&hourly=apparent_temperature,uv_index&daily=temperature_2m_max,temperature_2m_min&timezone=auto');
         if (!response.ok) throw new Error(`Weather request failed (${response.status})`);
@@ -525,6 +539,8 @@ async function fetchWeatherForecast() {
             throw new Error('Weather response did not contain valid current conditions');
         }
 
+        lastWeatherData = data;
+        if (statusEl) statusEl.innerText = `آخر تحديث ${toArabicDigits(new Date().toLocaleTimeString('ar-QA', { hour: '2-digit', minute: '2-digit' }))}`;
         const tempStr = `${getWeatherIcon(data.current_weather.weathercode)} ${toArabicDigits(Math.round(data.current_weather.temperature))}°م`;
         const weatherTempEl = document.getElementById('current-weather-temp');
         if (weatherTempEl) weatherTempEl.innerText = tempStr;
@@ -568,16 +584,17 @@ async function fetchWeatherForecast() {
         }
     } catch (e) {
         console.error('Unable to load Doha weather:', e);
+        if (statusEl) statusEl.innerText = lastWeatherData ? 'تعذر التحديث؛ المعروض قديم' : 'تعذر جلب الطقس';
         const currentTempEl = document.getElementById('current-weather-temp');
         const feelsEl = document.getElementById('weather-feels');
         const windEl = document.getElementById('weather-wind');
         const uvEl = document.getElementById('weather-uv');
-        if (currentTempEl) currentTempEl.innerText = 'غير متاح';
-        if (feelsEl) feelsEl.innerText = 'المحسوسة: غير متاح';
-        if (windEl) windEl.innerText = 'الرياح: غير متاحة';
+        if (!lastWeatherData && currentTempEl) currentTempEl.innerText = 'غير متاح';
+        if (!lastWeatherData && feelsEl) feelsEl.innerText = 'المحسوسة: غير متاح';
+        if (!lastWeatherData && windEl) windEl.innerText = 'الرياح: غير متاحة';
         if (uvEl) uvEl.innerText = 'الأشعة UV: غير متاحة';
         const forecastEl = document.getElementById('weather-forecast');
-        if (forecastEl) forecastEl.innerHTML = "<span class='loading-text'>تعذر جلب بيانات الطقس حاليًا</span>";
+        if (!lastWeatherData && forecastEl) forecastEl.innerHTML = "<span class='loading-text'>تعذر جلب بيانات الطقس حاليًا</span>";
     }
 }
 
@@ -774,63 +791,82 @@ function setupThemeAndAudioControls() {
     }
 }
 
+function chooseDirectionalFocus(current, candidates, direction) {
+    if (!current || !candidates?.length) return null;
+    const origin = current.getBoundingClientRect();
+    const ox = origin.left + origin.width / 2;
+    const oy = origin.top + origin.height / 2;
+    let best = null;
+    let bestScore = Number.POSITIVE_INFINITY;
+    for (const candidate of candidates) {
+        if (candidate === current) continue;
+        const rect = candidate.getBoundingClientRect();
+        const dx = rect.left + rect.width / 2 - ox;
+        const dy = rect.top + rect.height / 2 - oy;
+        const primary = direction === 'left' ? -dx : direction === 'right' ? dx : direction === 'up' ? -dy : dy;
+        if (primary <= 1) continue;
+        const secondary = direction === 'left' || direction === 'right' ? Math.abs(dy) : Math.abs(dx);
+        const score = primary + secondary * 1.7;
+        if (score < bestScore) { best = candidate; bestScore = score; }
+    }
+    return best;
+}
+
 function setupRemoteNavigation() {
     function getFocusableElements() {
         return Array.from(document.querySelectorAll('.tv-nav, .tv-nav-card, button, select, [tabindex="0"]'))
             .filter(el => el.offsetWidth > 0 && el.offsetHeight > 0 && getComputedStyle(el).visibility !== 'hidden');
     }
 
-    let navItems = getFocusableElements();
+    let lastFocused = null;
+    const navItems = getFocusableElements();
     if (navItems.length > 0) {
         navItems[0].focus();
+        lastFocused = navItems[0];
     }
 
+    document.addEventListener('focusin', e => { lastFocused = e.target; });
     document.addEventListener('keydown', (e) => {
         resetIdleTimer();
-
         const screensaver = document.getElementById('screensaver-overlay');
         if (screensaver && screensaver.style.display !== 'none') {
             screensaver.style.display = 'none';
+            if (lastFocused?.isConnected) lastFocused.focus();
+            e.preventDefault();
             return;
         }
 
-        navItems = getFocusableElements();
-        const activeElement = document.activeElement;
-        let currentIndex = navItems.indexOf(activeElement);
-        if (currentIndex === -1) currentIndex = 0;
-
-        const key = e.key;
-
-        if (key === 'ArrowRight' || key === 'Right') {
-            const nextIndex = (currentIndex + 1) % navItems.length;
-            navItems[nextIndex].focus();
+        const items = getFocusableElements();
+        if (!items.length) return;
+        const active = document.activeElement;
+        if (active?.matches?.('input[type="url"], input[type="text"], textarea')) {
+            if (e.key === 'Escape') { active.blur(); e.preventDefault(); }
+            return;
+        }
+        let current = items.includes(active) ? active : (lastFocused && items.includes(lastFocused) ? lastFocused : items[0]);
+        const direction = ({ArrowLeft: 'left', Left: 'left', ArrowRight: 'right', Right: 'right', ArrowUp: 'up', Up: 'up', ArrowDown: 'down', Down: 'down'})[e.key];
+        if (current.tagName === 'SELECT' && direction) {
+            const delta = direction === 'left' || direction === 'up' ? -1 : 1;
+            current.selectedIndex = (current.selectedIndex + delta + current.options.length) % current.options.length;
+            current.dispatchEvent(new Event('change'));
             e.preventDefault();
-        } else if (key === 'ArrowLeft' || key === 'Left') {
-            const nextIndex = (currentIndex - 1 + navItems.length) % navItems.length;
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'ArrowDown' || key === 'Down') {
-            const nextIndex = Math.min(navItems.length - 1, currentIndex + 3);
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'ArrowUp' || key === 'Up') {
-            const nextIndex = Math.max(0, currentIndex - 3);
-            navItems[nextIndex].focus();
-            e.preventDefault();
-        } else if (key === 'Enter' || key === 'Select' || e.keyCode === 13) {
-            if (activeElement) {
-                if (activeElement.tagName === 'SELECT') {
-                    const select = activeElement;
-                    const nextOpt = (select.selectedIndex + 1) % select.options.length;
-                    select.selectedIndex = nextOpt;
-                    select.dispatchEvent(new Event('change'));
-                } else {
-                    activeElement.click();
-                }
-            }
+            return;
+        }
+        if (direction) {
+            const next = chooseDirectionalFocus(current, items, direction);
+            if (next) { next.focus(); e.preventDefault(); }
+            return;
+        }
+        if (e.key === 'Enter' || e.key === 'Select' || e.keyCode === 13) {
+            current.click();
             e.preventDefault();
         }
     });
+}
+
+function isScreensaverVisible() {
+    const screensaver = document.getElementById('screensaver-overlay');
+    return Boolean(screensaver && screensaver.style.display !== 'none');
 }
 
 function setupIdleScreensaver() {

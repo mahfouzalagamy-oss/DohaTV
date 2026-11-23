@@ -254,3 +254,54 @@ test('includes responsive product showcase and TV-safe dashboard layout', () => 
     assert.match(html, /id="product-gallery-details"/);
     assert.match(html, /card-faith/);
 });
+
+test('keeps the last prayer timings visible and marks them stale after refresh failure', async () => {
+    let fail = false;
+    const dashboard = createDashboard(async () => {
+        if (fail) throw new Error('offline');
+        return { ok: true, json: async () => ({
+            code: 200,
+            data: {
+                timings: { Fajr: '04:20', Dhuhr: '11:30', Asr: '14:45', Maghrib: '16:50', Isha: '18:20' },
+                date: { hijri: { day: '22', year: '1448', month: { ar: 'جمادى الأولى' } } }
+            }
+        }) };
+    });
+    await vm.runInContext('fetchPrayerTimes()', dashboard.context);
+    const previousMarkup = dashboard.elements.get('prayer-times-container').innerHTML;
+    fail = true;
+    await vm.runInContext('fetchPrayerTimes()', dashboard.context);
+    assert.equal(dashboard.elements.get('prayer-times-container').innerHTML, previousMarkup);
+    assert.match(dashboard.elements.get('prayer-data-status').innerText, /قديم/);
+});
+
+test('keeps the last weather values visible and marks them stale after refresh failure', async () => {
+    let fail = false;
+    const dashboard = createDashboard(async () => {
+        if (fail) throw new Error('offline');
+        return { ok: true, json: async () => ({
+            current_weather: { temperature: 33, windspeed: 8, weathercode: 0, time: '2026-11-02T18:00' },
+            hourly: { time: ['2026-11-02T18:00'], apparent_temperature: [34], uv_index: [2] },
+            daily: { time: ['2026-11-02'], temperature_2m_max: [34], temperature_2m_min: [27] }
+        }) };
+    });
+    await vm.runInContext('fetchWeatherForecast()', dashboard.context);
+    const previousTemp = dashboard.elements.get('current-weather-temp').innerText;
+    fail = true;
+    await vm.runInContext('fetchWeatherForecast()', dashboard.context);
+    assert.equal(dashboard.elements.get('current-weather-temp').innerText, previousTemp);
+    assert.match(dashboard.elements.get('weather-data-status').innerText, /قديم/);
+});
+
+test('chooses the nearest focusable control in the requested direction', () => {
+    const dashboard = createDashboard(async () => { throw new Error('not used'); });
+    const element = (left, top) => ({ getBoundingClientRect: () => ({ left, top, width: 20, height: 20 }) });
+    const current = element(100, 100);
+    const rightNear = element(150, 105);
+    const rightFar = element(240, 100);
+    const below = element(105, 180);
+    const result = vm.runInContext('chooseDirectionalFocus', dashboard.context);
+    assert.equal(result(current, [current, rightNear, rightFar, below], 'right'), rightNear);
+    assert.equal(result(current, [current, rightNear, rightFar, below], 'down'), below);
+    assert.equal(result(current, [current], 'left'), null);
+});
